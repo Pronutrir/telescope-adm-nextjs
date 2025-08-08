@@ -1,0 +1,931 @@
+/* Variáveis CSS para os temas */
+
+:root {
+    /* Tema Claro Moderno - Cores Primárias (Azul Professional) */
+    --color-primary-50: 240 249 255;
+    --color-primary-100: 224 242 254;
+    --color-primary-200: 186 230 253;
+    --color-primary-300: 125 211 252;
+    --color-primary-400: 56 189 248;
+    --color-primary-500: 14 165 233;
+    --color-primary-600: 2 132 199;
+    --color-primary-700: 3 105 161;
+    --color-primary-800: 7 89 133;
+    --color-primary-900: 12 74 110;
+    --color-primary-950: 8 47 73;
+
+    /* Tema Claro Moderno - Cores Secundárias (Cinza Neutro) */
+    --color-secondary-50: 248 250 252;
+    --color-secondary-100: 241 245 249;
+    --color-secondary-200: 226 232 240;
+    --color-secondary-300: 203 213 225;
+    --color-secondary-400: 148 163 184;
+    --color-secondary-500: 100 116 139;
+    --color-secondary-600: 71 85 105;
+    --color-secondary-700: 51 65 85;
+    --color-secondary-800: 30 41 59;
+    --color-secondary-900: 15 23 42;
+    --color-secondary-950: 2 6 23;
+
+    /* Tema Claro Moderno - Cores de Sucesso (Verde Moderno) */
+    --color-success-50: 240 253 244;
+    --color-success-100: 220 252 231;
+    --color-success-200: 187 247 208;
+    --color-success-300: 134 239 172;
+    --color-success-400: 74 222 128;
+    --color-success-500: 34 197 94;
+    --color-success-600: 22 163 74;
+    --color-success-700: 21 128 61;
+    --color-success-800: 22 101 52;
+    --color-success-900: 20 83 45;
+    --color-success-950: 5 46 22;
+
+    /* Tema Claro Moderno - Cores de Aviso (Âmbar Elegante) */
+    --color-warning-50: 255 251 235;
+    --color-warning-100: 254 243 199;
+    --color-warning-200: 253 230 138;
+    --color-warning-300: 252 211 77;
+    --color-warning-400: 251 191 36;
+    --color-warning-500: 245 158 11;
+    --color-warning-600: 217 119 6;
+    --color-warning-700: 180 83 9;
+    --color-warning-800: 146 64 14;
+    --color-warning-900: 120 53 15;
+    --color-warning-950: 69 26 3;
+
+    /* Tema Claro Moderno - Cores de Erro (Vermelho Sofisticado) */
+    --color-error-50: 254 242 242;
+    --color-error-100: 254 226 226;
+    --color-error-200: 254 202 202;
+    --color-error-300: 252 165 165;
+    --color-error-400: 248 113 113;
+    --color-error-500: 239 68 68;
+    --color-error-600: 220 38 38;
+    --color-error-700: 185 28 28;
+    --color-error-800: 153 27 27;
+    --color-error-900: 127 29 29;
+    --color-error-950: 69 10 10;
+
+    /* Tema Claro Moderno - Sistema de Cores */
+    --color-background: 248 250 252;
+    /* Fundo cinza muito claro para melhor contraste */
+    --color-foreground: 15 23 42;
+    /* Azul escuro para texto principal */
+    --color-card: 255 255 255;
+    /* Cards brancos limpos */
+    --color-card-foreground: 15 23 42;
+    /* Texto em cards mais escuro */
+    --color-card-elevated: 241 245 249;
+    /* Cards elevados com mais contraste */
+    --color-popover: 255 255 255;
+    /* Popovers brancos */
+    --color-popover-foreground: 15 23 42;
+    /* Texto em popovers */
+    --color-muted: 226 232 240;
+    /* Elementos silenciados mais visíveis */
+    --color-muted-foreground: 71 85 105;
+    /* Texto silenciado mais escuro */
+    --color-accent: 219 234 254;
+    /* Azul claro para destaques */
+    --color-accent-foreground: 30 58 138;
+    /* Azul mais escuro para texto em destaques */
+    --color-destructive: 220 38 38;
+    /* Vermelho mais escuro para erros */
+    --color-destructive-foreground: 255 255 255;
+    /* Texto em elementos destrutivos */
+    --color-border: 203 213 225;
+    /* Bordas mais visíveis */
+    --color-input: 255 255 255;
+    /* Campos de entrada brancos */
+    --color-ring: 59 130 246;
+    /* Azul mais vibrante para foco */
+
+    /* Sombras modernas e limpas com mais contraste */
+    --shadow-theme: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.15);
+    --shadow-theme-lg: 0 10px 15px -3px rgb(0 0 0 / 0.15), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-theme-xl: 0 20px 25px -5px rgb(0 0 0 / 0.2), 0 8px 10px -6px rgb(0 0 0 / 0.15);
+    --backdrop-blur: blur(12px);
+}
+
+.dark {
+    /* Tema Escuro - Novo Tema Sofisticado */
+
+    /* Cores Primárias - Mantendo estrutura básica */
+    --color-primary-50: 212 219 221;
+    --color-primary-100: 202 210 213;
+    --color-primary-200: 169 183 188;
+    --color-primary-300: 126 147 154;
+    --color-primary-400: 90 108 114;
+    --color-primary-500: 57 69 72;
+    /* outer_space DEFAULT - cor principal */
+    --color-primary-600: 45 54 57;
+    --color-primary-700: 34 41 43;
+    --color-primary-800: 22 27 29;
+    --color-primary-900: 11 14 14;
+    --color-primary-950: 3 4 4;
+
+    /* Cores Secundárias - Baseadas em night */
+    --color-secondary-50: 202 210 213;
+    --color-secondary-100: 150 165 171;
+    --color-secondary-200: 100 119 125;
+    --color-secondary-300: 58 69 72;
+    --color-secondary-400: 16 19 20;
+    --color-secondary-500: 13 15 16;
+    --color-secondary-600: 10 11 12;
+    --color-secondary-700: 6 8 8;
+    --color-secondary-800: 3 4 4;
+    --color-secondary-900: 3 4 4;
+    --color-secondary-950: 3 4 4;
+
+    /* Cores de Sucesso - Tons terrosos */
+    --color-success-50: 218 208 202;
+    --color-success-100: 180 161 150;
+    --color-success-200: 141 115 100;
+    --color-success-300: 88 72 63;
+    --color-success-400: 37 30 26;
+    --color-success-500: 29 23 20;
+    --color-success-600: 21 18 15;
+    --color-success-700: 14 12 10;
+    --color-success-800: 7 6 5;
+    --color-success-900: 7 6 5;
+    --color-success-950: 7 6 5;
+
+    /* Cores de Aviso - Tons de terra queimada */
+    --color-warning-50: 237 204 198;
+    --color-warning-100: 219 153 140;
+    --color-warning-200: 201 103 83;
+    --color-warning-300: 158 68 50;
+    --color-warning-400: 102 44 32;
+    --color-warning-500: 81 35 25;
+    --color-warning-600: 60 26 19;
+    --color-warning-700: 40 17 13;
+    --color-warning-800: 20 9 6;
+    --color-warning-900: 20 9 6;
+    --color-warning-950: 20 9 6;
+
+    /* Cores de Erro - Caput Mortuum */
+    --color-error-50: 237 204 198;
+    --color-error-100: 219 153 140;
+    --color-error-200: 201 103 83;
+    --color-error-300: 158 68 50;
+    --color-error-400: 102 44 32;
+    --color-error-500: 102 44 32;
+    /* caput_mortuum DEFAULT */
+    --color-error-600: 81 35 25;
+    --color-error-700: 60 26 19;
+    --color-error-800: 40 17 13;
+    --color-error-900: 20 9 6;
+    --color-error-950: 20 9 6;
+
+    /* Cores de Info - Outer Space */
+    --color-info-50: 212 219 221;
+    --color-info-100: 169 183 188;
+    --color-info-200: 126 147 154;
+    --color-info-300: 90 108 114;
+    --color-info-400: 57 69 72;
+    --color-info-500: 57 69 72;
+    /* outer_space DEFAULT */
+    --color-info-600: 45 54 57;
+    --color-info-700: 34 41 43;
+    --color-info-800: 22 27 29;
+    --color-info-900: 11 14 14;
+    --color-info-950: 3 4 4;
+
+    /* Cores do Sistema - Baseadas nas cores sofisticadas com melhor contraste */
+    --color-background: 11 14 14;
+    /* #0b0e0e - outer_space 100 - fundo principal mais escuro */
+    --color-foreground: 212 219 221;
+    /* #d4dbdd - outer_space 900 - texto principal */
+    --color-card: 34 41 43;
+    /* #22292b - outer_space 300 - cards com mais contraste */
+    --color-card-foreground: 212 219 221;
+    /* #d4dbdd - outer_space 900 - texto em cards */
+    --color-card-elevated: 45 54 57;
+    /* #2d3639 - outer_space 400 - cards elevados com destaque */
+    --color-popover: 34 41 43;
+    /* #22292b - outer_space 300 - popovers */
+    --color-popover-foreground: 212 219 221;
+    /* #d4dbdd - outer_space 900 - texto em popovers */
+    --color-muted: 22 27 29;
+    /* #161b1d - outer_space 200 - elementos silenciados */
+    --color-muted-foreground: 150 164 170;
+    /* #96a5ab - night 800 - texto silenciado */
+    --color-accent: 57 69 72;
+    /* #394549 - outer_space DEFAULT - cor de destaque */
+    --color-accent-foreground: 212 219 221;
+    /* #d4dbdd - outer_space 900 - texto em destaque */
+    --color-destructive: 102 44 32;
+    /* #662c20 - caput_mortuum DEFAULT - para erros */
+    --color-destructive-foreground: 237 204 198;
+    /* #edccc6 - caput_mortuum 900 - texto destrutivo */
+    --color-border: 45 54 57;
+    /* #2d3639 - outer_space 400 - bordas mais visíveis */
+    --color-input: 34 41 43;
+    /* #22292b - outer_space 300 - campos de entrada */
+    --color-ring: 126 147 154;
+    /* #7e939a - outer_space 700 - foco */
+
+    /* Gradiente Sofisticado para Sidebar */
+    --sidebar-gradient: linear-gradient(180deg, rgb(var(--night-500)) 0%, rgb(var(--eerie-black-500)) 30%, rgb(var(--licorice-500)) 70%, rgb(var(--raisin-black-500)) 100%);
+
+    /* Cores Sofisticadas - Palette Premium */
+    /* Outer Space - Tons de cinza espacial */
+    --outer-space-100: 11 14 14;
+    /* #0b0e0e */
+    --outer-space-200: 22 27 29;
+    /* #161b1d */
+    --outer-space-300: 34 41 43;
+    /* #22292b */
+    --outer-space-400: 45 54 57;
+    /* #2d3639 */
+    --outer-space-500: 57 69 72;
+    /* #394549 - DEFAULT */
+    --outer-space-600: 90 108 114;
+    /* #5a6c72 */
+    --outer-space-700: 126 147 154;
+    /* #7e939a */
+    --outer-space-800: 169 183 188;
+    /* #a9b7bc */
+    --outer-space-900: 212 219 221;
+    /* #d4dbdd */
+
+    /* Night - Tons de noite profunda */
+    --night-100: 3 4 4;
+    /* #030404 */
+    --night-200: 6 8 8;
+    /* #060808 */
+    --night-300: 10 11 12;
+    /* #0a0b0c */
+    --night-400: 13 15 16;
+    /* #0d0f10 */
+    --night-500: 16 19 20;
+    /* #101314 - DEFAULT */
+    --night-600: 58 69 72;
+    /* #3a4548 */
+    --night-700: 100 119 125;
+    /* #64777d */
+    --night-800: 150 165 171;
+    /* #96a5ab */
+    --night-900: 202 210 213;
+    /* #cad2d5 */
+
+    /* Licorice - Tons de alcaçuz */
+    --licorice-100: 7 6 5;
+    /* #070605 */
+    --licorice-200: 14 12 10;
+    /* #0e0c0a */
+    --licorice-300: 21 18 15;
+    /* #15120f */
+    --licorice-400: 29 23 20;
+    /* #1d1714 */
+    --licorice-500: 37 30 26;
+    /* #251e1a - DEFAULT */
+    --licorice-600: 88 72 63;
+    /* #58483f */
+    --licorice-700: 141 115 100;
+    /* #8d7364 */
+    --licorice-800: 180 161 150;
+    /* #b4a196 */
+    --licorice-900: 218 208 202;
+    /* #dad0ca */
+
+    /* Caput Mortuum - Tons de terra queimada */
+    --caput-mortuum-100: 20 9 6;
+    /* #140906 */
+    --caput-mortuum-200: 40 17 13;
+    /* #28110d */
+    --caput-mortuum-300: 60 26 19;
+    /* #3c1a13 */
+    --caput-mortuum-400: 81 35 25;
+    /* #512319 */
+    --caput-mortuum-500: 102 44 32;
+    /* #662c20 - DEFAULT */
+    --caput-mortuum-600: 158 68 50;
+    /* #9e4432 */
+    --caput-mortuum-700: 201 103 83;
+    /* #c96753 */
+    --caput-mortuum-800: 219 153 140;
+    /* #db998c */
+    --caput-mortuum-900: 237 204 198;
+    /* #edccc6 */
+
+    /* Eerie Black - Preto sinistro */
+    --eerie-black-100: 5 5 6;
+    /* #050506 */
+    --eerie-black-200: 11 11 12;
+    /* #0b0b0c */
+    --eerie-black-300: 16 16 18;
+    /* #101012 */
+    --eerie-black-400: 21 21 24;
+    /* #151518 */
+    --eerie-black-500: 26 26 29;
+    /* #1a1a1d - DEFAULT */
+    --eerie-black-600: 70 70 77;
+    /* #46464d */
+    --eerie-black-700: 113 113 125;
+    /* #71717d */
+    --eerie-black-800: 160 160 169;
+    /* #a0a0a9 */
+    --eerie-black-900: 207 207 212;
+    /* #cfcfd4 */
+
+    /* Raisin Black - Preto uva passa */
+    --raisin-black-100: 7 7 8;
+    /* #070708 */
+    --raisin-black-200: 15 15 16;
+    /* #0f0f10 */
+    --raisin-black-300: 22 22 24;
+    /* #161618 */
+    --raisin-black-400: 30 29 32;
+    /* #1e1d20 */
+    --raisin-black-500: 36 35 39;
+    /* #242327 - DEFAULT */
+    --raisin-black-600: 80 78 86;
+    /* #504e56 */
+    --raisin-black-700: 122 119 131;
+    /* #7a7783 */
+    --raisin-black-800: 166 164 173;
+    /* #a6a4ad */
+    --raisin-black-900: 211 209 214;
+    /* #d3d1d6 */
+
+    /* Sombras sofisticadas */
+    --shadow-theme: 0 2px 8px 0 rgb(0 0 0 / 0.8), 0 1px 3px 0 rgb(0 0 0 / 0.6);
+    --shadow-theme-lg: 0 8px 16px -4px rgb(0 0 0 / 0.9), 0 4px 8px -2px rgb(0 0 0 / 0.7);
+    --shadow-theme-xl: 0 16px 32px -8px rgb(0 0 0 / 0.95), 0 8px 16px -4px rgb(0 0 0 / 0.8);
+    --backdrop-blur: blur(20px);
+}
+
+/* Transições suaves para mudança de tema */
+html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+* {
+    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Classes utilitárias para temas */
+.bg-theme {
+    background-color: rgb(var(--color-background));
+}
+
+.text-theme {
+    color: rgb(var(--color-foreground));
+}
+
+.border-theme {
+    border-color: rgb(var(--color-border));
+}
+
+/* Efeito glassmorphism moderno para tema claro */
+.glass-theme {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid rgb(var(--color-border) / 0.3);
+    box-shadow: var(--shadow-theme-lg);
+}
+
+.glass-secondary {
+    background: rgba(241, 245, 249, 0.9);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid rgb(var(--color-border) / 0.2);
+    box-shadow: var(--shadow-theme);
+}
+
+/* Efeito elegante para elementos com foco ou hover - tema claro */
+.modern-glow {
+    box-shadow: 0 0 20px rgb(var(--color-primary-500) / 0.1), var(--shadow-theme);
+}
+
+.modern-glow:hover {
+    box-shadow: 0 0 30px rgb(var(--color-primary-500) / 0.15), var(--shadow-theme-lg);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+/* Gradiente específico para cards no tema escuro - baseado nas cores sofisticadas */
+.dark .glass-theme {
+    background: linear-gradient(135deg, rgba(var(--eerie-black-500), 0.95) 0%, rgba(var(--raisin-black-500), 0.90) 56%, rgba(var(--licorice-500), 0.85) 100%);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid rgb(var(--color-border) / 0.3);
+    box-shadow: var(--shadow-theme);
+}
+
+.dark .glass-secondary {
+    background: linear-gradient(135deg, rgba(var(--night-500), 0.8) 0%, rgba(var(--outer-space-500), 0.9) 100%);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid rgb(var(--color-border) / 0.2);
+    box-shadow: var(--shadow-theme);
+}
+
+/* Efeito elegante para elementos com foco ou hover */
+.dark .sophisticated-glow {
+    box-shadow: 0 0 20px rgb(var(--outer-space-700) / 0.3), var(--shadow-theme);
+}
+
+.dark .sophisticated-glow:hover {
+    box-shadow: 0 0 30px rgb(var(--outer-space-600) / 0.5), var(--shadow-theme-lg);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+/* Personalização de scrollbar para tema escuro */
+.dark ::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: rgb(var(--color-muted));
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-border));
+    border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--color-muted-foreground));
+}
+
+/* Personalização de scrollbar para tema claro */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgb(var(--color-muted));
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-border));
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--color-muted-foreground));
+}
+
+/* Estilos modernos e limpos para tema claro */
+/* Botões sem classe específica no tema claro */
+button:not([class*="bg-"]):not([class*="glass-"]) {
+    background-color: rgb(var(--color-card)) !important;
+    border: 1px solid rgb(var(--color-border)) !important;
+    color: rgb(var(--color-foreground)) !important;
+    box-shadow: var(--shadow-theme) !important;
+}
+
+/* Botões glass-theme no tema claro */
+.glass-theme {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgb(var(--color-border) / 0.2) !important;
+}
+
+/* Texto moderno e limpo com melhor contraste */
+.text-gray-900 {
+    color: rgb(15 23 42) !important;
+}
+
+.text-gray-800 {
+    color: rgb(30 41 59) !important;
+}
+
+.text-gray-700 {
+    color: rgb(51 65 85) !important;
+}
+
+.text-gray-600 {
+    color: rgb(71 85 105) !important;
+}
+
+.text-gray-500 {
+    color: rgb(100 116 139) !important;
+}
+
+.text-black {
+    color: rgb(15 23 42) !important;
+}
+
+/* Ícones SVG modernos - cor padrão mais escura para tema claro */
+svg {
+    color: rgb(51 65 85) !important;
+    fill: rgb(51 65 85) !important;
+}
+
+.fill-current {
+    fill: rgb(51 65 85) !important;
+}
+
+/* Ícones coloridos - cor específica mais escura */
+.icon-colored,
+.icon-colored svg {
+    color: rgb(59 130 246) !important;
+    fill: rgb(59 130 246) !important;
+}
+
+/* Ícones com cores específicas por contexto */
+.icon-primary,
+.icon-primary svg {
+    color: rgb(59 130 246) !important;
+    fill: rgb(59 130 246) !important;
+}
+
+.icon-success,
+.icon-success svg {
+    color: rgb(22 163 74) !important;
+    fill: currentColor !important;
+}
+
+.icon-warning,
+.icon-warning svg {
+    color: rgb(217 119 6) !important;
+    fill: currentColor !important;
+}
+
+.icon-error,
+.icon-error svg {
+    color: rgb(220 38 38) !important;
+    fill: currentColor !important;
+}
+
+/* Ícones de status com cores vibrantes mas com contraste */
+.icon-status-online {
+    color: #16a34a !important;
+    /* Verde mais escuro */
+}
+
+.icon-status-offline {
+    color: #dc2626 !important;
+    /* Vermelho mais escuro */
+}
+
+.icon-status-warning {
+    color: #d97706 !important;
+    /* Âmbar mais escuro */
+}
+
+.icon-status-info {
+    color: rgb(59 130 246) !important;
+    /* Azul mais escuro */
+}
+
+/* Ícones de navegação coloridos - cores mais escuras para tema claro */
+.icon-nav-dashboard {
+    color: rgb(59 130 246) !important;
+    fill: rgb(59 130 246) !important;
+    /* Azul dashboard */
+}
+
+.icon-nav-users {
+    color: rgb(147 51 234) !important;
+    fill: rgb(147 51 234) !important;
+    /* Roxo usuários */
+}
+
+.icon-nav-analytics {
+    color: rgb(6 182 212) !important;
+    fill: rgb(6 182 212) !important;
+    /* Ciano analytics */
+}
+
+.icon-nav-settings {
+    color: rgb(75 85 99) !important;
+    fill: rgb(75 85 99) !important;
+    /* Cinza configurações */
+}
+
+.icon-nav-reports {
+    color: rgb(22 163 74) !important;
+    fill: rgb(22 163 74) !important;
+    /* Verde relatórios */
+}
+
+.icon-nav-notifications {
+    color: rgb(217 119 6) !important;
+    fill: rgb(217 119 6) !important;
+    /* Âmbar notificações */
+}
+
+/* Links modernos com melhor contraste */
+a {
+    color: rgb(37 99 235) !important;
+}
+
+a:hover {
+    color: rgb(29 78 216) !important;
+}
+
+/* Botões modernos com melhor contraste */
+button {
+    color: rgb(15 23 42) !important;
+    background-color: rgb(255 255 255) !important;
+    border: 1px solid rgb(203 213 225) !important;
+    border-radius: 0.5rem !important;
+    transition: all 0.2s ease !important;
+    box-shadow: var(--shadow-theme) !important;
+}
+
+button:hover {
+    background-color: rgb(241 245 249) !important;
+    border-color: rgb(59 130 246) !important;
+    box-shadow: var(--shadow-theme-lg) !important;
+    transform: translateY(-1px) !important;
+}
+
+button:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgb(59 130 246 / 0.2) !important;
+}
+
+/* Botões primários modernos com melhor contraste */
+.btn-primary,
+.bg-primary-500,
+.bg-primary-600 {
+    background-color: rgb(59 130 246) !important;
+    color: white !important;
+    border-color: rgb(59 130 246) !important;
+}
+
+.btn-primary:hover,
+.bg-primary-500:hover,
+.bg-primary-600:hover {
+    background-color: rgb(37 99 235) !important;
+    box-shadow: 0 0 20px rgb(59 130 246 / 0.3) !important;
+}
+
+/* Botões modernos especiais */
+.btn-modern {
+    background: linear-gradient(135deg, rgb(59 130 246), rgb(37 99 235)) !important;
+    border: none !important;
+    box-shadow: var(--shadow-theme-lg) !important;
+    color: white !important;
+}
+
+.btn-modern:hover {
+    box-shadow: var(--shadow-theme-xl) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Campos de input modernos com melhor contraste */
+input,
+textarea,
+select {
+    background-color: rgb(255 255 255) !important;
+    color: rgb(15 23 42) !important;
+    border: 1px solid rgb(203 213 225) !important;
+    border-radius: 0.5rem !important;
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.08) !important;
+    transition: all 0.2s ease !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: rgb(59 130 246) !important;
+    box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: rgb(100 116 139) !important;
+}
+
+/* Cores específicas para melhorar contraste no tema escuro */
+.dark {
+    color-scheme: dark;
+}
+
+/* Botões sem classe específica no tema escuro */
+.dark button:not([class*="bg-"]):not([class*="glass-"]) {
+    background-color: rgb(var(--color-card)) !important;
+    border: 1px solid rgb(var(--color-border)) !important;
+}
+
+/* Botões glass-theme */
+.dark .glass-theme {
+    background: rgba(var(--eerie-black-500), 0.8) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgb(var(--color-border) / 0.3) !important;
+}
+
+/* Texto em tons neutros sofisticados */
+.dark .text-gray-900 {
+    color: rgb(var(--night-900)) !important;
+}
+
+.dark .text-gray-800 {
+    color: rgb(var(--night-800)) !important;
+}
+
+.dark .text-gray-700 {
+    color: rgb(var(--outer-space-900)) !important;
+}
+
+.dark .text-gray-600 {
+    color: rgb(var(--outer-space-800)) !important;
+}
+
+.dark .text-gray-500 {
+    color: rgb(var(--outer-space-700)) !important;
+}
+
+.dark .text-black {
+    color: rgb(var(--night-900)) !important;
+}
+
+/* Forçar cores sofisticadas para ícones SVG no tema escuro */
+.dark svg {
+    color: rgb(var(--color-foreground)) !important;
+    fill: currentColor;
+}
+
+.dark .fill-current {
+    fill: rgb(var(--color-foreground)) !important;
+}
+
+/* Ícones coloridos no tema escuro - mantém cores originais */
+.dark .icon-colored,
+.dark .icon-colored svg {
+    color: inherit !important;
+    fill: currentColor !important;
+}
+
+/* Ícones com cores específicas por contexto - tema escuro */
+.dark .icon-primary,
+.dark .icon-primary svg {
+    color: rgb(var(--outer-space-700)) !important;
+}
+
+.dark .icon-success,
+.dark .icon-success svg {
+    color: rgb(var(--licorice-700)) !important;
+}
+
+.dark .icon-warning,
+.dark .icon-warning svg {
+    color: rgb(var(--caput-mortuum-700)) !important;
+}
+
+.dark .icon-error,
+.dark .icon-error svg {
+    color: rgb(var(--caput-mortuum-600)) !important;
+}
+
+/* Ícones de status no tema escuro - cores mais vibrantes para contraste */
+.dark .icon-status-online {
+    color: #4ade80 !important;
+    /* Verde mais claro */
+}
+
+.dark .icon-status-offline {
+    color: #f87171 !important;
+    /* Vermelho mais claro */
+}
+
+.dark .icon-status-warning {
+    color: #fbbf24 !important;
+    /* Âmbar mais claro */
+}
+
+.dark .icon-status-info {
+    color: rgb(var(--outer-space-700)) !important;
+    /* Outer space claro */
+}
+
+/* Ícones de navegação no tema escuro - cores ajustadas */
+.dark .icon-nav-dashboard {
+    color: #60a5fa !important;
+    /* Azul mais claro */
+}
+
+.dark .icon-nav-users {
+    color: #a78bfa !important;
+    /* Roxo mais claro */
+}
+
+.dark .icon-nav-analytics {
+    color: #22d3ee !important;
+    /* Ciano mais claro */
+}
+
+.dark .icon-nav-settings {
+    color: rgb(var(--outer-space-600)) !important;
+    /* Outer space médio */
+}
+
+.dark .icon-nav-reports {
+    color: #34d399 !important;
+    /* Verde mais claro */
+}
+
+.dark .icon-nav-notifications {
+    color: #fbbf24 !important;
+    /* Âmbar mais claro */
+}
+
+/* Melhorar contraste de links no tema escuro */
+.dark a {
+    color: rgb(var(--outer-space-700)) !important;
+}
+
+.dark a:hover {
+    color: rgb(var(--outer-space-600)) !important;
+}
+
+/* Texto em botões no tema escuro */
+.dark button {
+    color: rgb(var(--color-foreground)) !important;
+    background-color: rgb(var(--color-card)) !important;
+    border: 1px solid rgb(var(--color-border)) !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.3s ease !important;
+}
+
+.dark button:hover {
+    background-color: rgb(var(--color-card-elevated)) !important;
+    border-color: rgb(var(--outer-space-600) / 0.5) !important;
+    box-shadow: 0 0 10px rgb(var(--outer-space-600) / 0.2) !important;
+    transform: translateY(-1px) !important;
+}
+
+.dark button:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgb(var(--outer-space-600) / 0.5) !important;
+}
+
+/* Botões específicos com classes Tailwind */
+.dark .btn-primary,
+.dark .bg-primary-500,
+.dark .bg-primary-600 {
+    background-color: rgb(var(--color-primary-500)) !important;
+    color: rgb(var(--color-foreground)) !important;
+    border-color: rgb(var(--color-primary-500)) !important;
+}
+
+.dark .btn-primary:hover,
+.dark .bg-primary-500:hover,
+.dark .bg-primary-600:hover {
+    background-color: rgb(var(--color-primary-600)) !important;
+    box-shadow: 0 0 20px rgb(var(--outer-space-600) / 0.3) !important;
+}
+
+/* Botões de ação sofisticados */
+.dark .btn-sophisticated {
+    background: linear-gradient(135deg, rgb(var(--outer-space-500) / 0.8), rgb(var(--raisin-black-500) / 0.9)) !important;
+    border: 1px solid rgb(var(--outer-space-600)) !important;
+    box-shadow: 0 0 15px rgb(var(--outer-space-600) / 0.3) !important;
+    color: rgb(var(--color-foreground)) !important;
+}
+
+.dark .btn-sophisticated:hover {
+    box-shadow: 0 0 25px rgb(var(--outer-space-600) / 0.5) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Campos de input no tema escuro */
+.dark input,
+.dark textarea,
+.dark select {
+    background-color: rgb(var(--color-input)) !important;
+    color: rgb(var(--color-foreground)) !important;
+    border-color: rgb(var(--color-border)) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+    color: rgb(var(--color-muted-foreground)) !important;
+}
+
+/* Scrollbar personalizada - Dashfolio Plus style */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Scrollbar customizada moderna */
+.scrollbar-custom {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--color-secondary-300) / 0.3) transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar {
+    width: 4px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-secondary-300) / 0.3);
+    border-radius: 2px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--color-secondary-400) / 0.5);
+}

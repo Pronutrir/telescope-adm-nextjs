@@ -34,11 +34,26 @@ export const tokenStorage = {
     // Remover do localStorage
     localStorage.removeItem('token')
     localStorage.removeItem('refreshToken')
+    
+    // Limpar todo o sessionStorage
     sessionStorage.clear()
     
-    // Remover também dos cookies
-    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-    document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+    // Limpar todo o localStorage relacionado à aplicação
+    const keysToRemove = ['user', 'userPreferences', 'appSettings', 'lastActivity']
+    keysToRemove.forEach(key => localStorage.removeItem(key))
+    
+    // Remover também dos cookies com diferentes configurações para garantir limpeza
+    const cookiesToClear = ['token', 'refreshToken', 'sessionId', 'authState']
+    cookiesToClear.forEach(cookieName => {
+      // Limpar com diferentes combinações de path e domain
+      document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+      document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure`
+      document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; samesite=strict`
+      document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict`
+      document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+    })
+    
+    console.log('🧹 Todos os tokens e dados de sessão foram limpos')
   },
 
   // Verificar se o token é válido

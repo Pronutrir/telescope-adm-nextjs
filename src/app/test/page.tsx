@@ -259,10 +259,22 @@ export default function TestPage() {
                                 Ir para Login
                             </button>
                             <button
-                                onClick={() => router.push('/admin')}
+                                onClick={() => router.push('/admin/dashboard')}
+                                className="bg-green-500/80 hover:bg-green-600/80 text-white px-6 py-2 rounded-xl transition-all duration-300"
+                            >
+                                Ir para Dashboard
+                            </button>
+                            <button
+                                onClick={() => router.push('/admin/bloqueios')}
+                                className="bg-orange-500/80 hover:bg-orange-600/80 text-white px-6 py-2 rounded-xl transition-all duration-300"
+                            >
+                                Ir para Bloqueios
+                            </button>
+                            <button
+                                onClick={() => router.push('/admin/gerenciador')}
                                 className="bg-purple-500/80 hover:bg-purple-600/80 text-white px-6 py-2 rounded-xl transition-all duration-300"
                             >
-                                Ir para Admin (em desenvolvimento)
+                                Ir para Gerenciador
                             </button>
                         </div>
                     </div>

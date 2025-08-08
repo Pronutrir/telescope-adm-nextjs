@@ -96,13 +96,28 @@ export const authService = {
       console.error('Erro ao fazer logout na API:', error)
     }
     
-    // Limpar tokens
+    // Limpar tokens do localStorage e sessionStorage
     localStorage.removeItem('token')
     localStorage.removeItem('refreshToken')
     sessionStorage.clear()
     
-    // Remover headers de autorização
+    // Limpar dados específicos da aplicação
+    const appKeys = ['user', 'userPreferences', 'appSettings', 'lastActivity', 'navigationState']
+    appKeys.forEach(key => {
+      localStorage.removeItem(key)
+    })
+    
+    // Limpar todos os cookies da aplicação
+    const cookiesToClear = ['token', 'refreshToken', 'sessionId', 'authState', 'userSession']
+    cookiesToClear.forEach(cookieName => {
+      document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict`
+      document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+    })
+    
+    // Remover headers de autorização de todas as instâncias
     delete ApiAuth.defaults.headers.common['Authorization']
+    
+    console.log('🚪 Logout completo realizado - todos os dados limpos')
   },
 
   async updatePassword(username: string, newPassword: string): Promise<{ success: boolean; message?: string }> {

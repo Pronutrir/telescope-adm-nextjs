@@ -4,6 +4,7 @@ import React, { createContext, useContext, useReducer, useEffect, ReactNode } fr
 import { authService } from '@/services/auth'
 import { tokenStorage } from '@/services/token'
 import { axiosConfig } from '@/lib/axios-config'
+import { cleanupService } from '@/services/cleanup'
 import type { IAuthState, IUser, INotification } from '@/lib/auth-types'
 
 interface AuthContextType extends IAuthState {
@@ -88,6 +89,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     useEffect(() => {
         const initializeAuth = async () => {
             console.log('🚀 Iniciando verificação de autenticação...')
+
+            // Verificar se há dados de sessão inconsistentes e limpar se necessário
+            const hasInconsistentData = cleanupService.checkForRemainingData()
+            if (hasInconsistentData) {
+                const token = tokenStorage.getToken()
+                if (!token || !tokenStorage.isTokenValid(token)) {
+                    console.log('🧹 Dados de sessão inconsistentes detectados, limpando...')
+                    cleanupService.clearAuthData()
+                }
+            }
+
             const token = tokenStorage.getToken()
             const refreshToken = tokenStorage.getRefreshToken()
 
@@ -111,16 +123,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 } catch (error) {
                     console.error('❌ Erro ao inicializar autenticação:', error)
                     tokenStorage.clearTokens()
+                    cleanupService.clearAuthData()
                     axiosConfig.clearAuthToken()
                     dispatch({ type: 'LOGOUT' })
                 }
             } else {
-                console.log('❌ Token inválido ou inexistente, definindo loading como false')
+                console.log('❌ Token inválido ou inexistente, limpando dados e definindo loading como false')
+                tokenStorage.clearTokens()
+                cleanupService.clearAuthData()
                 dispatch({ type: 'SET_LOADING', payload: false })
             }
         }
 
         initializeAuth()
+
+        // Listener para detectar fechamento da aba/janela
+        const handleBeforeUnload = () => {
+            // Só limpar se não houver token válido ou se houver problemas
+            const token = tokenStorage.getToken()
+            if (!token || !tokenStorage.isTokenValid(token)) {
+                cleanupService.clearAuthData()
+            }
+        }
+
+        const handleVisibilityChange = () => {
+            // Quando a aba fica oculta, verificar se a sessão ainda é válida
+            if (document.hidden) {
+                const token = tokenStorage.getToken()
+                if (!token || !tokenStorage.isTokenValid(token)) {
+                    cleanupService.clearAuthData()
+                }
+            }
+        }
+
+        // Adicionar listeners
+        window.addEventListener('beforeunload', handleBeforeUnload)
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+
+        // Cleanup
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload)
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
+        }
     }, [])
 
     const login = async (username: string, password: string): Promise<void> => {
@@ -169,9 +213,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 type: 'success'
             })
 
-            // Redirecionar para página de teste após login bem-sucedido
-            console.log('🔄 Redirecionando para /test...')
-            window.location.href = '/test'
+            // Redirecionar para dashboard após login bem-sucedido
+            console.log('🔄 Redirecionando para /admin/dashboard...')
+            window.location.href = '/admin/dashboard'
 
         } catch (error: unknown) {
             let errorMessage = 'Erro inesperado, tente novamente!'
@@ -194,15 +238,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
     }
 
-    const logout = () => {
-        authService.logout()
+    const logout = async () => {
+        console.log('🚪 Iniciando processo de logout...')
+
+        try {
+            // Primeiro chama o serviço de logout (que limpa API e storage)
+            await authService.logout()
+        } catch (error) {
+            console.error('Erro durante logout da API:', error)
+        }
+
+        // Garantir limpeza completa dos tokens
         tokenStorage.clearTokens()
 
-        // REMOVE O TOKEN DOS HEADERS DE TODAS AS INSTÂNCIAS DO AXIOS
+        // Remover token dos headers de todas as instâncias do Axios
         axiosConfig.clearAuthToken()
 
+        // Usar serviço de limpeza completa
+        cleanupService.clearAuthData()
+
+        // Limpar estado local da aplicação
         dispatch({ type: 'LOGOUT' })
-        window.location.href = '/auth/login'
+
+        // Verificar se ainda há dados remanescentes
+        const hasRemainingData = cleanupService.checkForRemainingData()
+        if (hasRemainingData) {
+            console.warn('⚠️ Executando limpeza completa devido a dados remanescentes...')
+            await cleanupService.performCompleteCleanup()
+        }
+
+        console.log('✅ Logout completo - redirecionando...')
+
+        // Aguardar um momento para garantir que tudo foi limpo
+        setTimeout(() => {
+            // Redirecionar com replace para não manter histórico
+            window.location.replace('/auth/login')
+        }, 100)
     }
 
     const updatePassword = async (username: string, newPassword: string): Promise<void> => {

@@ -18,15 +18,15 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Se estiver logado e tentando acessar login, redirecionar para teste
+  // Se estiver logado e tentando acessar login, redirecionar para dashboard
   if (publicRoutes.includes(pathname) && token) {
-    return NextResponse.redirect(new URL('/test', request.url))
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 
-  // Redirecionar raiz para login se não estiver logado, ou teste se estiver
+  // Redirecionar raiz para login se não estiver logado, ou dashboard se estiver
   if (pathname === '/') {
     if (token) {
-      return NextResponse.redirect(new URL('/test', request.url))
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url))
     } else {
       return NextResponse.redirect(new URL('/auth/login', request.url))
     }

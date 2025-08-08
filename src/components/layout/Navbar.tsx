@@ -1,0 +1,240 @@
+'use client'
+
+import React, { useState, useEffect } from 'react'
+import {
+    Search,
+    Bell,
+    Settings,
+    User,
+    LogOut,
+    ChevronDown,
+    MessageSquare
+} from 'lucide-react'
+import { useLayout } from '@/contexts/LayoutContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import type { NavbarProps } from '@/types/layout'
+
+const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
+    const {
+        sidebarCollapsed,
+        searchOpen,
+        toggleSearch,
+        toggleNotifications,
+        isMobile
+    } = useLayout()
+
+    const { user, logout } = useAuth()
+    const [ isLoggingOut, setIsLoggingOut ] = useState(false)
+    const [ isDark, setIsDark ] = useState(false)
+
+    // Detectar tema atual
+    useEffect(() => {
+        const checkTheme = () => {
+            setIsDark(document.documentElement.classList.contains('dark'))
+        }
+
+        checkTheme()
+
+        // Observer para mudanças no tema
+        const observer = new MutationObserver(checkTheme)
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: [ 'class' ]
+        })
+
+        return () => observer.disconnect()
+    }, [])
+
+    const handleLogout = async () => {
+        if (isLoggingOut) return // Prevenir cliques múltiplos
+
+        setIsLoggingOut(true)
+        try {
+            console.log('🚪 Iniciando logout do usuário...')
+            await logout()
+        } catch (error) {
+            console.error('Erro ao fazer logout:', error)
+            // Em caso de erro, ainda assim limpar dados locais
+            window.location.replace('/auth/login')
+        } finally {
+            setIsLoggingOut(false)
+        }
+    }
+
+    return (
+        <nav
+            className={`
+                fixed top-0 z-30
+                backdrop-blur-xl
+                transition-all duration-300 ease-in-out
+                ${isMobile
+                    ? 'left-0 right-0'
+                    : sidebarCollapsed
+                        ? 'left-17 right-0'
+                        : 'left-66 right-0'
+                }
+                ${className}
+            `}
+            style={{
+                backgroundColor: isDark ? 'rgba(31, 41, 55, 0.95)' : 'transparent'
+            }}
+        >
+            <div className="flex items-center justify-between h-16 px-4 lg:px-6">
+                {/* Search Bar - Desktop - Centralizada */}
+                <div className="hidden md:flex flex-1 justify-center max-w-2xl mx-auto">
+                    <div className="relative w-full max-w-md">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Pesquisar médicos, agendamentos..."
+                            className="w-full pl-10 pr-4 py-3 
+                            text-gray-800 bg-gray-100/80 border-gray-300 focus:border-blue-500 placeholder:text-gray-500
+                            dark:text-white dark:bg-gray-700/80 dark:border-gray-600 dark:focus:border-blue-400 dark:placeholder:text-gray-400
+                            rounded-xl focus:ring-2 focus:ring-blue-400/20 focus:outline-none transition-all duration-300"
+                        />
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center space-x-2">
+                    {/* Theme Toggle */}
+                    <ThemeToggle size="md" />
+
+                    {/* Search Toggle - Mobile */}
+                    <button
+                        onClick={toggleSearch}
+                        className="md:hidden p-2 rounded-lg 
+                        bg-gray-100/80 border-gray-300 hover:bg-gray-200/80 hover:border-blue-500/50
+                        dark:bg-gray-700/80 dark:border-gray-600 dark:hover:bg-gray-600/80 dark:hover:border-blue-400/50
+                        transition-all duration-300"
+                        aria-label="Toggle search"
+                    >
+                        <Search className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                    </button>
+
+                    {/* Messages */}
+                    <button className="p-2 rounded-lg 
+                    dark:bg-gray-700/80 dark:border-gray-600 dark:hover:bg-gray-600/80 dark:hover:border-blue-400/50
+                    bg-gray-100/80 border-gray-300 hover:bg-gray-200/80 hover:border-blue-500/50
+                    transition-all duration-300 relative">
+                        <MessageSquare className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-pink-400 rounded-full"></span>
+                    </button>
+
+                    {/* Notifications */}
+                    <button
+                        onClick={toggleNotifications}
+                        className="p-2 rounded-lg 
+                        dark:bg-gray-700/80 dark:border-gray-600 dark:hover:bg-gray-600/80 dark:hover:border-blue-400/50
+                        bg-gray-100/80 border-gray-300 hover:bg-gray-200/80 hover:border-blue-500/50
+                        transition-all duration-300 relative"
+                        aria-label="Toggle notifications"
+                    >
+                        <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-pink-400 rounded-full"></span>
+                    </button>
+
+                    {/* Settings */}
+                    <button className="hidden sm:block p-2 rounded-lg 
+                    dark:bg-gray-700/80 dark:border-gray-600 dark:hover:bg-gray-600/80 dark:hover:border-blue-400/50
+                    bg-gray-100/80 border-gray-300 hover:bg-gray-200/80 hover:border-blue-500/50
+                    transition-all duration-300">
+                        <Settings className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                    </button>
+
+                    {/* User Menu */}
+                    <div className="relative group">
+                        <button className="flex items-center space-x-2 px-3 py-2 rounded-lg 
+                        dark:bg-gray-700/80 dark:border-gray-600 dark:hover:bg-gray-600/80 dark:hover:border-blue-400/50
+                        bg-gray-100/80 border-gray-300 hover:bg-gray-200/80 hover:border-blue-500/50
+                        transition-all duration-300">
+                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                                <User className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="hidden sm:block text-left">
+                                <div className="text-sm font-medium dark:text-white text-gray-800">
+                                    {user?.nomeCompleto || 'Usuário'}
+                                </div>
+                                <div className="text-xs dark:text-gray-400 text-gray-500">
+                                    {user?.email || 'user@example.com'}
+                                </div>
+                            </div>
+                            <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        <div className="
+              absolute right-0 top-full mt-2 w-48
+              dark:bg-gray-800 dark:border-gray-700
+              bg-white border-gray-200
+              border rounded-lg shadow-2xl
+              opacity-0 invisible group-hover:opacity-100 group-hover:visible
+              transition-all duration-200 transform translate-y-1 group-hover:translate-y-0
+            ">
+                            <div className="py-2">
+                                <a
+                                    href="/profile"
+                                    className="flex items-center px-4 py-2 text-sm 
+                                    dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-blue-400
+                                    text-gray-700 hover:bg-gray-100 hover:text-blue-600
+                                    transition-all duration-200"
+                                >
+                                    <User className="w-4 h-4 mr-3 dark:text-gray-400 text-gray-500" />
+                                    Perfil
+                                </a>
+                                <a
+                                    href="/settings"
+                                    className="flex items-center px-4 py-2 text-sm 
+                                    dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-blue-400
+                                    text-gray-700 hover:bg-gray-100 hover:text-blue-600
+                                    transition-all duration-200"
+                                >
+                                    <Settings className="w-4 h-4 mr-3 dark:text-gray-400 text-gray-500" />
+                                    Configurações
+                                </a>
+                                <hr className="my-2 dark:border-gray-700 border-gray-200" />
+                                <button
+                                    onClick={handleLogout}
+                                    disabled={isLoggingOut}
+                                    className={`w-full flex items-center px-4 py-2 text-sm transition-all duration-200 ${isLoggingOut
+                                        ? 'dark:text-gray-500 dark:bg-gray-700/50 text-gray-400 bg-gray-100/50 cursor-not-allowed'
+                                        : 'dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300 text-red-600 hover:bg-red-50 hover:text-red-700'
+                                        }`}
+                                >
+                                    <LogOut className={`w-4 h-4 mr-3 ${isLoggingOut ? 'animate-spin' : ''}`} />
+                                    {isLoggingOut ? 'Saindo...' : 'Sair'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Mobile Search Bar */}
+            {searchOpen && (
+                <div className="md:hidden border-t p-4 
+                dark:border-gray-700 dark:bg-gray-800
+                border-gray-200 bg-white">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 dark:text-gray-400 text-gray-500" />
+                        <input
+                            type="text"
+                            placeholder="Pesquisar..."
+                            className="
+                w-full pl-10 pr-4 py-2 
+                dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400
+                bg-gray-100 border-gray-300 text-gray-800 placeholder-gray-500
+                rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400
+                transition-all duration-200
+              "
+                            autoFocus
+                        />
+                    </div>
+                </div>
+            )}
+        </nav>
+    )
+}
+
+export default Navbar
