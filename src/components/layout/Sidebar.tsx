@@ -10,11 +10,13 @@ import {
     X
 } from 'lucide-react'
 import { useLayout } from '@/contexts/LayoutContext'
-import { routes, getMainMenus, getSubmenus, hasSubmenus, type Route } from '@/config/routes'
+import { useAuth } from '@/contexts/AuthContext'
+import { routes, getMainMenus, getSubmenus, hasSubmenus, filterRoutesByRoles, type Route } from '@/config/routes'
 import type { SidebarProps } from '@/types/layout'
 
 const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
     const { sidebarOpen, sidebarCollapsed, toggleSidebar, toggleMobileSidebar, isMobile, mounted } = useLayout()
+    const { user, isAuthenticated } = useAuth()
     const pathname = usePathname()
     const [ openMenus, setOpenMenus ] = useState<{ [ key: string ]: boolean }>({})
     const [ isClientMounted, setIsClientMounted ] = useState(false)
@@ -43,8 +45,26 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
         return () => observer.disconnect()
     }, [])
 
-    // Filtrar apenas rotas que não são privadas e não são submenus
-    const mainRoutes = getMainMenus(routes.filter(route => !route.private))
+    // Filtrar rotas baseado na autenticação e roles do usuário
+    const userRoles = user?.roles?.map(role => role.perfis?.nomePerfil).filter(Boolean) ||
+        (user?.tipoUsuario ? [ user.tipoUsuario ] : []) ||
+        [ 'default_fullstackdev' ] // fallback para desenvolvimento
+
+    let availableRoutes: Route[]
+    if (isAuthenticated && user) {
+        // Usuário autenticado - filtrar por roles
+        availableRoutes = filterRoutesByRoles(routes, userRoles)
+    } else {
+        // Não autenticado - apenas rotas públicas + algumas básicas
+        availableRoutes = routes.filter(route =>
+            !route.private ||
+            route.name === 'Dashboard' ||
+            route.name === 'FlyonUI Cards' ||
+            route.name === 'Tráfego de Acessos'
+        )
+    }
+
+    const mainRoutes = getMainMenus(availableRoutes)
 
     const handleMenuToggle = (menuName: string) => {
         setOpenMenus(prev => ({
@@ -81,7 +101,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
     return (
         <aside
             className={`
-                overlay drawer drawer-start border-e border-base-content/20
+                overlay drawer drawer-start border-e border-base-content/20 flex flex-col overflow-x-hidden
                 ${!mounted || !isClientMounted
                     ? 'w-66 sm:flex sm:translate-x-0'
                     : isMobile
@@ -102,7 +122,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
             tabIndex={-1}
         >
             {/* Header com Logo e Toggle */}
-            <div className="drawer-header overlay-minified:px-3.75 py-2 w-full flex items-center justify-between gap-3">
+            <div className="drawer-header overlay-minified:px-3.75 py-2 w-full flex items-center justify-between gap-3 flex-shrink-0">
                 {/* <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg">
                             <svg
@@ -147,7 +167,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
             </div>
 
             {/* Navigation Menu */}
-            <div className="drawer-body px-2 pt-4">
+            <div className="drawer-body px-2 pt-4 overflow-y-auto overflow-x-hidden flex-1">
                 <ul className="menu p-0 space-y-1">
                     {mainRoutes.map((route) => {
                         const isActive = isRouteActive(route)
@@ -249,7 +269,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
             </div>
 
             {/* Footer */}
-            <div className="drawer-footer p-4 border-t border-gray-200/30 dark:border-gray-700/30 overlay-minified:hidden">
+            <div className="drawer-footer p-4 border-t border-gray-200/30 dark:border-gray-700/30 overlay-minified:hidden flex-shrink-0">
                 <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
                     <p className="font-medium">Telescope ADM</p>
                     <p>v2.0.0 - FlyonUI</p>

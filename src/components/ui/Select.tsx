@@ -4,14 +4,14 @@ import React, { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Check } from 'lucide-react'
 
 interface SelectOption {
-    value: string
+    value: any
     label: string
     disabled?: boolean
 }
 
 interface SelectProps {
     options: SelectOption[]
-    value?: string
+    value?: any
     placeholder?: string
     disabled?: boolean
     variant?: 'default' | 'modern' | 'telescope'
@@ -19,7 +19,12 @@ interface SelectProps {
     className?: string
     isDark?: boolean
     style?: React.CSSProperties
-    onChange?: (value: string) => void
+    label?: string
+    name?: string
+    error?: string | false
+    helperText?: string
+    required?: boolean
+    onChange?: (value: any) => void
     onFocus?: () => void
     onBlur?: () => void
 }
@@ -34,6 +39,11 @@ const Select: React.FC<SelectProps> = ({
     className = '',
     isDark = false,
     style,
+    label,
+    name,
+    error,
+    helperText,
+    required = false,
     onChange,
     onFocus,
     onBlur
@@ -43,6 +53,13 @@ const Select: React.FC<SelectProps> = ({
         options.find(option => option.value === value) || null
     )
     const selectRef = useRef<HTMLDivElement>(null)
+    const hasError = !!error
+
+    // Atualizar selectedOption quando value ou options mudarem
+    useEffect(() => {
+        const option = options.find(option => option.value === value)
+        setSelectedOption(option || null)
+    }, [ value, options ])
 
     // Função para obter estilos baseados na variante e tema
     const getSelectStyles = () => {

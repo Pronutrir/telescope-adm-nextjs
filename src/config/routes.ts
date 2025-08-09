@@ -401,14 +401,14 @@ export const routes: Route[] = [
 
   // Seu Perfil
   {
-    path: '/perfil',
+    path: '/profile',
     name: 'Seu Perfil',
     icon: User,
     iconColor: 'Primary',
     layout: '/admin',
-    private: false,
+    private: true,
     search: true,
-    component: 'PerfilUsuario',
+    component: 'UserProfilePage',
     roles: [
       'default_fullstackdev',
       'Recepção',
