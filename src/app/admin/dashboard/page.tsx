@@ -1,365 +1,343 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { MainLayout, PageWrapper } from '@/components/layout'
-import { ThemeDebug } from '@/components/debug/ThemeDebug'
+import { PageWrapper } from '@/components/layout'
 import { StatsCard } from '@/components/ui/StatsCard'
-import { FlyonCard, CardBody, CardTitle, CardActions, CardButton } from '@/components/ui/FlyonCard'
-import TrafficTable from '@/components/dashboard/TrafficTable'
-import LineChart from '@/components/dashboard/LineChart'
-import { useDashboardData, useChartData } from '@/hooks/useDashboardData'
+import { Button } from '@/components/ui/Button'
+import { useDashboardData } from '@/hooks/useDashboardData'
+import { useGoogleAnalytics } from '@/components/analytics/GoogleAnalyticsLoader'
+import { TrafficSection } from '@/components/dashboard/TrafficSection'
 import {
     Users,
     Calendar,
-    Activity,
     TrendingUp,
-    Clock,
-    AlertTriangle,
-    CheckCircle,
-    BarChart3,
-    Globe,
-    Link,
-    Monitor,
-    Smartphone,
-    ArrowUpRight,
-    ArrowDownRight,
-    Database,
-    FileText,
     UserCheck,
-    Settings
+    RefreshCw,
+    Wifi,
+    WifiOff,
+    AlertCircle,
+    BarChart3,
+    Activity
 } from 'lucide-react'
 
 const Dashboard = () => {
-    // Hooks para dados do dashboard
+    // Estado para detectar tema
+    const [ isDark, setIsDark ] = useState(false)
+
+    // Hook para carregar Google Analytics
+    const { isReady: isGAReady, error: gaError, GoogleAnalyticsLoader } = useGoogleAnalytics()
+
+    // Hook para dados do dashboard
     const {
-        analyticsState,
         stats,
-        activities,
-        trafficData,
-        geoData,
-        trafficOrigin,
+        analyticsState,
+        isLoading,
         refreshData,
-        toggleGAConnection,
-        isLoading: isDashboardLoading
+        toggleGAConnection
     } = useDashboardData()
 
-    // Estado para período do gráfico
-    const [ activeTab, setActiveTab ] = useState<'month' | 'week'>('month')
+    // Detectar tema atual
+    useEffect(() => {
+        const checkTheme = () => {
+            setIsDark(document.documentElement.classList.contains('dark'))
+        }
 
-    // Hook para dados do gráfico
-    const {
-        chartData,
-        isLoading: isChartLoading,
-        refreshChart
-    } = useChartData(activeTab)
+        checkTheme()
 
-    const handleTabChange = (tab: 'month' | 'week') => {
-        setActiveTab(tab)
+        // Observer para mudanças no tema
+        const observer = new MutationObserver(checkTheme)
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: [ 'class' ]
+        })
+
+        return () => observer.disconnect()
+    }, [])
+
+    // Mapeamento de ícones para os cards
+    const iconMap = {
+        'TRÁFEGO': TrendingUp,
+        'USUÁRIOS': Users,
+        'PACIENTES': UserCheck,
+        'AGENDAS': Calendar
     }
 
-    // Dados estáticos para demonstração (removidos após implementação dos hooks)
-    const staticStats = [
-        {
-            title: 'Total de Usuários',
-            value: '2,847',
-            change: '+12%',
-            changeType: 'positive' as const,
-            icon: Users,
-            color: 'from-primary-500 to-primary-600'
-        },
-        {
-            title: 'Sessões Ativas',
-            value: '1,429',
-            change: '+8%',
-            changeType: 'positive' as const,
-            icon: Activity,
-            color: 'from-success-500 to-success-600'
-        },
-        {
-            title: 'Taxa de Engajamento',
-            value: '87%',
-            change: '-2%',
-            changeType: 'negative' as const,
-            icon: TrendingUp,
-            color: 'from-warning-500 to-warning-600'
-        },
-        {
-            title: 'Tempo Médio Sessão',
-            value: '4:32',
-            change: '+15%',
-            changeType: 'positive' as const,
-            icon: Clock,
-            color: 'from-secondary-500 to-secondary-600'
-        }
-    ]
+    // Mapeamento de cores para ícones
+    const iconColorMap = {
+        'TRÁFEGO': 'primary' as const,
+        'USUÁRIOS': 'success' as const,
+        'PACIENTES': 'info' as const,
+        'AGENDAS': 'warning' as const
+    }
 
-    const staticActivity = [
-        {
-            id: 1,
-            type: 'ga4',
-            message: 'Google Analytics conectado com sucesso',
-            time: '2 min atrás',
-            icon: Database,
-            color: 'text-success-500'
-        },
-        {
-            id: 2,
-            type: 'user',
-            message: 'Novo usuário cadastrado no sistema',
-            time: '15 min atrás',
-            icon: UserCheck,
-            color: 'text-primary-500'
-        },
-        {
-            id: 3,
-            type: 'alert',
-            message: 'Pico de tráfego detectado (+45%)',
-            time: '28 min atrás',
-            icon: AlertTriangle,
-            color: 'text-warning-500'
-        },
-        {
-            id: 4,
-            type: 'system',
-            message: 'Backup automático realizado',
-            time: '1 hora atrás',
-            icon: CheckCircle,
-            color: 'text-success-500'
-        }
-    ]
+    // Transformar dados para componente StatsCard (usando o formato dos exemplos)
+    const dashboardStats = stats.map(stat => ({
+        title: stat.title,
+        value: stat.value,
+        icon: iconMap[ stat.title as keyof typeof iconMap ] || TrendingUp,
+        iconColor: iconColorMap[ stat.title as keyof typeof iconColorMap ] || 'primary',
+        trend: { value: stat.change, isPositive: stat.changeType === 'positive' },
+        description: `Dados atualizados em ${analyticsState.lastUpdate.toLocaleTimeString('pt-BR')}`
+    }))
 
-    // Dados de tráfego simulados
-    const staticTrafficData = [
-        { url: '/dashboard', views: 3985, users: 319, rate: 46.53, app: 'Telescope ADM' },
-        { url: '/agenda', views: 3513, users: 294, rate: 36.49, app: 'Sistema Agendamento' },
-        { url: '/relatorios', views: 2050, users: 147, rate: 50.87, app: 'Relatórios' },
-        { url: '/usuarios', views: 1795, users: 190, rate: 28.43, app: 'Gestão Usuários' },
-        { url: '/configuracoes', views: 1205, users: 98, rate: 33.21, app: 'Configurações' },
-        { url: '/perfil', views: 892, users: 76, rate: 41.22, app: 'Perfil Usuário' },
-        { url: '/ajuda', views: 634, users: 52, rate: 35.17, app: 'Central de Ajuda' }
-    ]
+    const handleRefresh = () => {
+        refreshData()
+    }
 
-    // Dados geográficos simulados
-    const staticGeoData = [
-        { country: 'Brasil', sessions: 1250, percentage: 68.5 },
-        { country: 'Estados Unidos', sessions: 320, percentage: 17.5 },
-        { country: 'Argentina', sessions: 145, percentage: 8.0 },
-        { country: 'Chile', sessions: 68, percentage: 3.7 },
-        { country: 'Outros', sessions: 42, percentage: 2.3 }
-    ]
-
-    // Traffic origin data simulada
-    const staticTrafficOrigin = [
-        { source: 'Direto', users: 847, sessions: 1203, engagement: 892, avgTime: '00:04:32', percentage: 45.2 },
-        { source: 'Google', users: 634, sessions: 892, engagement: 654, avgTime: '00:03:18', percentage: 33.6 },
-        { source: 'Facebook', users: 289, sessions: 412, engagement: 287, avgTime: '00:02:45', percentage: 15.5 },
-        { source: 'LinkedIn', users: 124, sessions: 178, engagement: 134, avgTime: '00:05:12', percentage: 6.7 }
-    ]
+    const handleGAToggle = () => {
+        toggleGAConnection()
+    }
 
     return (
-        <MainLayout>
-            <PageWrapper maxWidth="full" spacing="xl">
-                <div className="content-distributed">
-                    <ThemeDebug />
+        <PageWrapper maxWidth="full" spacing="xl">
+            {/* Carregador do Google Analytics */}
+            <GoogleAnalyticsLoader />
 
-                    {/* Header - Melhorado com mais espaçamento */}
-                    <div className="text-center">
-                        <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary-600 via-secondary-600 to-primary-700 bg-clip-text text-transparent mb-4">
-                            Dashboard Analytics
-                        </h1>
-                        <p className="text-muted-foreground text-lg lg:text-xl max-w-2xl mx-auto">
-                            Visão geral completa do sistema Telescope ADM
+            <div className="w-full space-y-8">
+                {/* Header da Página - inspirado no ComponentsExamples */}
+                <div className="text-center">
+                    <h1 className={`text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        Dashboard Telescope-ADM
+                    </h1>
+                    <p className={`text-lg ${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
+                        Painel principal com dados reais do Google Analytics 4 e sistema interno
+                    </p>
+                    <div className={`mt-6 p-4 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-accent/20 border-border/20'}`}>
+                        <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
+                            📊 <strong>Dados em Tempo Real:</strong> Métricas atualizadas automaticamente a cada 5 minutos.
                         </p>
                     </div>
+                </div>
 
-                    {/* GA4 Integration Status - Card com elevação */}
-                    <FlyonCard variant="telescope" size="xl" elevation="xl" className="card-hover-lift">
-                        <CardBody padding="lg">
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center shadow-lg">
-                                        <Database className="w-6 h-6 text-white" />
-                                    </div>
-                                    <div>
-                                        <CardTitle level={3} gradient className="text-xl mb-1">
-                                            GA4 (Google Analytics Data API)
-                                        </CardTitle>
-                                        <p className="text-gray-300 text-sm">Detalhes da integração</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <div className={`w-3 h-3 rounded-full ${analyticsState.isConnected ? 'bg-green-500 shadow-lg shadow-green-500/50' : 'bg-red-500 shadow-lg shadow-red-500/50'}`} />
-                                    <span className={`text-sm font-medium ${analyticsState.isConnected ? 'text-green-400' : 'text-red-400'}`}>
-                                        {analyticsState.isConnected ? 'Online' : 'Offline'}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="text-sm text-gray-300 space-y-2">
-                                <p>Status de integração: <span className={analyticsState.isConnected ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>{analyticsState.isConnected ? 'Conectado' : 'Desconectado'}</span></p>
-                                <p>Última atualização: <span className="text-white font-medium">{analyticsState.lastUpdate.toLocaleString('pt-BR')}</span></p>
-                            </div>
-                        </CardBody>
-                    </FlyonCard>
-                    {/* Stats Grid - Melhor espaçamento e elevação */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-                        {staticStats.map((stat, index) => (
+                {/* Controles de Ação */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    {/* Status do Google Analytics */}
+                    <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                        {analyticsState.isConnected ? (
+                            <>
+                                <Wifi className="h-4 w-4 text-green-500" />
+                                <span className="text-sm text-green-600 dark:text-green-400">
+                                    GA4 Conectado
+                                </span>
+                            </>
+                        ) : (
+                            <>
+                                <WifiOff className="h-4 w-4 text-red-500" />
+                                <span className="text-sm text-red-600 dark:text-red-400">
+                                    GA4 Desconectado
+                                </span>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Botões de ação usando o componente Button ajustado */}
+                    {!analyticsState.isConnected && (
+                        <Button
+                            variant="primary"
+                            icon={Wifi}
+                            iconPosition="left"
+                            onClick={handleGAToggle}
+                            disabled={isLoading}
+                        >
+                            Conectar GA4
+                        </Button>
+                    )}
+
+                    <Button
+                        variant="secondary"
+                        icon={RefreshCw}
+                        iconPosition="left"
+                        onClick={handleRefresh}
+                        disabled={isLoading}
+                        loading={isLoading}
+                    >
+                        {isLoading ? 'Atualizando...' : 'Atualizar Dados'}
+                    </Button>
+                </div>
+
+                {/* Alerta de erro se houver */}
+                {analyticsState.error && (
+                    <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                        <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+                        <div className="flex-1">
+                            <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                                Erro nos dados
+                            </p>
+                            <p className="text-sm text-red-600 dark:text-red-300">
+                                {analyticsState.error}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Seção de Stats Cards - usando o layout dos exemplos */}
+                <div className="mb-12">
+                    <h2 className={`text-3xl font-semibold mb-6 flex items-center justify-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        <BarChart3 className={`w-7 h-7 ${isDark ? 'text-blue-400' : 'text-primary-600'}`} />
+                        Métricas Principais
+                    </h2>
+                    <p className={`text-lg mb-8 text-center ${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
+                        Estatísticas em tempo real do sistema Telescope-ADM
+                    </p>
+
+                    {/* Cards Principais - Variante Telescope */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {dashboardStats.map((stat, index) => (
                             <StatsCard
                                 key={index}
                                 title={stat.title}
-                                value={stat.value}
+                                value={isLoading ? '...' : stat.value}
                                 icon={stat.icon}
-                                iconColor={stat.changeType === 'positive' ? 'success' : 'warning'}
-                                trend={{
-                                    value: stat.change + ' vs período anterior',
-                                    isPositive: stat.changeType === 'positive'
-                                }}
+                                iconColor={stat.iconColor}
+                                trend={stat.trend}
+                                description={stat.description}
                                 variant="telescope"
-                                className="h-full card-hover-lift"
+                                isDark={isDark}
+                                className={`transform hover:scale-105 transition-all duration-300 ${isLoading ? 'opacity-75' : ''}`}
                             />
                         ))}
                     </div>
-
-                    {/* Traffic Chart - Espaçamento melhorado */}
-                    <LineChart
-                        data={chartData}
-                        isLoading={isChartLoading}
-                        activeTab={activeTab}
-                        onTabChange={handleTabChange}
-                    />
-
-                    {/* Content Grid - Cards com elevação melhorada */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-                        {/* Traffic Table */}
-                        <div className="lg:col-span-2">
-                            <TrafficTable data={staticTrafficData} />
-                        </div>
-
-                        {/* Recent Activity */}
-                        <FlyonCard variant="telescope" size="lg" elevation="lg" className="h-fit card-hover-lift">
-                            <CardBody padding="lg">
-                                <CardTitle level={4} gradient className="mb-6 flex items-center">
-                                    <Activity className="w-5 h-5 mr-2 text-blue-400" />
-                                    Atividade Recente
-                                </CardTitle>
-                                <div className="space-y-4">
-                                    {staticActivity.map((activity) => (
-                                        <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg bg-gray-800/50 border border-gray-700/30 hover:bg-gray-800/80 transition-colors">
-                                            <div className={`flex-shrink-0 w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center shadow-md`}>
-                                                <activity.icon className={`w-4 h-4 ${activity.color}`} />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm text-white font-medium">
-                                                    {activity.message}
-                                                </p>
-                                                <p className="text-xs text-gray-400 mt-1">
-                                                    {activity.time}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                <CardActions justify="center" className="mt-6">
-                                    <CardButton variant="outline" size="sm">
-                                        Ver todas as atividades
-                                    </CardButton>
-                                </CardActions>
-                            </CardBody>
-                        </FlyonCard>
-                    </div>
-
-                    {/* Geographic and Traffic Origin Data - Cards elevados */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-                        {/* Geographic Data */}
-                        <FlyonCard variant="telescope" size="lg" elevation="lg" className="h-fit card-hover-lift">
-                            <CardBody padding="lg">
-                                <CardTitle level={4} gradient className="mb-6 flex items-center">
-                                    <Globe className="w-5 h-5 mr-2 text-blue-400" />
-                                    Dados Geográficos
-                                </CardTitle>
-                                <div className="space-y-3">
-                                    {staticGeoData.map((item, index) => (
-                                        <div key={index} className="flex items-center justify-between p-4 rounded-xl bg-gray-800/60 border border-gray-700/30 hover:bg-gray-800/80 transition-all duration-300 hover:shadow-lg">
-                                            <span className="text-sm text-white font-medium">{item.country}</span>
-                                            <div className="flex items-center space-x-3">
-                                                <span className="text-sm text-gray-300">{item.sessions} sessões</span>
-                                                <span className="text-lg font-bold text-blue-400">{item.percentage}%</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                <CardActions justify="center" className="mt-6">
-                                    <CardButton variant="ghost" size="sm">
-                                        Ver relatório completo
-                                    </CardButton>
-                                </CardActions>
-                            </CardBody>
-                        </FlyonCard>
-
-                        {/* Traffic Origin */}
-                        <FlyonCard variant="telescope" size="lg" elevation="lg" className="h-fit card-hover-lift">
-                            <CardBody padding="lg">
-                                <CardTitle level={4} gradient className="mb-6 flex items-center">
-                                    <Link className="w-5 h-5 mr-2 text-blue-400" />
-                                    Origem do Tráfego
-                                </CardTitle>
-                                <div className="space-y-3">
-                                    {staticTrafficOrigin.map((item, index) => (
-                                        <div key={index} className="p-4 rounded-xl bg-gray-800/60 border border-gray-700/30 hover:bg-gray-800/80 transition-all duration-300 hover:shadow-lg">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <span className="text-sm text-white font-medium">{item.source}</span>
-                                                <span className="text-sm text-blue-400 font-bold">{item.percentage}%</span>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-2 text-xs text-gray-300">
-                                                <span>Usuários: {item.users}</span>
-                                                <span>Sessões: {item.sessions}</span>
-                                                <span>Engajados: {item.engagement}</span>
-                                                <span>Tempo: {item.avgTime}</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                <CardActions justify="center" className="mt-6">
-                                    <CardButton variant="primary" size="sm">
-                                        Analisar Tráfego
-                                    </CardButton>
-                                </CardActions>
-                            </CardBody>
-                        </FlyonCard>
-                    </div>
-
-                    {/* Device & Technology Info Placeholder */}
-                    <FlyonCard variant="telescope" size="xl" elevation="lg" className="card-hover-lift">
-                        <CardBody padding="lg">
-                            <div className="flex items-center justify-between mb-6">
-                                <CardTitle level={4} gradient className="flex items-center">
-                                    <Monitor className="w-5 h-5 mr-2 text-blue-400" />
-                                    Informações de Dispositivos e Tecnologia
-                                </CardTitle>
-                                <div className="flex items-center space-x-2">
-                                    <Monitor className="w-4 h-4 text-blue-400" />
-                                    <Smartphone className="w-4 h-4 text-purple-400" />
-                                </div>
-                            </div>
-                            <div className="h-40 bg-gradient-to-br from-gray-900/60 to-gray-800/60 rounded-xl flex items-center justify-center border border-gray-700/30">
-                                <div className="text-center">
-                                    <Settings className="w-12 h-12 text-blue-400 mx-auto mb-3" />
-                                    <p className="text-white text-lg font-medium">Dados de dispositivos e navegadores</p>
-                                    <p className="text-gray-300 text-sm mt-2">Integração com GA4 - Tecnologia de acesso</p>
-                                </div>
-                            </div>
-                            <CardActions justify="center" className="mt-6">
-                                <CardButton variant="primary" size="md">
-                                    Configurar Integração
-                                </CardButton>
-                                <CardButton variant="outline" size="md">
-                                    Ver Documentação
-                                </CardButton>
-                            </CardActions>
-                        </CardBody>
-                    </FlyonCard>
                 </div>
-            </PageWrapper>
-        </MainLayout>
+
+                {/* Seção de Tráfego de Acessos */}
+                <TrafficSection
+                    isDark={isDark}
+                    className="mb-12"
+                />
+
+                {/* Seção de Status - usando o layout dos exemplos */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className={`p-6 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'}`}>
+                        <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                            <Activity className="h-5 w-5" />
+                            Status da Conectividade
+                        </h3>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Google Analytics 4
+                                </span>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${analyticsState.isConnected
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                    }`}>
+                                    {analyticsState.isConnected ? 'Conectado' : 'Desconectado'}
+                                </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    API Interna
+                                </span>
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-700 dark:text-blue-200">
+                                    Conectada
+                                </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Google API Status
+                                </span>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${isGAReady
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                    }`}>
+                                    {isGAReady ? 'Carregada' : 'Carregando...'}
+                                </span>
+                            </div>
+                        </div>
+                        {gaError && (
+                            <div className="mt-3 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-xs text-red-600 dark:text-red-300">
+                                Erro: {gaError}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className={`p-6 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'}`}>
+                        <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                            <TrendingUp className="h-5 w-5" />
+                            Informações do Sistema
+                        </h3>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Última atualização
+                                </span>
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                    {analyticsState.lastUpdate.toLocaleTimeString('pt-BR')}
+                                </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Atualização automática
+                                </span>
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    5 min
+                                </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Cards carregados
+                                </span>
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                    {stats.length} métricas
+                                </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Tema atual
+                                </span>
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                    {isDark ? 'Dark Mode' : 'Light Mode'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Demonstração de Controles Interativos */}
+                <div className={`p-6 rounded-xl border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-gray-50/50 border-gray-200/50'}`}>
+                    <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        Ações Rápidas
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <Button
+                            variant="primary"
+                            icon={BarChart3}
+                            onClick={() => alert('Relatório detalhado em desenvolvimento!')}
+                            className="w-full"
+                        >
+                            Relatório Detalhado
+                        </Button>
+                        <Button
+                            variant="success"
+                            icon={TrendingUp}
+                            onClick={() => alert('Análise de tendências em desenvolvimento!')}
+                            className="w-full"
+                        >
+                            Análise de Tendências
+                        </Button>
+                        <Button
+                            variant="info"
+                            icon={Users}
+                            onClick={() => alert('Gestão de usuários em desenvolvimento!')}
+                            className="w-full"
+                        >
+                            Gestão de Usuários
+                        </Button>
+                        <Button
+                            variant="accent"
+                            icon={Calendar}
+                            onClick={() => alert('Configurações de agenda em desenvolvimento!')}
+                            className="w-full"
+                        >
+                            Configurar Agendas
+                        </Button>
+                    </div>
+                    <div className={`mt-4 text-sm ${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
+                        <p>💡 <strong>Dica:</strong> Use os botões acima para acessar funcionalidades avançadas do sistema.</p>
+                    </div>
+                </div>
+            </div>
+        </PageWrapper>
     )
 }
 

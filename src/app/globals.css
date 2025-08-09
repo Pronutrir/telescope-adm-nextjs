@@ -1,6 +1,12 @@
 @import "tailwindcss";
 @import "../styles/themes.css";
 
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 body {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
@@ -11,33 +17,58 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Elevação e sombreamento customizados com melhor contraste */
+/* Elevação e sombreamento customizados com melhor contraste para ambos os temas */
 .card-elevation-light {
   box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.2),
-    0 1px 2px 0 rgba(0, 0, 0, 0.12);
+    0 1px 3px 0 rgba(0, 0, 0, 0.25),
+    0 1px 2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.dark .card-elevation-light {
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.4),
+    0 1px 2px 0 rgba(0, 0, 0, 0.25);
 }
 
 .card-elevation-medium {
   box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.25),
-    0 2px 4px -1px rgba(0, 0, 0, 0.15);
+    0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+.dark .card-elevation-medium {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.5),
+    0 2px 4px -1px rgba(0, 0, 0, 0.3);
 }
 
 .card-elevation-heavy {
   box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.3),
-    0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    0 10px 15px -3px rgba(0, 0, 0, 0.35),
+    0 4px 6px -2px rgba(0, 0, 0, 0.25);
+}
+
+.dark .card-elevation-heavy {
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.6),
+    0 4px 6px -2px rgba(0, 0, 0, 0.4);
 }
 
 .card-elevation-telescope {
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.4),
     0 10px 10px -5px rgba(0, 0, 0, 0.25),
-    0 0 0 1px rgba(59, 130, 246, 0.15);
+    0 0 0 1px rgba(59, 130, 246, 0.2);
 }
 
-/* Transições suaves para interações */
+.dark .card-elevation-telescope {
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.7),
+    0 10px 10px -5px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(96, 165, 250, 0.3);
+}
+
+/* Transições suaves para interações com melhor contraste */
 .card-hover-lift {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -46,7 +77,13 @@ body {
   transform: translateY(-4px) scale(1.02);
   box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(59, 130, 246, 0.2);
+    0 0 0 1px rgba(59, 130, 246, 0.25);
+}
+
+.dark .card-hover-lift:hover {
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(96, 165, 250, 0.4);
 }
 
 /* Espaçamento distribuído */

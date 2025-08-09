@@ -17,7 +17,8 @@ import {
   MessageCircle,
   Stethoscope,
   UserCheck,
-  Layout
+  Layout,
+  TrendingUp
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -54,6 +55,18 @@ export const routes: Route[] = [
     defaultRoute: true,
     search: true,
     component: 'Dashboard'
+  },
+
+  // Tráfego de Acessos - Analytics de tráfego
+  {
+    path: '/traffic',
+    name: 'Tráfego de Acessos',
+    icon: TrendingUp,
+    iconColor: 'Success',
+    layout: '/admin',
+    private: false,
+    search: true,
+    component: 'Traffic'
   },
 
   // FlyonUI Cards - Componentes de exemplo

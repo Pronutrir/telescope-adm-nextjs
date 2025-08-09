@@ -5,7 +5,7 @@ import { twMerge } from 'tailwind-merge'
 import { LucideIcon } from 'lucide-react'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'default' | 'primary' | 'secondary' | 'neon' | 'ghost' | 'outline'
+    variant?: 'default' | 'primary' | 'secondary' | 'accent' | 'info' | 'success' | 'warning' | 'error' | 'neon' | 'ghost' | 'outline'
     size?: 'sm' | 'md' | 'lg' | 'xl'
     icon?: LucideIcon
     iconPosition?: 'left' | 'right'
@@ -28,8 +28,13 @@ const Button: React.FC<ButtonProps> = ({
 
     const variantClasses = {
         default: "bg-card text-card-foreground border border-border hover:bg-card-elevated hover:border-primary-500/50 hover:shadow-theme focus:ring-primary-500",
-        primary: "bg-neon-green text-background border border-neon-green hover:bg-neon-green/90 hover:shadow-neon-green focus:ring-neon-green",
-        secondary: "bg-muted text-muted-foreground border border-border hover:bg-accent hover:text-accent-foreground focus:ring-muted-foreground",
+        primary: "bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 hover:border-blue-700 hover:shadow-lg focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600",
+        secondary: "bg-purple-600 text-white border border-purple-600 hover:bg-purple-700 hover:border-purple-700 hover:shadow-lg focus:ring-purple-500 dark:bg-purple-500 dark:hover:bg-purple-600",
+        accent: "bg-violet-600 text-white border border-violet-600 hover:bg-violet-700 hover:border-violet-700 hover:shadow-lg focus:ring-violet-500 dark:bg-violet-500 dark:hover:bg-violet-600",
+        info: "bg-sky-600 text-white border border-sky-600 hover:bg-sky-700 hover:border-sky-700 hover:shadow-lg focus:ring-sky-500 dark:bg-sky-500 dark:hover:bg-sky-600",
+        success: "bg-green-600 text-white border border-green-600 hover:bg-green-700 hover:border-green-700 hover:shadow-lg focus:ring-green-500 dark:bg-green-500 dark:hover:bg-green-600",
+        warning: "bg-orange-600 text-white border border-orange-600 hover:bg-orange-700 hover:border-orange-700 hover:shadow-lg focus:ring-orange-500 dark:bg-orange-500 dark:hover:bg-orange-600",
+        error: "bg-red-600 text-white border border-red-600 hover:bg-red-700 hover:border-red-700 hover:shadow-lg focus:ring-red-500 dark:bg-red-500 dark:hover:bg-red-600",
         neon: "bg-gradient-to-r from-neon-green/80 to-neon-blue/80 text-background border border-neon-green/50 hover:from-neon-green hover:to-neon-blue hover:shadow-neon focus:ring-neon-green",
         ghost: "text-foreground hover:bg-accent hover:text-accent-foreground focus:ring-accent",
         outline: "border border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-background hover:shadow-neon-green focus:ring-primary-500"

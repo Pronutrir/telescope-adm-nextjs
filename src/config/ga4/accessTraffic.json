@@ -1,0 +1,28 @@
+{
+    "dimensions": [
+        {
+            "name": "month"
+        }
+    ],
+    "metrics": [
+        {
+            "name": "activeUsers"
+        },
+        {
+            "name": "newUsers"
+        }
+    ],
+    "dateRanges": [
+        {
+            "startDate": "7daysAgo",
+            "endDate": "today"
+        },
+        {
+            "startDate": "30daysAgo",
+            "endDate": "today"
+        }
+    ],
+    "metricAggregations": [
+        "TOTAL"
+    ]
+}

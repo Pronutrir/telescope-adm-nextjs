@@ -43,19 +43,56 @@ const FlyonCard = React.forwardRef<HTMLDivElement, FlyonCardProps>(
         }
 
         const variantClasses = {
-            default: "bg-card/98 text-card-foreground border border-border/40 backdrop-blur-sm",
-            primary: "bg-gradient-to-br from-primary/15 to-primary/8 text-card-foreground border border-primary/40 backdrop-blur-sm",
-            secondary: "bg-gradient-to-br from-secondary/15 to-secondary/8 text-card-foreground border border-secondary/40 backdrop-blur-sm",
-            telescope: "bg-card/98 text-card-foreground border border-primary/30 ring-1 ring-primary/15 shadow-lg shadow-primary/10 backdrop-blur-sm",
-            glass: "backdrop-blur-xl bg-card/90 border border-border/30 shadow-xl"
+            default: `
+                bg-white/98 dark:bg-gray-800/95 
+                text-gray-900 dark:text-gray-100 
+                border border-gray-200/70 dark:border-gray-700/60 
+                backdrop-blur-xl transition-colors duration-300
+                hover:border-blue-500/40 dark:hover:border-blue-400/30
+                hover:shadow-lg hover:shadow-blue-500/10 dark:hover:shadow-blue-400/10
+            `,
+            primary: `
+                bg-gradient-to-br from-blue-50/95 to-blue-100/95 dark:from-blue-900/20 dark:to-blue-800/20 
+                text-gray-900 dark:text-gray-100 
+                border border-blue-300/70 dark:border-blue-700/60 
+                backdrop-blur-xl transition-colors duration-300
+                hover:border-blue-500/60 dark:hover:border-blue-400/50
+                hover:shadow-lg hover:shadow-blue-500/20 dark:hover:shadow-blue-400/10
+            `,
+            secondary: `
+                bg-gradient-to-br from-gray-50/95 to-gray-100/95 dark:from-gray-800/20 dark:to-gray-700/20 
+                text-gray-900 dark:text-gray-100 
+                border border-gray-300/70 dark:border-gray-600/60 
+                backdrop-blur-xl transition-colors duration-300
+                hover:border-gray-500/60 dark:hover:border-gray-400/50
+                hover:shadow-lg hover:shadow-gray-500/20 dark:hover:shadow-gray-400/10
+            `,
+            telescope: `
+                bg-white/98 dark:bg-gray-800/98 
+                text-gray-900 dark:text-gray-100 
+                border border-blue-400/60 dark:border-blue-400/40 
+                ring-1 ring-blue-400/30 dark:ring-blue-400/20 
+                shadow-lg shadow-blue-500/15 dark:shadow-blue-400/10 
+                backdrop-blur-xl transition-colors duration-300
+                hover:ring-blue-500/40 dark:hover:ring-blue-400/30
+                hover:shadow-xl hover:shadow-blue-500/25 dark:hover:shadow-blue-400/15
+            `,
+            glass: `
+                backdrop-blur-2xl 
+                bg-white/85 dark:bg-gray-800/80 
+                text-gray-900 dark:text-gray-100 
+                border border-gray-300/50 dark:border-gray-700/40 
+                shadow-xl transition-colors duration-300
+                hover:shadow-2xl hover:shadow-gray-500/20 dark:hover:shadow-black/30
+            `
         }
 
         const elevationClasses = {
             none: "",
-            sm: "shadow-sm hover:shadow-md",
-            md: "shadow-lg hover:shadow-xl card-hover-lift",
-            lg: "shadow-xl hover:shadow-2xl card-hover-lift",
-            xl: "shadow-2xl hover:shadow-3xl card-hover-lift"
+            sm: "shadow-sm hover:shadow-md shadow-gray-900/10 dark:shadow-black/20 hover:shadow-gray-900/15 dark:hover:shadow-black/30",
+            md: "shadow-lg hover:shadow-xl card-hover-lift shadow-gray-900/15 dark:shadow-black/20 hover:shadow-gray-900/25 dark:hover:shadow-black/30",
+            lg: "shadow-xl hover:shadow-2xl card-hover-lift shadow-gray-900/20 dark:shadow-black/30 hover:shadow-gray-900/30 dark:hover:shadow-black/40",
+            xl: "shadow-2xl hover:shadow-3xl card-hover-lift shadow-gray-900/25 dark:shadow-black/40 hover:shadow-gray-900/35 dark:hover:shadow-black/50"
         }
 
         return (
@@ -163,11 +200,11 @@ const CardButton = React.forwardRef<HTMLButtonElement, CardButtonProps>(
         const baseClasses = "btn transition-all duration-300 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2"
 
         const variantClasses = {
-            primary: "btn-primary bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500",
-            secondary: "bg-secondary-600 text-white hover:bg-secondary-700 focus:ring-secondary-500",
-            outline: "border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white focus:ring-primary-500",
-            ghost: "text-primary-600 hover:bg-primary-50 hover:text-primary-700 focus:ring-primary-500",
-            link: "text-primary-600 hover:text-primary-700 hover:underline focus:ring-primary-500"
+            primary: "btn-primary bg-primary-600 dark:bg-primary-500 text-white hover:bg-primary-700 dark:hover:bg-primary-600 focus:ring-primary-500 shadow-lg shadow-primary-500/25",
+            secondary: "bg-secondary-600 dark:bg-secondary-500 text-white hover:bg-secondary-700 dark:hover:bg-secondary-600 focus:ring-secondary-500 shadow-lg shadow-secondary-500/25",
+            outline: "border-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400 hover:bg-primary-600 dark:hover:bg-primary-500 hover:text-white focus:ring-primary-500",
+            ghost: "text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/20 hover:text-primary-700 dark:hover:text-primary-300 focus:ring-primary-500",
+            link: "text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:underline focus:ring-primary-500"
         }
 
         const sizeClasses = {

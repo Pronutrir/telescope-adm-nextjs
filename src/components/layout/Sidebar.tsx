@@ -79,41 +79,31 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
     }
 
     return (
-        <>
-            {/* Mobile Overlay */}
-            {mounted && isClientMounted && isMobile && sidebarOpen && (
-                <div
-                    className="fixed inset-0 bg-black/70 backdrop-blur-sm z-30"
-                    onClick={toggleSidebar}
-                />
-            )}
-
-            {/* FlyonUI Sidebar */}
-            <aside
-                className={`
-                    overlay drawer drawer-start border-e border-base-content/20
-                    ${!mounted || !isClientMounted
-                        ? 'w-66 sm:flex sm:translate-x-0'
-                        : isMobile
-                            ? (sidebarOpen ? 'w-66 translate-x-0' : 'w-66 -translate-x-full')
-                            : sidebarCollapsed
-                                ? 'overlay-minified:w-17 w-17'
-                                : 'w-66'
-                    }
-                    ${sidebarCollapsed ? 'overlay-minified' : ''}
-                    fixed top-0 left-0 h-screen backdrop-blur-xl
-                    shadow-xl shadow-black/10 transition-all duration-500 ease-in-out z-40
-                    ${className}
-                `}
-                style={{
-                    background: getSidebarBackground()
-                }}
-                role="dialog"
-                tabIndex={-1}
-            >
-                {/* Header com Logo e Toggle */}
-                <div className="drawer-header overlay-minified:px-3.75 py-2 w-full flex items-center justify-between gap-3">
-                    {/* <div className="flex items-center space-x-3">
+        <aside
+            className={`
+                overlay drawer drawer-start border-e border-base-content/20
+                ${!mounted || !isClientMounted
+                    ? 'w-66 sm:flex sm:translate-x-0'
+                    : isMobile
+                        ? (sidebarOpen ? 'w-66 translate-x-0' : 'w-66 -translate-x-full')
+                        : sidebarCollapsed
+                            ? 'overlay-minified:w-17 w-17'
+                            : 'w-66'
+                }
+                ${sidebarCollapsed ? 'overlay-minified' : ''}
+                fixed top-0 left-0 h-screen backdrop-blur-xl
+                shadow-xl shadow-black/10 transition-all duration-500 ease-in-out z-40
+                ${className}
+            `}
+            style={{
+                background: getSidebarBackground()
+            }}
+            role="dialog"
+            tabIndex={-1}
+        >
+            {/* Header com Logo e Toggle */}
+            <div className="drawer-header overlay-minified:px-3.75 py-2 w-full flex items-center justify-between gap-3">
+                {/* <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg">
                             <svg
                                 width="20"
@@ -144,127 +134,128 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
                         </h3>
                     </div> */}
 
-                    {/* Toggle Button - FlyonUI Original Style */}
-                    {!isMobile && (
-                        <button
-                            onClick={toggleSidebar}
-                            className="overlay-minified:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors duration-200"
-                            aria-label="Toggle sidebar"
-                        >
-                            <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                        </button>
-                    )}
-                </div>                {/* Navigation Menu */}
-                <div className="drawer-body px-2 pt-4">
-                    <ul className="menu p-0 space-y-1">
-                        {mainRoutes.map((route) => {
-                            const isActive = isRouteActive(route)
-                            const hasSubmenu = hasSubmenus(routes, route.name)
-                            const submenus = hasSubmenu ? getSubmenus(routes, route.name) : []
-                            const isMenuOpen = openMenus[ route.name ]
+                {/* Toggle Button - FlyonUI Original Style */}
+                {!isMobile && (
+                    <button
+                        onClick={toggleSidebar}
+                        className="overlay-minified:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors duration-200"
+                        aria-label="Toggle sidebar"
+                    >
+                        <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                    </button>
+                )}
+            </div>
 
-                            if (hasSubmenu) {
-                                return (
-                                    <li
-                                        key={route.path}
-                                        className={`
+            {/* Navigation Menu */}
+            <div className="drawer-body px-2 pt-4">
+                <ul className="menu p-0 space-y-1">
+                    {mainRoutes.map((route) => {
+                        const isActive = isRouteActive(route)
+                        const hasSubmenu = hasSubmenus(routes, route.name)
+                        const submenus = hasSubmenu ? getSubmenus(routes, route.name) : []
+                        const isMenuOpen = openMenus[ route.name ]
+
+                        if (hasSubmenu) {
+                            return (
+                                <li
+                                    key={route.path}
+                                    className={`
                                             dropdown relative [--adaptive:none] [--strategy:static] 
                                             overlay-minified:[--adaptive:adaptive] overlay-minified:[--strategy:fixed] 
                                             overlay-minified:[--offset:15] overlay-minified:[--trigger:hover] 
                                             overlay-minified:[--placement:right-start]
                                             ${isMenuActive(route.name) ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
                                         `}
-                                    >
-                                        <button
-                                            type="button"
-                                            className={`
+                                >
+                                    <button
+                                        type="button"
+                                        className={`
                                                 dropdown-toggle w-full flex items-center justify-between px-3 py-3 rounded-xl
                                                 text-sm font-medium transition-all duration-300
                                                 hover:bg-gray-100 dark:hover:bg-gray-700/50
                                                 ${isMenuActive(route.name)
-                                                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                                                    : 'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white'
-                                                }
+                                                ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                                                : 'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white'
+                                            }
                                             `}
-                                            onClick={() => handleMenuToggle(route.name)}
-                                            aria-haspopup="menu"
-                                            aria-expanded={isMenuOpen}
-                                        >
-                                            <div className="flex items-center space-x-3">
-                                                {renderIcon(route)}
-                                                <span className="overlay-minified:hidden">{route.name}</span>
-                                            </div>
-                                            <ChevronDown className={`size-4 overlay-minified:hidden transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
-                                        </button>
+                                        onClick={() => handleMenuToggle(route.name)}
+                                        aria-haspopup="menu"
+                                        aria-expanded={isMenuOpen}
+                                    >
+                                        <div className="flex items-center space-x-3">
+                                            {renderIcon(route)}
+                                            <span className="overlay-minified:hidden">{route.name}</span>
+                                        </div>
+                                        <ChevronDown className={`size-4 overlay-minified:hidden transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
+                                    </button>
 
-                                        {/* Submenu */}
-                                        <ul className={`
+                                    {/* Submenu */}
+                                    <ul className={`
                                             dropdown-menu mt-0 shadow-none overlay-minified:shadow-md overlay-minified:shadow-base-300/20
                                             min-w-60 ml-6 overlay-minified:ml-0 space-y-1
                                             overlay-minified:before:absolute overlay-minified:before:-start-4 overlay-minified:before:top-0 
                                             overlay-minified:before:h-full overlay-minified:before:w-4 overlay-minified:before:bg-transparent
                                             ${isMenuOpen ? 'block' : 'hidden'}
                                         `}>
-                                            {submenus.map((submenu) => {
-                                                const isSubmenuActive = isRouteActive(submenu)
-                                                return (
-                                                    <li key={submenu.path}>
-                                                        <Link
-                                                            href={submenu.layout + submenu.path}
-                                                            className={`
+                                        {submenus.map((submenu) => {
+                                            const isSubmenuActive = isRouteActive(submenu)
+                                            return (
+                                                <li key={submenu.path}>
+                                                    <Link
+                                                        href={submenu.layout + submenu.path}
+                                                        className={`
                                                                 flex items-center space-x-3 px-3 py-2 rounded-lg
                                                                 text-sm transition-all duration-200
                                                                 ${isSubmenuActive
-                                                                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30'
-                                                                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/30'
-                                                                }
+                                                                ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30'
+                                                                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/30'
+                                                            }
                                                             `}
-                                                        >
-                                                            {renderIcon(submenu)}
-                                                            <span>{submenu.name}</span>
-                                                        </Link>
-                                                    </li>
-                                                )
-                                            })}
-                                        </ul>
-                                    </li>
-                                )
-                            }
+                                                    >
+                                                        {renderIcon(submenu)}
+                                                        <span>{submenu.name}</span>
+                                                    </Link>
+                                                </li>
+                                            )
+                                        })}
+                                    </ul>
+                                </li>
+                            )
+                        }
 
-                            // Menu item simples
-                            return (
-                                <li key={route.path}>
-                                    <Link
-                                        href={route.layout + route.path}
-                                        className={`
+                        // Menu item simples
+                        return (
+                            <li key={route.path}>
+                                <Link
+                                    href={route.layout + route.path}
+                                    className={`
                                             flex items-center space-x-3 px-3 py-3 rounded-xl
                                             text-sm font-medium transition-all duration-300
                                             hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-[1.02]
                                             ${isActive
-                                                ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 shadow-md border border-blue-200 dark:border-blue-700'
-                                                : 'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white'
-                                            }
+                                            ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 shadow-md border border-blue-200 dark:border-blue-700'
+                                            : 'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white'
+                                        }
                                         `}
-                                        title={sidebarCollapsed ? route.name : undefined}
-                                    >
-                                        {renderIcon(route)}
-                                        <span className="overlay-minified:hidden">{route.name}</span>
-                                    </Link>
-                                </li>
-                            )
-                        })}
-                    </ul>
-                </div>
+                                    title={sidebarCollapsed ? route.name : undefined}
+                                >
+                                    {renderIcon(route)}
+                                    <span className="overlay-minified:hidden">{route.name}</span>
+                                </Link>
+                            </li>
+                        )
+                    })}
+                </ul>
+            </div>
 
-                {/* Footer */}
-                <div className="drawer-footer p-4 border-t border-gray-200/30 dark:border-gray-700/30 overlay-minified:hidden">
-                    <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                        <p className="font-medium">Telescope ADM</p>
-                        <p>v2.0.0 - FlyonUI</p>
-                    </div>
+            {/* Footer */}
+            <div className="drawer-footer p-4 border-t border-gray-200/30 dark:border-gray-700/30 overlay-minified:hidden">
+                <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                    <p className="font-medium">Telescope ADM</p>
+                    <p>v2.0.0 - FlyonUI</p>
                 </div>
-            </aside>
-        </>
+            </div>
+        </aside>
     )
 }
 
