@@ -1,8 +1,30 @@
 // Componentes de UI
-export * from './Card'
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle as CardTitleBase,
+  CardDescription,
+  CardContent
+} from './Card'
+
 export * from './StatsCard'
 export * from './ThemeToggle'
-export * from './FlyonCard'
+
+export {
+  FlyonCard,
+  CardBody,
+  CardTitle,
+  CardActions,
+  CardButton,
+  WelcomeCard,
+  type FlyonCardProps,
+  type CardBodyProps,
+  type CardTitleProps,
+  type CardActionsProps,
+  type CardButtonProps
+} from './FlyonCard'
+
 export * from './FlyonSidebar'
 export * from './Container'
 export * from './Layout'

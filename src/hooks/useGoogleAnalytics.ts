@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import ACCESS_TRAFFIC from '@/config/ga4/accessTraffic.json'
 
 interface GoogleAnalyticsResponse {
@@ -11,6 +11,16 @@ interface GoogleAnalyticsResponse {
             metricValues: Array<{ value: string }>
         }>
     }>
+}
+
+interface GapiError {
+    result?: {
+        error: {
+            code: number
+            message: string
+        }
+    }
+    message?: string
 }
 
 export interface TrafficData {
@@ -36,12 +46,6 @@ interface UseGoogleAnalyticsReturn {
     handleAuth: () => void
 }
 
-declare global {
-    interface Window {
-        gapi: any
-    }
-}
-
 export const useGoogleAnalytics = (): UseGoogleAnalyticsReturn => {
     const [trafficData, setTrafficData] = useState<TrafficData[]>([])
     const [trafficStats, setTrafficStats] = useState<TrafficStats>({
@@ -54,19 +58,19 @@ export const useGoogleAnalytics = (): UseGoogleAnalyticsReturn => {
     const [error, setError] = useState<string | null>(null)
     const [isConnected, setIsConnected] = useState(false)
 
-    // Verificar se o GAPI está carregado
-    useEffect(() => {
-        checkGapiReady()
-    }, [])
-
-    const checkGapiReady = () => {
+    const checkGapiReady = useCallback(() => {
         if (typeof window !== 'undefined' && window.gapi) {
             setIsConnected(true)
         } else {
             // Carregar GAPI se não estiver disponível
             loadGapi()
         }
-    }
+    }, [])
+
+    // Verificar se o GAPI está carregado
+    useEffect(() => {
+        checkGapiReady()
+    }, [checkGapiReady])
 
     const loadGapi = () => {
         const script = document.createElement('script')
@@ -84,24 +88,24 @@ export const useGoogleAnalytics = (): UseGoogleAnalyticsReturn => {
             scope: 'https://www.googleapis.com/auth/analytics https://www.googleapis.com/auth/analytics.readonly'
         }).then(() => {
             setIsConnected(true)
-        }).catch((err: any) => {
-            setError('Erro ao inicializar Google API: ' + err.message)
+        }).catch((err: GapiError) => {
+            setError('Erro ao inicializar Google API: ' + (err.message || 'Erro desconhecido'))
         })
     }
 
-    const authenticate = (): Promise<any> => {
+    const authenticate = (): Promise<void> => {
         return window.gapi.auth2.getAuthInstance()
             .signIn({ scope: "https://www.googleapis.com/auth/analytics https://www.googleapis.com/auth/analytics.readonly" })
             .then(
                 () => console.log("Autenticação bem-sucedida"),
-                (err: any) => {
+                (err: GapiError) => {
                     console.error("Erro na autenticação", err)
                     throw err
                 }
             )
     }
 
-    const loadClient = (): Promise<any> => {
+    const loadClient = (): Promise<void> => {
         window.gapi.client.setApiKey("AIzaSyBw83ATVekwG9SeB-wBmld3GyYDxBxAtxw")
         return window.gapi.client.load("https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta")
             .then(
@@ -109,7 +113,7 @@ export const useGoogleAnalytics = (): UseGoogleAnalyticsReturn => {
                     console.log("Cliente GAPI carregado para API")
                     requestTrafficData()
                 },
-                (err: any) => {
+                (err: GapiError) => {
                     console.error("Erro ao carregar cliente GAPI para API", err)
                     throw err
                 }
@@ -117,8 +121,8 @@ export const useGoogleAnalytics = (): UseGoogleAnalyticsReturn => {
     }
 
     const handleAuth = () => {
-        authenticate().then(loadClient).catch((err) => {
-            setError('Erro na autenticação: ' + err.message)
+        authenticate().then(loadClient).catch((err: GapiError) => {
+            setError('Erro na autenticação: ' + (err.message || 'Erro desconhecido'))
         })
     }
 
@@ -149,7 +153,7 @@ export const useGoogleAnalytics = (): UseGoogleAnalyticsReturn => {
                 
                 setIsLoading(false)
             }
-        }).catch((err: any) => {
+        }).catch((err: GapiError) => {
             console.error("Erro na execução", err)
             setIsLoading(false)
             
@@ -174,12 +178,23 @@ export const useGoogleAnalytics = (): UseGoogleAnalyticsReturn => {
         })
     }
 
-    const processTrafficData = (data: any) => {
+    const processTrafficData = (data: {
+        rows?: Array<{
+            dimensionValues: Array<{ value: string }>
+            metricValues: Array<{ value: string }>
+        }>
+        totals?: Array<{
+            metricValues: Array<{ value: string }>
+        }>
+    }) => {
         const rows = data?.rows || []
         const totals = data?.totals?.[0]?.metricValues || []
         
         // Processar dados mensais
-        const monthlyData: TrafficData[] = rows.map((row: any) => ({
+        const monthlyData: TrafficData[] = rows.map((row: {
+            dimensionValues: Array<{ value: string }>
+            metricValues: Array<{ value: string }>
+        }) => ({
             date: row.dimensionValues[0].value,
             users: parseInt(row.metricValues[0].value) || 0,
             newUsers: parseInt(row.metricValues[1].value) || 0

@@ -2,26 +2,26 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Check } from 'lucide-react'
+import { error } from 'console'
 
 interface SelectOption {
-    value: any
+    value: string | number
     label: string
     disabled?: boolean
 }
 
 interface SelectProps {
     options: SelectOption[]
-    value?: any
+    value?: string | number
     placeholder?: string
     disabled?: boolean
     className?: string
     isDark?: boolean
+    error?: string | false
     label?: string
     name?: string
-    error?: string | false
-    helperText?: string
     required?: boolean
-    onChange?: (value: any) => void
+    onChange?: (value: string | number) => void
     onFocus?: () => void
     onBlur?: () => void
 }
@@ -33,10 +33,9 @@ const Select: React.FC<SelectProps> = ({
     disabled = false,
     className = '',
     isDark = false,
+    error,
     label,
     name,
-    error,
-    helperText,
     required = false,
     onChange,
     onFocus,
@@ -88,20 +87,11 @@ const Select: React.FC<SelectProps> = ({
     return (
         <div className="space-y-2">
             {label && (
-                <label
-                    className={`
-                        block text-sm font-medium
-                        ${hasError
-                            ? (isDark ? 'text-red-400' : 'text-red-600')
-                            : (isDark ? 'text-gray-300' : 'text-gray-700')
-                        }
-                    `}
-                >
+                <label className={`block text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
             )}
-
             <div ref={selectRef} className={`relative ${className}`}>
                 <button
                     type="button"
@@ -191,18 +181,11 @@ const Select: React.FC<SelectProps> = ({
                 )}
             </div>
 
-            {(error || helperText) && (
+            {error && (
                 <div className="space-y-1">
-                    {error && (
-                        <p className={`text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}>
-                            {error}
-                        </p>
-                    )}
-                    {helperText && !error && (
-                        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {helperText}
-                        </p>
-                    )}
+                    <p className={`text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}>
+                        {error}
+                    </p>
                 </div>
             )}
         </div>

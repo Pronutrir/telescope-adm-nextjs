@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { ProgressStat } from '@/components/ui/ProgressStat'
 import { SortableProgressStats } from '@/components/ui/SortableProgressStats'
+import { LucideIcon } from 'lucide-react'
 import {
     Users,
     TrendingUp,
     Activity,
     Settings,
-    ArrowRight,
     Star,
     Shield,
     Zap,
@@ -42,7 +42,7 @@ export interface SortableItem {
     value: string
     total: string
     progress: number
-    icon: any
+    icon: LucideIcon
     color: 'success' | 'warning' | 'error' | 'info' | 'primary'
     variant: 'default' | 'modern' | 'telescope'
     size?: 'sm' | 'md' | 'lg'
@@ -708,7 +708,7 @@ const ComponentsExamples: React.FC = () => {
                                 value={selectedValue}
                                 placeholder="Choose your option..."
                                 isDark={isDark}
-                                onChange={setSelectedValue}
+                                onChange={(value) => setSelectedValue(String(value))}
                             />
                         </div>
                         <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-gray-50/50 border-gray-200/50'}`}>
@@ -749,7 +749,7 @@ const ComponentsExamples: React.FC = () => {
   size="md"
   placeholder="Select option..."
   value={selectedValue}
-  onChange={setSelectedValue}
+  onChange={(value) => setSelectedValue(String(value))}
   isDark={isDark}
 />`}
                         </pre>

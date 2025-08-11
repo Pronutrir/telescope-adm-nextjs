@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react'
 import { BarChart3, TrendingUp } from 'lucide-react'
+import type { Chart, TooltipItem } from 'chart.js'
 
 interface ChartData {
     labels: string[]
@@ -34,7 +35,7 @@ export const LineChart: React.FC<LineChartProps> = ({
     style
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
-    const chartRef = useRef<any>(null)
+    const chartRef = useRef<Chart | null>(null)
 
     useEffect(() => {
         if (!canvasRef.current || !data || typeof window === 'undefined') return
@@ -79,10 +80,10 @@ export const LineChart: React.FC<LineChartProps> = ({
                                 cornerRadius: 8,
                                 displayColors: false,
                                 callbacks: {
-                                    title: (context: any) => {
+                                    title: (context: TooltipItem<'line'>[]) => {
                                         return `${context[ 0 ].label}`
                                     },
-                                    label: (context: any) => {
+                                    label: (context: TooltipItem<'line'>) => {
                                         return `Visitas: ${context.parsed.y.toLocaleString('pt-BR')}`
                                     }
                                 }
@@ -109,7 +110,7 @@ export const LineChart: React.FC<LineChartProps> = ({
                                     font: {
                                         size: 12
                                     },
-                                    callback: function (value: any) {
+                                    callback: function (value: string | number) {
                                         return Number(value).toLocaleString('pt-BR')
                                     }
                                 }
@@ -208,8 +209,8 @@ export const LineChart: React.FC<LineChartProps> = ({
                 <div className="relative">
                     {isLoading ? (
                         <div className={`h-80 rounded-xl flex items-center justify-center border transition-all duration-300 ${isDark
-                                ? 'bg-gradient-to-br from-gray-900/60 to-gray-800/60 border-gray-700/30'
-                                : 'bg-gradient-to-br from-slate-50/80 to-blue-50/80 border-slate-200/40'
+                            ? 'bg-gradient-to-br from-gray-900/60 to-gray-800/60 border-gray-700/30'
+                            : 'bg-gradient-to-br from-slate-50/80 to-blue-50/80 border-slate-200/40'
                             }`}>
                             <div className="text-center">
                                 <div className={`animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4 ${isDark ? 'border-blue-400' : 'border-blue-600'
@@ -231,8 +232,8 @@ export const LineChart: React.FC<LineChartProps> = ({
 
                             {/* Estatísticas rápidas */}
                             <div className={`absolute top-4 right-4 backdrop-blur-sm rounded-xl p-4 border shadow-lg transition-all duration-300 ${isDark
-                                    ? 'bg-gray-800/90 border-gray-600/40 shadow-gray-900/20'
-                                    : 'bg-white/90 border-slate-200/60 shadow-blue-500/10'
+                                ? 'bg-gray-800/90 border-gray-600/40 shadow-gray-900/20'
+                                : 'bg-white/90 border-slate-200/60 shadow-blue-500/10'
                                 }`}>
                                 <div className="flex items-center space-x-3">
                                     <TrendingUp className={`w-5 h-5 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
@@ -249,8 +250,8 @@ export const LineChart: React.FC<LineChartProps> = ({
                         </div>
                     ) : (
                         <div className={`h-80 rounded-xl flex items-center justify-center border transition-all duration-300 ${isDark
-                                ? 'bg-gradient-to-br from-gray-900/60 to-gray-800/60 border-gray-700/30'
-                                : 'bg-gradient-to-br from-slate-50/80 to-blue-50/80 border-slate-200/40'
+                            ? 'bg-gradient-to-br from-gray-900/60 to-gray-800/60 border-gray-700/30'
+                            : 'bg-gradient-to-br from-slate-50/80 to-blue-50/80 border-slate-200/40'
                             }`}>
                             <div className="text-center">
                                 <BarChart3 className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />

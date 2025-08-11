@@ -2,7 +2,7 @@ import { ReactNode } from 'react'
 import { LucideIcon } from 'lucide-react'
 
 // Tipos para os ícones (Material Icons ou Lucide)
-export type IconType = LucideIcon | React.ComponentType<any>
+export type IconType = LucideIcon | React.ComponentType<{ className?: string; size?: number | string }>
 
 // Interface para um item de menu
 export interface MenuItem {

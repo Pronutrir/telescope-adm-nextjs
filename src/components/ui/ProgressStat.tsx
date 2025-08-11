@@ -70,7 +70,7 @@ const ProgressStat: React.FC<ProgressStatProps> = ({
 
     // Função para obter estilos baseados na variante
     const getVariantStyles = () => {
-        const currentColors = getColors()
+        getColors()
 
         if (variant === 'telescope') {
             return {

@@ -9,6 +9,7 @@
         document.documentElement.classList.add(theme)
     } catch (error) {
         // Fallback para tema claro em caso de erro
+        console.log(error)
         document.documentElement.classList.add('light')
     }
 })()

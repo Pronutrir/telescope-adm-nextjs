@@ -63,7 +63,9 @@ export const UserPermissionsCard: React.FC<UserPermissionsCardProps> = ({
                             icon={X}
                             onClick={() => setShowPermissions(false)}
                             className="flex-shrink-0"
-                        />
+                        >
+                            <span className="sr-only">Fechar</span>
+                        </Button>
                     </div>
 
                     {/* Conteúdo do Modal */}

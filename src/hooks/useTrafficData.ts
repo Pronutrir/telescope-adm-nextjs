@@ -86,7 +86,7 @@ export const useTrafficData = () => {
     const [geoData, setGeoData] = useState<GeoData[]>([])
 
     // Estado de conexão com Google Analytics
-    const [isConnected, setIsConnected] = useState(false)
+    const [, setIsConnected] = useState(false)
     const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
     // Função para gerar dados mockados (fallback)

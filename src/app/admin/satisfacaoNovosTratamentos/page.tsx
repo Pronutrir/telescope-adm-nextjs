@@ -224,7 +224,7 @@ export default function SatisfacaoNovosTratamentosPage() {
                                     </div>
                                     <span className="text-xs text-gray-500">{comentario.data}</span>
                                 </div>
-                                <p className="text-gray-700 italic">"{comentario.comentario}"</p>
+                                <p className="text-gray-700 italic">&ldquo;{comentario.comentario}&rdquo;</p>
                             </div>
                         ))}
                     </div>

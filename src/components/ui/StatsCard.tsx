@@ -18,6 +18,7 @@ interface StatsCardProps {
     variant?: 'default' | 'gradient' | 'telescope'
     style?: React.CSSProperties
     isDark?: boolean
+    onClick?: () => void
 }
 
 const StatsCard: React.FC<StatsCardProps> = ({
@@ -30,7 +31,8 @@ const StatsCard: React.FC<StatsCardProps> = ({
     className,
     variant = 'default',
     style,
-    isDark = false
+    isDark = false,
+    onClick
 }) => {
     // Função para obter cores dos ícones baseada no tema
     const getIconColors = (color: string) => {
@@ -144,6 +146,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
                 ...variantStyles,
                 ...style
             }}
+            onClick={onClick}
             onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px) scale(1.02)'
                 e.currentTarget.style.boxShadow = variant === 'telescope'
@@ -263,3 +266,4 @@ const StatsCard: React.FC<StatsCardProps> = ({
 }
 
 export { StatsCard }
+export default StatsCard

@@ -7,15 +7,15 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
     variant?: 'default' | 'gradient' | 'glass' | 'telescope'
 }
 
-interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> { }
+type CardHeaderProps = React.HTMLAttributes<HTMLDivElement>
 
-interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> { }
+type CardContentProps = React.HTMLAttributes<HTMLDivElement>
 
-interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> { }
+type CardFooterProps = React.HTMLAttributes<HTMLDivElement>
 
-interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> { }
+type CardTitleProps = React.HTMLAttributes<HTMLHeadingElement>
 
-interface CardDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> { }
+type CardDescriptionProps = React.HTMLAttributes<HTMLParagraphElement>
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ({ className, variant = 'default', ...props }, ref) => {

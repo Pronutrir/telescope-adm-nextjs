@@ -64,7 +64,10 @@ const UserProfilePage = () => {
 
                 {/* Formulário de Dados do Perfil */}
                 <UserProfileForm
-                    user={user}
+                    user={{
+                        ...user,
+                        roles: user.roles.map(role => typeof role === 'string' ? role : role.toString())
+                    }}
                     isDark={currentTheme}
                     isLoading={isLoading}
                     setIsLoading={setIsLoading}

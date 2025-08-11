@@ -7,6 +7,31 @@ import { UserProfileForm } from '@/components/profile/UserProfileForm'
 import { UserPermissionsCard } from '@/components/profile/UserPermissionsCard'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
+import { User } from '@/types/user'
+import { IUser } from '@/lib/auth-types'
+
+// Função para converter IUser para User
+const convertIUserToUser = (iUser: IUser): User => {
+    return {
+        id: iUser.id,
+        username: iUser.username,
+        nomeCompleto: iUser.nomeCompleto,
+        cpf: iUser.cpf,
+        cnpj: iUser.cnpj,
+        email: iUser.email,
+        telefone: iUser.telefone,
+        celular: iUser.celular,
+        endereco: iUser.endereco,
+        estabelecimento: iUser.estabelecimento,
+        tipoUsuario: iUser.tipoUsuario,
+        ativo: iUser.ativo,
+        integraApi: iUser.integraApi,
+        tempoAcesso: iUser.tempoAcesso,
+        roles: iUser.roles?.map(role => role.perfis?.nomePerfil || '') || [],
+        createdAt: iUser.dataRegistro,
+        updatedAt: iUser.dataAtualizacao
+    }
+}
 
 const UserProfilePage = () => {
     const { user, isAuthenticated } = useAuth()
@@ -64,7 +89,12 @@ const UserProfilePage = () => {
 
                 {/* Formulário de Dados do Perfil */}
                 <UserProfileForm
-                    user={user}
+                    user={user ? convertIUserToUser(user) : {
+                        id: '',
+                        username: '',
+                        email: '',
+                        roles: []
+                    }}
                     isDark={currentTheme}
                     isLoading={isLoading}
                     setIsLoading={setIsLoading}

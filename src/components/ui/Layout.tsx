@@ -76,7 +76,6 @@ const Flex: React.FC<FlexProps> = ({
     justify = 'start',
     align = 'stretch',
     gap,
-    responsive,
     ...props
 }) => {
     const getFlexClasses = () => {

@@ -16,7 +16,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
     variant = 'button'
 }) => {
     const [ mounted, setMounted ] = useState(false)
-    const { theme, toggleTheme, isDark } = useTheme()
+    const { toggleTheme, isDark } = useTheme()
 
     const sizeClasses = {
         sm: 'w-8 h-8',

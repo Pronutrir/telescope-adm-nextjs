@@ -7,12 +7,10 @@ import { Button } from '@/components/ui/Button'
 import { TrafficChart } from '@/components/dashboard/TrafficChart'
 import { useTrafficData } from '@/hooks/useTrafficData'
 import {
-    TrendingUp,
     Users,
     Eye,
     UserPlus,
     RefreshCw,
-    Calendar,
     Globe,
     Monitor,
     Smartphone,
@@ -42,8 +40,7 @@ const TrafficPage = () => {
         originTraffic,
         geoData,
         refreshData,
-        updateFilters,
-        toggleGAConnection
+        updateFilters
     } = useTrafficData()
 
     // Detectar tema atual
@@ -64,10 +61,13 @@ const TrafficPage = () => {
     }, [])
 
     return (
-        <PageWrapper
-            title="Tráfego de Acessos"
-            subtitle="Análise detalhada do tráfego e comportamento dos usuários"
-        >
+        <PageWrapper>
+            {/* Header com título */}
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Tráfego de Acessos</h1>
+                <p className="text-gray-600 dark:text-gray-400 mt-2">Análise detalhada do tráfego e comportamento dos usuários</p>
+            </div>
+
             {/* Header com status e controles */}
             <div className={`mb-8 p-6 rounded-xl border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200'}`}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

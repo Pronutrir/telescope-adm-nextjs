@@ -222,7 +222,7 @@ export default function SatisfacaoRecepcionistasPage() {
                                     </div>
                                     <span className="text-xs text-gray-500">{feedback.data}</span>
                                 </div>
-                                <p className="text-gray-700 italic">"{feedback.comentario}"</p>
+                                <p className="text-gray-700 italic">&ldquo;{feedback.comentario}&rdquo;</p>
                             </div>
                         ))}
                     </div>

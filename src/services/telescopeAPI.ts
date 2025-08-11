@@ -29,11 +29,8 @@ class TelescopeAPIService {
 
         const headers: HeadersInit = {
             'Content-Type': 'application/json',
-            ...options.headers
-        }
-
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`
+            ...options.headers,
+            ...(token && { 'Authorization': `Bearer ${token}` })
         }
 
         const config: RequestInit = {

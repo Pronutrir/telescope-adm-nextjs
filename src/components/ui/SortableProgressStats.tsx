@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import Sortable from 'sortablejs'
-import { ProgressStat, ProgressStatProps } from './ProgressStat'
+import { ProgressStat } from './ProgressStat'
 import { LucideIcon } from 'lucide-react'
 
 interface SortableItem {
@@ -11,7 +11,7 @@ interface SortableItem {
     value: string
     total: string
     progress: number
-    icon: any
+    icon: LucideIcon
     color: 'success' | 'warning' | 'error' | 'info' | 'primary'
     variant: 'default' | 'modern' | 'telescope'
     size?: 'sm' | 'md' | 'lg'
@@ -76,7 +76,7 @@ const SortableProgressStats: React.FC<SortableProgressStatsProps> = ({
                 sortableInstance.current = null
             }
         }
-    }, [ animation, disabled, onSortEnd ])
+    }, [ animation, disabled, onSortEnd, currentItems ])
 
     // Atualizar configurações do Sortable quando props mudarem
     useEffect(() => {

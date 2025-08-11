@@ -10,14 +10,10 @@ import {
     Mail,
     Phone,
     MapPin,
-    Building,
     Save,
-    Eye,
-    EyeOff,
     AlertCircle,
     CheckCircle,
-    Clock,
-    Shield
+    Clock
 } from 'lucide-react'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
@@ -118,7 +114,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                     setNotification(prev => ({ ...prev, show: false }))
                 }, 5000)
 
-            } catch (error) {
+            } catch {
                 setNotification({
                     show: true,
                     type: 'error',
@@ -291,13 +287,13 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                         <Select
                             label="Status do Usuário"
                             name="ativo"
-                            value={formik.values.ativo}
-                            onChange={(value) => formik.setFieldValue('ativo', value)}
+                            value={formik.values.ativo ? 'true' : 'false'}
+                            onChange={(value) => formik.setFieldValue('ativo', value === 'true')}
                             error={formik.touched.ativo && formik.errors.ativo}
                             disabled={true}
                             options={[
-                                { value: true, label: 'Ativo' },
-                                { value: false, label: 'Inativo' }
+                                { value: 'true', label: 'Ativo' },
+                                { value: 'false', label: 'Inativo' }
                             ]}
                         />
 
@@ -315,13 +311,13 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                         <Select
                             label="Integra API"
                             name="integraApi"
-                            value={formik.values.integraApi}
-                            onChange={(value) => formik.setFieldValue('integraApi', value)}
+                            value={formik.values.integraApi ? 'true' : 'false'}
+                            onChange={(value) => formik.setFieldValue('integraApi', value === 'true')}
                             error={formik.touched.integraApi && formik.errors.integraApi}
                             disabled={true}
                             options={[
-                                { value: true, label: 'SIM' },
-                                { value: false, label: 'NÃO' }
+                                { value: 'true', label: 'SIM' },
+                                { value: 'false', label: 'NÃO' }
                             ]}
                         />
                     </div>

@@ -12,11 +12,9 @@ import {
   Star,
   UserPlus,
   User,
-  CircleIcon,
   Siren,
   MessageCircle,
   Stethoscope,
-  UserCheck,
   Layout,
   TrendingUp
 } from 'lucide-react'

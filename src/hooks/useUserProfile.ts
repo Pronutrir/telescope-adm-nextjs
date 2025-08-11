@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Api } from '@/lib/api'
-import { User, UserProfileFormData } from '@/types/user'
+import { UserProfileFormData } from '@/types/user'
 
 export interface UseUserProfileReturn {
   updateUserProfile: (userData: UserProfileFormData) => Promise<void>
@@ -38,17 +38,19 @@ export const useUserProfile = (userId: string | number): UseUserProfileReturn =>
       } else {
         throw new Error(response.data.message || 'Erro ao atualizar dados')
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro ao atualizar perfil:', err)
       
-      if (err.response?.data?.message) {
-        setError(err.response.data.message)
-      } else if (err.response?.data?.errors) {
+      const error = err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } }; message?: string }
+      
+      if (error.response?.data?.message) {
+        setError(error.response.data.message)
+      } else if (error.response?.data?.errors) {
         // Tratar erros de validação
-        const validationErrors = Object.values(err.response.data.errors).flat()
+        const validationErrors = Object.values(error.response.data.errors).flat()
         setError(validationErrors.join(', '))
-      } else if (err.message) {
-        setError(err.message)
+      } else if (error.message) {
+        setError(error.message)
       } else {
         setError('Erro interno do servidor. Tente novamente mais tarde.')
       }
@@ -92,7 +94,7 @@ export const useEstabelecimentos = () => {
         { value: 8, label: 'Cariri - CE' },
         { value: 2, label: 'Sobral - CE' }
       ])
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro ao buscar estabelecimentos:', err)
       setError('Erro ao carregar estabelecimentos')
     } finally {

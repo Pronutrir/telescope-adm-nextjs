@@ -56,10 +56,10 @@ export const cleanupService = {
       // 6. Limpar WebSQL (se suportado)
       if ('openDatabase' in window) {
         try {
-          // @ts-ignore - WebSQL está deprecated mas pode ainda existir
+          // @ts-expect-error - WebSQL está deprecated mas pode ainda existir
           const db = window.openDatabase('', '', '', '')
           if (db) {
-            db.transaction((tx: any) => {
+            db.transaction((tx: { executeSql: (query: string) => void }) => {
               tx.executeSql('DROP TABLE IF EXISTS auth_data')
               tx.executeSql('DROP TABLE IF EXISTS user_data')
             })

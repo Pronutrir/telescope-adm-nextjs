@@ -1,4 +1,5 @@
-// Declarações de tipos para Google Analytics API
+// Global type definitions for Google API (GAPI)
+
 declare global {
     interface Window {
         gapi: {
@@ -15,15 +16,8 @@ declare global {
                     properties: {
                         batchRunReports: (params: {
                             property: string
-                            resource: {
-                                requests: Array<{
-                                    dimensions?: Array<{ name: string }>
-                                    metrics: Array<{ name: string }>
-                                    dateRanges: Array<{ startDate: string; endDate: string }>
-                                    metricAggregations?: string[]
-                                }>
-                            }
-                        }) => Promise<{
+                            resource: { requests: unknown[] }
+                        }) => Promise<{ 
                             status: number
                             result: {
                                 reports: Array<{
@@ -55,5 +49,3 @@ declare global {
         }
     }
 }
-
-export {}

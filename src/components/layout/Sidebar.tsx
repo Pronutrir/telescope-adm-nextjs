@@ -5,9 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
     Menu,
-    ChevronDown,
-    ChevronRight,
-    X
+    ChevronDown
 } from 'lucide-react'
 import { useLayout } from '@/contexts/LayoutContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -15,7 +13,7 @@ import { routes, getMainMenus, getSubmenus, hasSubmenus, filterRoutesByRoles, ty
 import type { SidebarProps } from '@/types/layout'
 
 const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
-    const { sidebarOpen, sidebarCollapsed, toggleSidebar, toggleMobileSidebar, isMobile, mounted } = useLayout()
+    const { sidebarOpen, sidebarCollapsed, toggleSidebar, isMobile, mounted } = useLayout()
     const { user, isAuthenticated } = useAuth()
     const pathname = usePathname()
     const [ openMenus, setOpenMenus ] = useState<{ [ key: string ]: boolean }>({})

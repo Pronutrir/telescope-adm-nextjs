@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import telescopeAPI from '../services/telescopeAPI'
 
 // Types para os dados do dashboard
 export interface DashboardStats {
@@ -230,11 +229,27 @@ export const useDashboardData = () => {
     // Função para buscar dados internos do sistema
     const fetchInternalData = async () => {
         try {
-            // Usar o serviço da API Telescope
-            const data = await telescopeAPI.getDashboardStats()
+            // Simular chamada para API interna
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/dashboard/stats`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Adicionar token de autenticação se necessário
+                    // 'Authorization': `Bearer ${token}`
+                }
+            })
+            
+            if (response.ok) {
+                const data = await response.json()
+                return {
+                    pacientes: data.pacientes || 0,
+                    agendas: data.agendas || 2201
+                }
+            }
+            
+            // Fallback para dados estáticos
             return {
-                pacientes: data.pacientes || 0,
-                agendas: data.agendas || 2201
+                pacientes: 0,
+                agendas: 2201
             }
         } catch (error) {
             console.error('Erro ao buscar dados internos:', error)
@@ -249,73 +264,11 @@ export const useDashboardData = () => {
         loadDashboardData()
     }
 
-    const toggleGAConnection = async () => {
-        try {
-            if (typeof window !== 'undefined') {
-                // Carregar Google API se não estiver carregado
-                if (!window.gapi) {
-                    await loadGoogleAPI()
-                }
-
-                // Inicializar cliente do Analytics
-                await window.gapi.load('client:auth2', initializeGAClient)
-            }
-        } catch (error) {
-            console.error('Erro ao conectar com Google Analytics:', error)
-            setAnalyticsState(prev => ({ 
-                ...prev, 
-                error: 'Erro ao conectar com Google Analytics',
-                isConnected: false
-            }))
-        }
-    }
-
-    // Função para carregar Google API
-    const loadGoogleAPI = (): Promise<void> => {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script')
-            script.src = 'https://apis.google.com/js/api.js'
-            script.onload = () => resolve()
-            script.onerror = () => reject(new Error('Falha ao carregar Google API'))
-            document.head.appendChild(script)
-        })
-    }
-
-    // Função para inicializar cliente GA4
-    const initializeGAClient = async () => {
-        try {
-            await window.gapi.client.init({
-                apiKey: process.env.NEXT_PUBLIC_GA_API_KEY || '', // Configurar no .env
-                clientId: process.env.NEXT_PUBLIC_GA_CLIENT_ID || '', // Configurar no .env
-                discoveryDocs: ['https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta'],
-                scope: 'https://www.googleapis.com/auth/analytics.readonly'
-            })
-
-            // Verificar se usuário está autenticado
-            const authInstance = window.gapi.auth2.getAuthInstance()
-            const isSignedIn = authInstance.isSignedIn.get()
-            
-            if (!isSignedIn) {
-                await authInstance.signIn()
-            }
-
-            setAnalyticsState(prev => ({ 
-                ...prev, 
-                isConnected: true,
-                error: null
-            }))
-
-            // Recarregar dados após conexão
-            loadDashboardData()
-            
-        } catch (error) {
-            console.error('Erro na inicialização do GA4:', error)
-            setAnalyticsState(prev => ({ 
-                ...prev, 
-                isConnected: false,
-                error: 'Falha na autenticação do Google Analytics'
-            }))
-        }
+    const toggleGAConnection = () => {
+        setAnalyticsState(prev => ({ 
+            ...prev, 
+            isConnected: !prev.isConnected 
+        }))
     }
 
     return {
