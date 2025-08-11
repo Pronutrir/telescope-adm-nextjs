@@ -67,10 +67,10 @@ export const routes: Route[] = [
     component: 'Traffic'
   },
 
-  // FlyonUI Cards - Componentes de exemplo
+  // Biblioteca de Componentes - Componentes reutilizáveis
   {
     path: '/flyon-cards',
-    name: 'FlyonUI Cards',
+    name: 'Biblioteca de Componentes',
     icon: Layout,
     iconColor: 'Primary',
     layout: '/admin',
