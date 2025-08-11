@@ -6,7 +6,6 @@ import { Siren, AlertTriangle, Activity, TrendingUp } from 'lucide-react'
 
 export default function EscalaNewsPage() {
     return (
-        <MainLayout>
             <div className="space-y-8">
                 <div className="text-center">
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 bg-clip-text text-transparent">
@@ -176,6 +175,5 @@ export default function EscalaNewsPage() {
                     </div>
                 </div>
             </div>
-        </MainLayout>
     )
 }

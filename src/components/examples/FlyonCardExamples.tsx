@@ -1,11 +1,15 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
+import { useTheme } from '@/contexts/ThemeContext'
+import { useLayout } from '@/contexts/LayoutContext'
 import { StatsCard } from '@/components/ui/StatsCard'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { ProgressStat } from '@/components/ui/ProgressStat'
 import { SortableProgressStats } from '@/components/ui/SortableProgressStats'
+import { DropdownTest } from '@/components/ui/DropdownTest'
+import { DropdownWithTitle } from '@/components/ui/DropdownWithTitle'
 import { LucideIcon } from 'lucide-react'
 import {
     Users,
@@ -32,7 +36,9 @@ import {
     Target,
     CheckCircle,
     AlertTriangle,
-    User
+    User,
+    Sun,
+    Moon
 } from 'lucide-react'
 
 // Interface para items sortable
@@ -51,8 +57,9 @@ export interface SortableItem {
 }
 
 const ComponentsExamples: React.FC = () => {
-    // Estado para detectar tema
-    const [ isDark, setIsDark ] = useState(false)
+    // Contextos
+    const { theme, isDark, toggleTheme } = useTheme()
+    const { isMobile, sidebarOpen, mounted } = useLayout()
 
     // Estado para o Select
     const [ selectedValue, setSelectedValue ] = useState('')
@@ -145,24 +152,6 @@ const ComponentsExamples: React.FC = () => {
         }
     ])
 
-    // Detectar tema atual
-    useEffect(() => {
-        const checkTheme = () => {
-            setIsDark(document.documentElement.classList.contains('dark'))
-        }
-
-        checkTheme()
-
-        // Observer para mudanças no tema
-        const observer = new MutationObserver(checkTheme)
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: [ 'class' ]
-        })
-
-        return () => observer.disconnect()
-    }, [])
-
     // Dados de exemplo para StatsCards
     const statsExamples = [
         {
@@ -235,9 +224,96 @@ const ComponentsExamples: React.FC = () => {
                     Exemplos e variações de todos os componentes disponíveis no Telescope ADM
                 </p>
                 <div className={`mt-6 p-4 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-accent/20 border-border/20'}`}>
-                    <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
-                        🎨 <strong>Design System:</strong> Todos os componentes seguem o sistema de design unificado com suporte completo a temas light/dark.
-                    </p>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
+                                🎨 <strong>Design System:</strong> Todos os componentes seguem o sistema de design unificado com suporte completo a temas light/dark.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Tema: <span className="font-medium">{theme}</span>
+                                {isMobile && <span className="ml-2">📱 Mobile</span>}
+                                {!sidebarOpen && <span className="ml-2">📁 Sidebar fechada</span>}
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={toggleTheme}
+                                icon={isDark ? Sun : Moon}
+                            >
+                                {isDark ? 'Light' : 'Dark'}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Context Information */}
+            <div className="mb-12">
+                <h2 className={`text-3xl font-semibold mb-6 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                    <Settings className={`w-7 h-7 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+                    Contextos da Aplicação
+                </h2>
+                <p className={`text-lg mb-8 ${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
+                    Informações dos contextos de tema e layout em uso na aplicação.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Theme Context Info */}
+                    <div className={`p-6 rounded-xl border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-gray-50/50 border-gray-200/50'}`}>
+                        <h3 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                            🎨 Theme Context
+                        </h3>
+                        <div className="space-y-3">
+                            <div className="flex justify-between">
+                                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Tema atual:</span>
+                                <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{theme}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Modo escuro:</span>
+                                <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{isDark ? 'Ativo' : 'Inativo'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Mounted:</span>
+                                <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{mounted ? 'Sim' : 'Não'}</span>
+                            </div>
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={toggleTheme}
+                                className="w-full mt-4"
+                            >
+                                Alternar Tema
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Layout Context Info */}
+                    <div className={`p-6 rounded-xl border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-gray-50/50 border-gray-200/50'}`}>
+                        <h3 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                            📱 Layout Context
+                        </h3>
+                        <div className="space-y-3">
+                            <div className="flex justify-between">
+                                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Mobile:</span>
+                                <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{isMobile ? 'Sim' : 'Não'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Sidebar aberta:</span>
+                                <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{sidebarOpen ? 'Sim' : 'Não'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Componente mounted:</span>
+                                <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{mounted ? 'Sim' : 'Não'}</span>
+                            </div>
+                            <div className={`mt-4 p-3 rounded-lg ${isDark ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
+                                <p className={`text-xs ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                                    ℹ️ O layout responde automaticamente ao tamanho da tela e preferências do usuário.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -551,6 +627,40 @@ const ComponentsExamples: React.FC = () => {
                         <div className={`mt-4 text-sm ${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
                             <p>💡 <strong>Dica:</strong> Clique nos botões acima para ver as interações em ação.</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Dropdown Test */}
+            <div className="mb-12">
+                <h2 className={`text-3xl font-semibold mb-6 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                    <ChevronDown className={`w-7 h-7 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
+                    Dropdown Test
+                </h2>
+                <p className={`text-lg mb-8 ${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
+                    Componente dropdown com layout preservado e tema adaptado.
+                </p>
+
+                <div className="mb-8">
+                    <div className="flex flex-wrap gap-4">
+                        <DropdownTest />
+                    </div>
+                </div>
+            </div>
+
+            {/* Dropdown With Title */}
+            <div className="mb-12">
+                <h2 className={`text-3xl font-semibold mb-6 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                    <ChevronDown className={`w-7 h-7 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
+                    Dropdown With Title
+                </h2>
+                <p className={`text-lg mb-8 ${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
+                    Variação com títulos de seção e separadores.
+                </p>
+
+                <div className="mb-8">
+                    <div className="flex flex-wrap gap-4">
+                        <DropdownWithTitle />
                     </div>
                 </div>
             </div>

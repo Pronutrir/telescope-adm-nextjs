@@ -57,8 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
         availableRoutes = routes.filter(route =>
             !route.private ||
             route.name === 'Dashboard' ||
-            route.name === 'FlyonUI Cards' ||
-            route.name === 'Tráfego de Acessos'
+            route.name === 'FlyonUI Cards'
         )
     }
 

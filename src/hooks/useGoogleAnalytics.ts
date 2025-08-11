@@ -82,8 +82,15 @@ export const useGoogleAnalytics = (): UseGoogleAnalyticsReturn => {
     }
 
     const initializeGapi = () => {
+        const apiKey = process.env.NEXT_PUBLIC_GA_API_KEY
+        
+        if (!apiKey) {
+            setError('Chaves de API do Google Analytics não configuradas')
+            return
+        }
+
         window.gapi.client.init({
-            apiKey: 'AIzaSyBw83ATVekwG9SeB-wBmld3GyYDxBxAtxw',
+            apiKey: apiKey,
             discoveryDocs: ['https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta'],
             scope: 'https://www.googleapis.com/auth/analytics https://www.googleapis.com/auth/analytics.readonly'
         }).then(() => {
@@ -106,7 +113,13 @@ export const useGoogleAnalytics = (): UseGoogleAnalyticsReturn => {
     }
 
     const loadClient = (): Promise<void> => {
-        window.gapi.client.setApiKey("AIzaSyBw83ATVekwG9SeB-wBmld3GyYDxBxAtxw")
+        const apiKey = process.env.NEXT_PUBLIC_GA_API_KEY
+        
+        if (!apiKey) {
+            throw new Error('Chaves de API do Google Analytics não configuradas')
+        }
+
+        window.gapi.client.setApiKey(apiKey)
         return window.gapi.client.load("https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta")
             .then(
                 () => {

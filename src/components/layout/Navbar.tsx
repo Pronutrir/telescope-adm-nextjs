@@ -5,14 +5,12 @@ import {
     Search,
     Bell,
     Settings,
-    User,
-    LogOut,
-    ChevronDown,
     MessageSquare
 } from 'lucide-react'
 import { useLayout } from '@/contexts/LayoutContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { NavbarDropdown } from '@/components/ui/NavbarDropdown'
 import type { NavbarProps } from '@/types/layout'
 
 const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
@@ -144,70 +142,11 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
                     </button>
 
                     {/* User Menu */}
-                    <div className="relative group">
-                        <button className="flex items-center space-x-2 px-3 py-2 rounded-lg 
-                        dark:bg-gray-700/80 dark:border-gray-600 dark:hover:bg-gray-600/80 dark:hover:border-blue-400/50
-                        bg-gray-100/80 border-gray-300 hover:bg-gray-200/80 hover:border-blue-500/50
-                        transition-all duration-300">
-                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                                <User className="w-4 h-4 text-white" />
-                            </div>
-                            <div className="hidden sm:block text-left">
-                                <div className="text-sm font-medium dark:text-white text-gray-800">
-                                    {user?.nomeCompleto || 'Usuário'}
-                                </div>
-                                <div className="text-xs dark:text-gray-400 text-gray-500">
-                                    {user?.email || 'user@example.com'}
-                                </div>
-                            </div>
-                            <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                        </button>
-
-                        {/* Dropdown Menu */}
-                        <div className="
-              absolute right-0 top-full mt-2 w-48
-              dark:bg-gray-800 dark:border-gray-700
-              bg-white border-gray-200
-              border rounded-lg shadow-2xl
-              opacity-0 invisible group-hover:opacity-100 group-hover:visible
-              transition-all duration-200 transform translate-y-1 group-hover:translate-y-0
-            ">
-                            <div className="py-2">
-                                <a
-                                    href="/profile"
-                                    className="flex items-center px-4 py-2 text-sm 
-                                    dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-blue-400
-                                    text-gray-700 hover:bg-gray-100 hover:text-blue-600
-                                    transition-all duration-200"
-                                >
-                                    <User className="w-4 h-4 mr-3 dark:text-gray-400 text-gray-500" />
-                                    Perfil
-                                </a>
-                                <a
-                                    href="/settings"
-                                    className="flex items-center px-4 py-2 text-sm 
-                                    dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-blue-400
-                                    text-gray-700 hover:bg-gray-100 hover:text-blue-600
-                                    transition-all duration-200"
-                                >
-                                    <Settings className="w-4 h-4 mr-3 dark:text-gray-400 text-gray-500" />
-                                    Configurações
-                                </a>
-                                <hr className="my-2 dark:border-gray-700 border-gray-200" />
-                                <button
-                                    onClick={handleLogout}
-                                    disabled={isLoggingOut}
-                                    className={`w-full flex items-center px-4 py-2 text-sm transition-all duration-200 ${isLoggingOut
-                                        ? 'dark:text-gray-500 dark:bg-gray-700/50 text-gray-400 bg-gray-100/50 cursor-not-allowed'
-                                        : 'dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300 text-red-600 hover:bg-red-50 hover:text-red-700'
-                                        }`}
-                                >
-                                    <LogOut className={`w-4 h-4 mr-3 ${isLoggingOut ? 'animate-spin' : ''}`} />
-                                    {isLoggingOut ? 'Saindo...' : 'Sair'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <NavbarDropdown
+                        user={user ? { nomeCompleto: user.nomeCompleto, email: user.email } : undefined}
+                        onLogout={handleLogout}
+                        isLoggingOut={isLoggingOut}
+                    />
                 </div>
             </div>
 

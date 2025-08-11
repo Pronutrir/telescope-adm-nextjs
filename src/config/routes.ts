@@ -55,18 +55,6 @@ export const routes: Route[] = [
     component: 'Dashboard'
   },
 
-  // Tráfego de Acessos - Analytics de tráfego
-  {
-    path: '/traffic',
-    name: 'Tráfego de Acessos',
-    icon: TrendingUp,
-    iconColor: 'Success',
-    layout: '/admin',
-    private: false,
-    search: true,
-    component: 'Traffic'
-  },
-
   // Biblioteca de Componentes - Componentes reutilizáveis
   {
     path: '/flyon-cards',

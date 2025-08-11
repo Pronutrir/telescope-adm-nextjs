@@ -81,14 +81,6 @@ export const useDashboardData = () => {
             // Combinar dados do GA4 e dados internos
             const combinedStats = [
                 {
-                    title: 'TRÁFEGO',
-                    value: analyticsData.traffic?.toString() || '0',
-                    change: '+0%',
-                    changeType: 'positive' as const,
-                    icon: null,
-                    color: 'from-blue-500 to-blue-600'
-                },
-                {
                     title: 'USUÁRIOS',
                     value: analyticsData.users?.toString() || '59',
                     change: '+12%',
@@ -134,14 +126,6 @@ export const useDashboardData = () => {
             
             // Fallback para dados estáticos
             setStats([
-                {
-                    title: 'TRÁFEGO',
-                    value: '0',
-                    change: '+0%',
-                    changeType: 'positive' as const,
-                    icon: null,
-                    color: 'from-blue-500 to-blue-600'
-                },
                 {
                     title: 'USUÁRIOS',
                     value: '59',

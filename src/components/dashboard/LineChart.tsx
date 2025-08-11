@@ -30,7 +30,7 @@ export const LineChart: React.FC<LineChartProps> = ({
     isLoading = false,
     activeTab,
     onTabChange,
-    title = "Tráfego de Acessos",
+    title = "Analytics",
     isDark = false,
     style
 }) => {

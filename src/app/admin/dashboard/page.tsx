@@ -6,23 +6,29 @@ import { StatsCard } from '@/components/ui/StatsCard'
 import { Button } from '@/components/ui/Button'
 import { useDashboardData } from '@/hooks/useDashboardData'
 import { useGoogleAnalytics } from '@/components/analytics/GoogleAnalyticsLoader'
-import { TrafficSection } from '@/components/dashboard/TrafficSection'
+import { useTrafficMetrics } from '@/hooks/useTrafficMetrics'
 import {
     Users,
     Calendar,
     TrendingUp,
+    TrendingDown,
     UserCheck,
     RefreshCw,
     Wifi,
     WifiOff,
     AlertCircle,
     BarChart3,
-    Activity
+    Activity,
+    Eye,
+    Clock,
+    Globe,
+    Monitor
 } from 'lucide-react'
 
 const Dashboard = () => {
-    // Estado para detectar tema
+    // Estado para detectar tema e montagem
     const [ isDark, setIsDark ] = useState(false)
+    const [ mounted, setMounted ] = useState(false)
 
     // Hook para carregar Google Analytics
     const { isReady: isGAReady, error: gaError, GoogleAnalyticsLoader } = useGoogleAnalytics()
@@ -36,8 +42,13 @@ const Dashboard = () => {
         toggleGAConnection
     } = useDashboardData()
 
+    // Hook para métricas de tráfego reais
+    const { metrics: trafficMetrics, isLoading: isLoadingTraffic, refreshMetrics } = useTrafficMetrics()
+
     // Detectar tema atual
     useEffect(() => {
+        setMounted(true)
+        
         const checkTheme = () => {
             setIsDark(document.documentElement.classList.contains('dark'))
         }
@@ -56,7 +67,6 @@ const Dashboard = () => {
 
     // Mapeamento de ícones para os cards
     const iconMap = {
-        'TRÁFEGO': TrendingUp,
         'USUÁRIOS': Users,
         'PACIENTES': UserCheck,
         'AGENDAS': Calendar
@@ -64,7 +74,6 @@ const Dashboard = () => {
 
     // Mapeamento de cores para ícones
     const iconColorMap = {
-        'TRÁFEGO': 'primary' as const,
         'USUÁRIOS': 'success' as const,
         'PACIENTES': 'info' as const,
         'AGENDAS': 'warning' as const
@@ -77,7 +86,7 @@ const Dashboard = () => {
         icon: iconMap[ stat.title as keyof typeof iconMap ] || TrendingUp,
         iconColor: iconColorMap[ stat.title as keyof typeof iconColorMap ] || 'primary',
         trend: { value: stat.change, isPositive: stat.changeType === 'positive' },
-        description: `Dados atualizados em ${analyticsState.lastUpdate.toLocaleTimeString('pt-BR')}`
+        description: mounted ? `Dados atualizados em ${analyticsState.lastUpdate.toLocaleTimeString('pt-BR')}` : 'Carregando dados...'
     }))
 
     const handleRefresh = () => {
@@ -86,6 +95,29 @@ const Dashboard = () => {
 
     const handleGAToggle = () => {
         toggleGAConnection()
+    }
+
+    // Prevenir hidratação inconsistente
+    if (!mounted) {
+        return (
+            <PageWrapper maxWidth="full" spacing="xl">
+                <div className="w-full space-y-8">
+                    <div className="text-center">
+                        <div className="animate-pulse space-y-4">
+                            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto"></div>
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto"></div>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {[...Array(4)].map((_, i) => (
+                            <div key={i} className="animate-pulse">
+                                <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </PageWrapper>
+        )
     }
 
     return (
@@ -199,11 +231,172 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Seção de Tráfego de Acessos */}
-                <TrafficSection
-                    isDark={isDark}
-                    className="mb-12"
-                />
+                {/* Seção de Métricas de Tráfego */}
+                <div className="space-y-6">
+                    <div className="text-center">
+                        <div className="flex items-center justify-center gap-4 mb-2">
+                            <h2 className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                                Métricas de Tráfego de Acessos
+                            </h2>
+                            <Button
+                                onClick={refreshMetrics}
+                                disabled={isLoadingTraffic}
+                                size="sm"
+                                variant="outline"
+                                className="ml-2"
+                            >
+                                <RefreshCw className={`w-4 h-4 ${isLoadingTraffic ? 'animate-spin' : ''}`} />
+                            </Button>
+                        </div>
+                        <p className={`${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
+                            Análise detalhada do comportamento dos usuários
+                        </p>
+                    </div>
+
+                    {/* Cards de Métricas de Tráfego */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <StatsCard
+                            title="VISUALIZAÇÕES"
+                            value={isLoadingTraffic ? '...' : trafficMetrics.pageViews.toString()}
+                            icon={Eye}
+                            iconColor="primary"
+                            trend={{ type: 'up', value: '12.5%' }}
+                            description="Total de páginas visualizadas"
+                            variant="telescope"
+                            isDark={isDark}
+                            className={`${isLoadingTraffic ? 'opacity-75' : ''}`}
+                        />
+                        <StatsCard
+                            title="SESSÕES"
+                            value={isLoadingTraffic ? '...' : trafficMetrics.sessions.toString()}
+                            icon={Users}
+                            iconColor="success"
+                            trend={{ type: 'up', value: '8.3%' }}
+                            description="Sessões ativas no período"
+                            variant="telescope"
+                            isDark={isDark}
+                            className={`${isLoadingTraffic ? 'opacity-75' : ''}`}
+                        />
+                        <StatsCard
+                            title="TAXA DE REJEIÇÃO"
+                            value={isLoadingTraffic ? '...' : `${(trafficMetrics.bounceRate * 100).toFixed(1)}%`}
+                            icon={TrendingDown}
+                            iconColor="warning"
+                            trend={{ type: 'down', value: '2.1%' }}
+                            description="Usuários que saíram rapidamente"
+                            variant="telescope"
+                            isDark={isDark}
+                            className={`${isLoadingTraffic ? 'opacity-75' : ''}`}
+                        />
+                        <StatsCard
+                            title="TEMPO MÉDIO"
+                            value={isLoadingTraffic ? '...' : `${Math.round(trafficMetrics.avgSessionDuration / 60)}min`}
+                            icon={Clock}
+                            iconColor="info"
+                            trend={{ type: 'up', value: '15.2%' }}
+                            description="Duração média das sessões"
+                            variant="telescope"
+                            isDark={isDark}
+                            className={`${isLoadingTraffic ? 'opacity-75' : ''}`}
+                        />
+                    </div>
+
+                    {/* Gráfico de Tráfego */}
+                    <div className={`p-6 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'}`}>
+                        <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                            <BarChart3 className="h-5 w-5" />
+                            Evolução do Tráfego (Últimos 30 dias)
+                        </h3>
+                        <div className={`h-64 flex items-center justify-center rounded border ${isDark ? 'border-gray-700 bg-gray-900/30' : 'border-gray-200 bg-gray-50'}`}>
+                            <div className="text-center">
+                                <BarChart3 className={`h-12 w-12 mx-auto mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    Gráfico de evolução do tráfego
+                                </p>
+                                <p className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                    Dados do Google Analytics 4
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Métricas Adicionais de Tráfego */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Origem do Tráfego */}
+                        <div className={`p-6 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'}`}>
+                            <h4 className={`text-md font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                                <Globe className="h-4 w-4" />
+                                Origem do Tráfego
+                            </h4>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Busca Orgânica</span>
+                                    <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>45.2%</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Tráfego Direto</span>
+                                    <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>28.7%</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Redes Sociais</span>
+                                    <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>16.1%</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Referências</span>
+                                    <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>10.0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Dispositivos */}
+                        <div className={`p-6 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'}`}>
+                            <h4 className={`text-md font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                                <Monitor className="h-4 w-4" />
+                                Dispositivos
+                            </h4>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Desktop</span>
+                                    <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>52.3%</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Mobile</span>
+                                    <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>38.9%</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Tablet</span>
+                                    <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>8.8%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Páginas Populares */}
+                        <div className={`p-6 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'}`}>
+                            <h4 className={`text-md font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                                <Activity className="h-4 w-4" />
+                                Páginas Populares
+                            </h4>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-sm truncate ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>/dashboard</span>
+                                    <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>1,234</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-sm truncate ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>/agendamentos</span>
+                                    <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>892</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-sm truncate ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>/medicos</span>
+                                    <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>567</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-sm truncate ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>/relatorios</span>
+                                    <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>234</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Seção de Status - usando o layout dos exemplos */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -262,7 +455,7 @@ const Dashboard = () => {
                                     Última atualização
                                 </span>
                                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                    {analyticsState.lastUpdate.toLocaleTimeString('pt-BR')}
+                                    {mounted ? analyticsState.lastUpdate.toLocaleTimeString('pt-BR') : '--:--:--'}
                                 </span>
                             </div>
                             <div className="flex items-center justify-between">
