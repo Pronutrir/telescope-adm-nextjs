@@ -21,10 +21,9 @@ import {
     X,
     Layers
 } from 'lucide-react'
-import DirectPDFViewer from '@/components/DirectPDFViewer'
-import InlinePDFViewer from '@/components/InlinePDFViewer'
+import InlinePDFViewer from '@/components/pdf/InlinePDFViewer'
 import { twMerge } from 'tailwind-merge'
-import { PDFItem, ViewMode, PDFUIState, SearchParams } from '@/types/pdf'
+import { PDFItem, PDFUIState, SearchParams } from '@/types/pdf'
 import { PDFService } from '@/services/pdf/pdfService'
 
 const BibliotecaPDFsPage = () => {
