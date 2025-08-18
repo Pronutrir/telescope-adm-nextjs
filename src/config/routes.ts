@@ -16,7 +16,8 @@ import {
   MessageCircle,
   Stethoscope,
   Layout,
-  TrendingUp
+  TrendingUp,
+  FileText
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -65,6 +66,18 @@ export const routes: Route[] = [
     private: false,
     search: true,
     component: 'FlyonCards'
+  },
+
+  // Biblioteca de PDFs - Gerenciamento de documentos
+  {
+    path: '/biblioteca-pdfs',
+    name: 'Biblioteca de PDFs',
+    icon: FileText,
+    iconColor: 'Success',
+    layout: '/admin',
+    private: false,
+    search: true,
+    component: 'BibliotecaPDFs'
   },
 
   // Bloqueios

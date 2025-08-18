@@ -54,24 +54,26 @@ export const useTrafficMetrics = (): UseTrafficMetricsReturn => {
                 throw new Error('Property ID do Google Analytics não configurado')
             }
 
-            const response = await window.gapi.client.analyticsdata.properties.runReport({
+            const response = await window.gapi.client.analyticsdata.properties.batchRunReports({
                 property: `properties/${propertyId}`,
-                requestBody: {
-                    dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
-                    metrics: [
-                        { name: 'screenPageViews' }, // Visualizações de página
-                        { name: 'sessions' }, // Sessões
-                        { name: 'bounceRate' }, // Taxa de rejeição
-                        { name: 'averageSessionDuration' }, // Duração média da sessão
-                        { name: 'totalUsers' }, // Total de usuários
-                        { name: 'newUsers' }, // Novos usuários
-                        { name: 'conversions' } // Conversões
-                    ]
+                resource: {
+                    requests: [{
+                        dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+                        metrics: [
+                            { name: 'screenPageViews' }, // Visualizações de página
+                            { name: 'sessions' }, // Sessões
+                            { name: 'bounceRate' }, // Taxa de rejeição
+                            { name: 'averageSessionDuration' }, // Duração média da sessão
+                            { name: 'totalUsers' }, // Total de usuários
+                            { name: 'newUsers' }, // Novos usuários
+                            { name: 'conversions' } // Conversões
+                        ]
+                    }]
                 }
             })
 
-            if (response.result?.rows && response.result.totals) {
-                const totals = response.result.totals[0]?.metricValues || []
+            if (response.result?.reports && response.result.reports[0]?.totals) {
+                const totals = response.result.reports[0].totals[0]?.metricValues || []
                 
                 const pageViews = parseInt(totals[0]?.value) || 0
                 const sessions = parseInt(totals[1]?.value) || 0

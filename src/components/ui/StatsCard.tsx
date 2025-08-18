@@ -13,6 +13,7 @@ interface StatsCardProps {
     trend?: {
         value: string
         isPositive: boolean
+        type?: 'up' | 'down'
     }
     className?: string
     variant?: 'default' | 'gradient' | 'telescope'

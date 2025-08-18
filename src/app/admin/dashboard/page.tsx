@@ -48,7 +48,7 @@ const Dashboard = () => {
     // Detectar tema atual
     useEffect(() => {
         setMounted(true)
-        
+
         const checkTheme = () => {
             setIsDark(document.documentElement.classList.contains('dark'))
         }
@@ -109,7 +109,7 @@ const Dashboard = () => {
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {[...Array(4)].map((_, i) => (
+                        {[ ...Array(4) ].map((_, i) => (
                             <div key={i} className="animate-pulse">
                                 <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
                             </div>
@@ -260,7 +260,7 @@ const Dashboard = () => {
                             value={isLoadingTraffic ? '...' : trafficMetrics.pageViews.toString()}
                             icon={Eye}
                             iconColor="primary"
-                            trend={{ type: 'up', value: '12.5%' }}
+                            trend={{ type: 'up', value: '12.5%', isPositive: true }}
                             description="Total de páginas visualizadas"
                             variant="telescope"
                             isDark={isDark}
@@ -271,7 +271,7 @@ const Dashboard = () => {
                             value={isLoadingTraffic ? '...' : trafficMetrics.sessions.toString()}
                             icon={Users}
                             iconColor="success"
-                            trend={{ type: 'up', value: '8.3%' }}
+                            trend={{ type: 'up', value: '8.3%', isPositive: true }}
                             description="Sessões ativas no período"
                             variant="telescope"
                             isDark={isDark}
@@ -282,7 +282,7 @@ const Dashboard = () => {
                             value={isLoadingTraffic ? '...' : `${(trafficMetrics.bounceRate * 100).toFixed(1)}%`}
                             icon={TrendingDown}
                             iconColor="warning"
-                            trend={{ type: 'down', value: '2.1%' }}
+                            trend={{ type: 'down', value: '2.1%', isPositive: false }}
                             description="Usuários que saíram rapidamente"
                             variant="telescope"
                             isDark={isDark}
@@ -293,7 +293,7 @@ const Dashboard = () => {
                             value={isLoadingTraffic ? '...' : `${Math.round(trafficMetrics.avgSessionDuration / 60)}min`}
                             icon={Clock}
                             iconColor="info"
-                            trend={{ type: 'up', value: '15.2%' }}
+                            trend={{ type: 'up', value: '15.2%', isPositive: true }}
                             description="Duração média das sessões"
                             variant="telescope"
                             isDark={isDark}
