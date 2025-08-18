@@ -10,6 +10,7 @@ import { ProgressStat } from '@/components/ui/ProgressStat'
 import { SortableProgressStats } from '@/components/ui/SortableProgressStats'
 import { DropdownTest } from '@/components/ui/DropdownTest'
 import { DropdownWithTitle } from '@/components/ui/DropdownWithTitle'
+import { Modal, useModal } from '@/components/ui/Modal'
 import { LucideIcon } from 'lucide-react'
 import {
     Users,
@@ -38,7 +39,12 @@ import {
     AlertTriangle,
     User,
     Sun,
-    Moon
+    Moon,
+    Trash2,
+    Eye,
+    Info,
+    X,
+    AlertTriangle as AlertTriangleIcon
 } from 'lucide-react'
 
 // Interface para items sortable
@@ -54,6 +60,554 @@ export interface SortableItem {
     size?: 'sm' | 'md' | 'lg'
     className?: string
     style?: React.CSSProperties
+}
+
+/**
+ * Seção de exemplos do Modal Component
+ */
+const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
+    // Estados para diferentes modals
+    const confirmModal = useModal()
+    const formModal = useModal()
+    const detailModal = useModal()
+    const customModal = useModal()
+    const alertModal = useModal()
+    const successModal = useModal()
+    const infoModal = useModal()
+    const fullscreenModal = useModal()
+
+    // Estado do formulário de exemplo
+    const [ formData, setFormData ] = useState({
+        name: '',
+        email: '',
+        message: '',
+        category: 'general'
+    })
+
+    const handleFormSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        console.log('Dados do formulário:', formData)
+        formModal.closeModal()
+        // Simular sucesso
+        setTimeout(() => {
+            successModal.openModal()
+        }, 300)
+        setFormData({ name: '', email: '', message: '', category: 'general' })
+    }
+
+    const handleConfirmDelete = () => {
+        console.log('Item excluído!')
+        confirmModal.closeModal()
+        // Mostrar modal de sucesso
+        setTimeout(() => {
+            successModal.openModal()
+        }, 300)
+    }
+
+    return (
+        <div className="space-y-8">
+            {/* Seção de Modais Básicos */}
+            <section>
+                <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Modais Básicos
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+                    {/* Modal de Confirmação */}
+                    <button
+                        onClick={confirmModal.openModal}
+                        className="group flex flex-col items-center gap-3 p-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                    >
+                        <Trash2 className="w-6 h-6" />
+                        <span className="font-medium text-sm">Confirmação</span>
+                    </button>
+
+                    {/* Modal com Formulário */}
+                    <button
+                        onClick={formModal.openModal}
+                        className="group flex flex-col items-center gap-3 p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                    >
+                        <Plus className="w-6 h-6" />
+                        <span className="font-medium text-sm">Formulário</span>
+                    </button>
+
+                    {/* Modal de Detalhes */}
+                    <button
+                        onClick={detailModal.openModal}
+                        className="group flex flex-col items-center gap-3 p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                    >
+                        <Eye className="w-6 h-6" />
+                        <span className="font-medium text-sm">Detalhes</span>
+                    </button>
+
+                    {/* Modal Personalizado */}
+                    <button
+                        onClick={customModal.openModal}
+                        className="group flex flex-col items-center gap-3 p-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                    >
+                        <Edit className="w-6 h-6" />
+                        <span className="font-medium text-sm">Personalizado</span>
+                    </button>
+                </div>
+            </section>
+
+            {/* Seção de Modais de Notificação */}
+            <section>
+                <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Modais de Notificação
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+
+                    {/* Modal de Alerta */}
+                    <button
+                        onClick={alertModal.openModal}
+                        className="flex items-center gap-3 p-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+                    >
+                        <AlertTriangleIcon className="w-5 h-5" />
+                        <span className="text-sm">Modal de Alerta</span>
+                    </button>
+
+                    {/* Modal de Sucesso */}
+                    <button
+                        onClick={successModal.openModal}
+                        className="flex items-center gap-3 p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                    >
+                        <CheckCircle className="w-5 h-5" />
+                        <span className="text-sm">Modal de Sucesso</span>
+                    </button>
+
+                    {/* Modal de Info */}
+                    <button
+                        onClick={infoModal.openModal}
+                        className="flex items-center gap-3 p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                        <Info className="w-5 h-5" />
+                        <span className="text-sm">Modal Informativo</span>
+                    </button>
+                </div>
+            </section>
+
+            {/* Seção de Tamanhos */}
+            <section>
+                <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Tamanhos e Animações
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <button
+                        onClick={fullscreenModal.openModal}
+                        className="flex items-center gap-3 p-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
+                    >
+                        <Layout className="w-5 h-5" />
+                        <span className="text-sm">Modal Grande</span>
+                    </button>
+                </div>
+            </section>
+
+            {/* =========================== */}
+            {/* DEFINIÇÃO DOS MODALS */}
+            {/* =========================== */}
+
+            {/* Modal de Confirmação */}
+            <Modal
+                isOpen={confirmModal.isOpen}
+                onClose={confirmModal.closeModal}
+                title="Confirmar Exclusão"
+                size="sm"
+                animation="slide-down"
+                footer={
+                    <div className="flex gap-3">
+                        <button
+                            onClick={confirmModal.closeModal}
+                            className={`px-4 py-2 transition-colors ${isDark
+                                    ? 'text-gray-300 hover:text-white'
+                                    : 'text-gray-600 hover:text-gray-800'
+                                }`}
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={handleConfirmDelete}
+                            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                        >
+                            Excluir
+                        </button>
+                    </div>
+                }
+            >
+                <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Trash2 className="w-3 h-3 text-red-600" />
+                    </div>
+                    <div>
+                        <p className={`text-sm mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                            Esta ação não pode ser desfeita.
+                        </p>
+                        <p className="font-medium">
+                            Tem certeza que deseja excluir este item?
+                        </p>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal com Formulário */}
+            <Modal
+                isOpen={formModal.isOpen}
+                onClose={formModal.closeModal}
+                title="Novo Contato"
+                size="md"
+                animation="slide-up"
+                closeOnOverlayClick={false}
+                footer={
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={formModal.closeModal}
+                            className={`px-4 py-2 transition-colors ${isDark
+                                    ? 'text-gray-300 hover:text-white'
+                                    : 'text-gray-600 hover:text-gray-800'
+                                }`}
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            form="contact-form"
+                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                        >
+                            Salvar
+                        </button>
+                    </div>
+                }
+            >
+                <form id="contact-form" onSubmit={handleFormSubmit} className="space-y-4">
+                    <div>
+                        <label htmlFor="name" className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'
+                            }`}>
+                            Nome *
+                        </label>
+                        <input
+                            id="name"
+                            type="text"
+                            required
+                            value={formData.name}
+                            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                }`}
+                            placeholder="Seu nome completo"
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="email" className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'
+                            }`}>
+                            Email *
+                        </label>
+                        <input
+                            id="email"
+                            type="email"
+                            required
+                            value={formData.email}
+                            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                }`}
+                            placeholder="seu@email.com"
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="category" className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'
+                            }`}>
+                            Categoria
+                        </label>
+                        <select
+                            id="category"
+                            value={formData.category}
+                            onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                                    ? 'bg-gray-700 border-gray-600 text-white'
+                                    : 'bg-white border-gray-300 text-gray-900'
+                                }`}
+                        >
+                            <option value="general">Geral</option>
+                            <option value="support">Suporte</option>
+                            <option value="sales">Vendas</option>
+                            <option value="feedback">Feedback</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label htmlFor="message" className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'
+                            }`}>
+                            Mensagem
+                        </label>
+                        <textarea
+                            id="message"
+                            rows={3}
+                            value={formData.message}
+                            onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                }`}
+                            placeholder="Digite sua mensagem..."
+                        />
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Modal de Detalhes */}
+            <Modal
+                isOpen={detailModal.isOpen}
+                onClose={detailModal.closeModal}
+                title="Perfil do Usuário"
+                size="lg"
+                animation="fade"
+            >
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-xl">JS</span>
+                        </div>
+                        <div>
+                            <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                João Silva
+                            </h3>
+                            <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                Desenvolvedor Frontend
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className={`block text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'} mb-1`}>
+                                Email
+                            </label>
+                            <p className={isDark ? 'text-gray-200' : 'text-gray-700'}>
+                                joao.silva@exemplo.com
+                            </p>
+                        </div>
+                        <div>
+                            <label className={`block text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'} mb-1`}>
+                                Telefone
+                            </label>
+                            <p className={isDark ? 'text-gray-200' : 'text-gray-700'}>
+                                (11) 99999-9999
+                            </p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className={`block text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'} mb-2`}>
+                            Sobre
+                        </label>
+                        <p className={`leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                            Desenvolvedor experiente com foco em React, Next.js e TypeScript.
+                            Apaixonado por criar interfaces intuitivas e experiências de usuário excepcionais.
+                        </p>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal Personalizado */}
+            <Modal
+                isOpen={customModal.isOpen}
+                onClose={customModal.closeModal}
+                size="xl"
+                animation="zoom"
+                showCloseButton={false}
+                closeOnEsc={false}
+                closeOnOverlayClick={false}
+                className="border-4 border-purple-500"
+            >
+                <div className="text-center p-6">
+                    <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Edit className="w-10 h-10 text-purple-600" />
+                    </div>
+
+                    <h2 className="text-2xl font-bold text-purple-600 mb-4">
+                        Modal Totalmente Customizado
+                    </h2>
+
+                    <p className={`mb-6 max-w-md mx-auto ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        Este modal demonstra configurações especiais: sem botão de fechar padrão,
+                        não fecha com ESC nem clicando fora, e tem bordas personalizadas.
+                    </p>
+
+                    <div className="flex gap-4 justify-center">
+                        <button
+                            onClick={customModal.closeModal}
+                            className="px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                        >
+                            Fechar Modal
+                        </button>
+                        <button
+                            onClick={() => alert('Ação executada!')}
+                            className="px-6 py-2 border border-purple-600 text-purple-600 rounded hover:bg-purple-50 transition-colors"
+                        >
+                            Executar Ação
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal de Alerta */}
+            <Modal
+                isOpen={alertModal.isOpen}
+                onClose={alertModal.closeModal}
+                title="Atenção"
+                size="sm"
+                animation="slide-down"
+                footer={
+                    <button
+                        onClick={alertModal.closeModal}
+                        className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
+                    >
+                        Entendi
+                    </button>
+                }
+            >
+                <div className="flex items-start gap-3">
+                    <AlertTriangleIcon className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                        <p className="font-medium mb-2">
+                            Limite de tentativas atingido
+                        </p>
+                        <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                            Você atingiu o limite máximo de tentativas.
+                            Tente novamente em 15 minutos.
+                        </p>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal de Sucesso */}
+            <Modal
+                isOpen={successModal.isOpen}
+                onClose={successModal.closeModal}
+                title="Sucesso!"
+                size="sm"
+                animation="slide-down"
+                footer={
+                    <button
+                        onClick={successModal.closeModal}
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                    >
+                        Continuar
+                    </button>
+                }
+            >
+                <div className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                        <p className="font-medium mb-2">
+                            Operação realizada com sucesso
+                        </p>
+                        <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                            Sua solicitação foi processada com sucesso.
+                        </p>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal Informativo */}
+            <Modal
+                isOpen={infoModal.isOpen}
+                onClose={infoModal.closeModal}
+                title="Informação"
+                size="md"
+                animation="fade"
+                footer={
+                    <button
+                        onClick={infoModal.closeModal}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    >
+                        Ok, obrigado
+                    </button>
+                }
+            >
+                <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                        <Info className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <p className="font-medium mb-2">
+                                Nova funcionalidade disponível
+                            </p>
+                            <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                Agora você pode exportar seus relatórios em diferentes formatos.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className={`p-3 rounded ${isDark ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
+                        <h4 className={`font-medium text-blue-800 mb-1 ${isDark ? 'text-blue-300' : ''}`}>
+                            Formatos disponíveis:
+                        </h4>
+                        <ul className={`text-sm space-y-1 ${isDark ? 'text-blue-200' : 'text-blue-700'}`}>
+                            <li>• PDF para impressão</li>
+                            <li>• Excel para análise</li>
+                            <li>• CSV para integração</li>
+                        </ul>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal Grande */}
+            <Modal
+                isOpen={fullscreenModal.isOpen}
+                onClose={fullscreenModal.closeModal}
+                title="Visualização Completa"
+                size="xl"
+                animation="slide-up"
+            >
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}>
+                            <h3 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                Estatísticas
+                            </h3>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-blue-600">1,234</div>
+                                    <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                                        Usuários
+                                    </div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-green-600">98.5%</div>
+                                    <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                                        Uptime
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}>
+                            <h3 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                Performance
+                            </h3>
+                            <div className="space-y-2">
+                                <div className="flex justify-between">
+                                    <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>CPU</span>
+                                    <span>45%</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Memory</span>
+                                    <span>68%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Modal>
+        </div>
+    )
 }
 
 const ComponentsExamples: React.FC = () => {
@@ -1372,6 +1926,20 @@ const ComponentsExamples: React.FC = () => {
                         </p>
                     </div>
                 </div>
+            </div>
+
+            {/* Modal Component Examples */}
+            <div className="mb-12">
+                <h2 className={`text-3xl font-semibold mb-6 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                    <Layout className={`w-7 h-7 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+                    Modal Component
+                </h2>
+                <p className={`text-lg mb-8 ${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
+                    Componente Modal reutilizável com animações e suporte completo a temas.
+                </p>
+
+                {/* Modal Examples Sections */}
+                <ModalExamplesSection isDark={isDark} />
             </div>
 
             {/* Futuras seções para outros componentes */}

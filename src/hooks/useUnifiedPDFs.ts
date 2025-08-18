@@ -9,7 +9,7 @@ import {
     UnificationRequest,
     PDFPreviewState
 } from '@/types/pdf'
-import { UnifiedPDFService, PDFService } from '@/services/pdf/pdfService'
+import { UnifiedPDFService, PDFService, mapPdfInfoToUnifiedPDFItem } from '@/services/pdf/pdfService'
 
 /**
  * Hook personalizado para gerenciamento de PDFs Unificados
@@ -134,7 +134,7 @@ export const useUnifiedPDFs = () => {
             })
             
             if (response && response.arquivos) {
-                setUnifiedPdfs(response.arquivos)
+                setUnifiedPdfs(response.arquivos.map(mapPdfInfoToUnifiedPDFItem))
             }
         } catch (err) {
             console.error('Erro na busca:', err)
@@ -233,11 +233,17 @@ export const useUnifiedPDFs = () => {
         try {
             setUnifyModal(prev => ({ ...prev, isProcessing: true }))
             
+            // Converter IDs dos PDFs selecionados para nomes de arquivo
+            const selectedPDFData = availablePdfs.filter(pdf => selectedPdfs.includes(pdf.id))
+            const fileNames = selectedPDFData.map(pdf => pdf.fileName)
+            
+            console.log('📄 PDFs selecionados para unificação:', selectedPDFData.map(pdf => ({ id: pdf.id, fileName: pdf.fileName })))
+            
             const request: UnificationRequest = {
                 title: form.title,
                 description: form.description,
-                sourceFileIds: selectedPdfs,
-                mergeOrder: selectedPdfs // Ordem atual de seleção
+                sourceFileIds: fileNames, // Usar nomes de arquivo em vez de IDs
+                mergeOrder: fileNames // Ordem atual de seleção com nomes de arquivo
             }
 
             const result = await UnifiedPDFService.unifyPDFs(request)
@@ -253,7 +259,7 @@ export const useUnifiedPDFs = () => {
         } finally {
             setUnifyModal(prev => ({ ...prev, isProcessing: false }))
         }
-    }, [unifyModal, loadUnifiedPDFs, closeUnifyModal])
+    }, [unifyModal, availablePdfs, loadUnifiedPDFs, closeUnifyModal])
 
     // 🎯 DELETAR PDF UNIFICADO
     const deleteUnifiedPDF = useCallback(async (id: string) => {

@@ -16,6 +16,8 @@ import {
   PDFUnificationResponse,
   SearchParams,
   UnificationRequest,
+  UnificationAPIRequest,
+  UnificationAPIResponse,
   APIError
 } from '@/types/pdf';
 
@@ -97,86 +99,164 @@ export class PDFService {
    * Lista todos os PDFs disponíveis
    */
   static async listPDFs(): Promise<PDFItem[]> {
-    const response = await apiRequest<PDFListResponse>('/pdfs/listar');
-    
-    if (!response.sucesso) {
-      throw new Error(response.mensagem || 'Erro ao listar PDFs');
+    console.log('📂 Listando todos os PDFs...');
+
+    try {
+      const url = 'http://localhost:5000/api/Pdfs/listar';
+      console.log('🌐 URL da listagem:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        mode: 'cors',
+      });
+
+      console.log('📡 Status da listagem:', response.status, response.statusText);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('📥 Dados da listagem:', data);
+      
+      if (!data.sucesso) {
+        throw new Error(data.mensagem || 'Erro ao listar PDFs');
+      }
+      
+      return data.arquivos.map(mapPdfInfoToPDFItem);
+    } catch (error) {
+      console.error('❌ Erro ao listar PDFs:', error);
+      throw error;
     }
-    
-    return response.arquivos.map(mapPdfInfoToPDFItem);
   }
 
   /**
    * Busca PDFs com paginação
    */
   static async searchPDFs(params: SearchParams): Promise<PDFSearchResponseFrontend> {
-    const queryParams = new URLSearchParams({
-      query: params.query,
-      page: params.page.toString(),
-      limit: params.limit.toString(),
-    });
+    console.log('🔍 Buscando PDFs:', params);
 
-    if (params.sortBy) {
-      queryParams.append('sortBy', params.sortBy);
-    }
-    
-    if (params.sortOrder) {
-      queryParams.append('sortOrder', params.sortOrder);
-    }
+    try {
+      // Usar o endpoint correto da API: /api/Pdfs/buscar-paginado
+      const queryParams = new URLSearchParams({
+        termo: params.query, // API usa 'termo' em vez de 'query'
+        pagina: params.page.toString(), // API usa 'pagina' em vez de 'page'
+        itensPorPagina: params.limit.toString(), // API usa 'itensPorPagina' em vez de 'limit'
+      });
 
-    const response = await apiRequest<PDFSearchResponse>(
-      `/pdfs/buscar?${queryParams}`
-    );
-    
-    if (!response.sucesso) {
-      throw new Error(response.mensagem || 'Erro ao buscar PDFs');
+      const url = `http://localhost:5000/api/Pdfs/buscar-paginado?${queryParams}`;
+      console.log('🌐 URL da busca:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        mode: 'cors',
+      });
+
+      console.log('📡 Status da busca:', response.status, response.statusText);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('📥 Dados da busca:', data);
+      
+      if (!data.sucesso) {
+        throw new Error(data.mensagem || 'Erro ao buscar PDFs');
+      }
+      
+      // Transformar a resposta da API real para o formato esperado pelo frontend
+      return {
+        success: data.sucesso,
+        data: data.arquivos.map(mapPdfInfoToPDFItem),
+        pagination: {
+          currentPage: data.paginaAtual,
+          totalPages: data.totalPaginas,
+          totalItems: data.totalEncontrados,
+          itemsPerPage: data.itensPorPagina
+        },
+        message: data.mensagem
+      };
+    } catch (error) {
+      console.error('❌ Erro na busca de PDFs:', error);
+      throw error;
     }
-    
-    // Transformar a resposta da API real para o formato esperado pelo frontend
-    return {
-      success: response.sucesso,
-      data: response.arquivos.map(mapPdfInfoToPDFItem),
-      pagination: {
-        currentPage: response.paginaAtual,
-        totalPages: response.totalPaginas,
-        totalItems: response.totalEncontrados,
-        itemsPerPage: response.itensPorPagina
-      },
-      message: response.mensagem
-    };
   }
 
   /**
    * Upload de arquivo PDF
    */
   static async uploadPDF(file: File, customName?: string): Promise<PDFItem> {
+    console.log('📤 Iniciando upload de PDF:', file.name);
+    
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('arquivo', file); // API espera campo 'arquivo'
+    
+    console.log('📋 Dados do FormData:');
+    console.log('  - Nome do arquivo:', file.name);
+    console.log('  - Tamanho:', file.size, 'bytes');
+    console.log('  - Tipo:', file.type);
     
     if (customName) {
-      formData.append('customName', customName);
+      console.log('  - Nome personalizado:', customName);
     }
 
-    const response = await fetch(`${API_BASE_URL}/pdfs/upload`, {
-      method: 'POST',
-      body: formData,
-      headers: {
-        // Remover Content-Type para FormData
-        'Accept': 'application/json',
-      },
-    });
+    try {
+      let uploadUrl = `${API_BASE_URL}/pdfs/upload`;
+      
+      if (customName) {
+        uploadUrl += `?nomePersonalizado=${encodeURIComponent(customName)}`;
+      }
 
-    if (!response.ok) {
-      await handleAPIError(response);
-    }
+      console.log('🌐 URL do upload:', uploadUrl);
 
-    const result: PDFUploadResponse = await response.json();
-    
-    if (!result.success || !result.data) {
-      throw new Error(result.message || 'Erro no upload do PDF');
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+          // Remover Content-Type para FormData (o browser define automaticamente)
+        },
+      });
+
+      console.log('📡 Status do upload:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log('❌ Erro na resposta:', errorText);
+        throw new Error(`Upload failed: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Upload concluído:', result);
+      
+      if (!result.sucesso) {
+        throw new Error(result.mensagem || 'Erro no upload');
+      }
+
+      // Converter resposta da API para PDFItem
+      return {
+        id: result.nomeArquivo,
+        title: result.nomeArquivo.replace(/\.[^/.]+$/, ''),
+        fileName: result.nomeArquivo,
+        url: result.caminhoCompleto || `/pdfs/${result.nomeArquivo}`,
+        size: `${result.tamanhoMB.toFixed(2)} MB`,
+        uploadDate: result.dataUpload,
+        description: `PDF enviado em ${new Date(result.dataUpload).toLocaleDateString('pt-BR')}`
+      };
+
+    } catch (error) {
+      console.error('❌ Erro no upload:', error);
+      throw error;
     }
-    
-    return result.data;
   }
 
   /**
@@ -186,9 +266,9 @@ export class PDFService {
     console.log('🚀 Iniciando busca do PDF:', fileName);
 
     try {
-      // URL encode para caracteres especiais - requisição direta para API backend
+      // URL encode para caracteres especiais - usar endpoint correto da API
       const nomeEncoded = encodeURIComponent(fileName);
-      const url = `http://localhost:5000/api/pdfs/download/${nomeEncoded}`;
+      const url = `http://localhost:5000/api/Pdfs/download/${nomeEncoded}`;
 
       console.log('🌐 URL da requisição:', url);
       const response = await fetch(url, {
@@ -340,19 +420,63 @@ export class UnifiedPDFService {
   }
 
   /**
-   * Unificar PDFs específicos
+   * Unificar PDFs específicos usando o endpoint real da API
    */
   static async unifyPDFs(request: UnificationRequest): Promise<UnifiedPDFItem> {
-    const response = await apiRequest<PDFUnificationResponse>('/pdfs/unificar', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    });
-    
-    if (!response.success || !response.data) {
-      throw new Error(response.message || 'Erro ao unificar PDFs');
+    console.log('🚀 Iniciando unificação de PDFs:', request);
+
+    try {
+      // Converter o request do frontend para o formato da API
+      const apiRequest: UnificationAPIRequest = {
+        nomesPdfs: request.sourceFileIds, // IDs dos PDFs (na verdade são nomes de arquivo)
+        nomeArquivoSaida: request.title.endsWith('.pdf') ? request.title : `${request.title}.pdf`
+      };
+
+      console.log('📤 Payload para API:', apiRequest);
+
+      const response = await fetch('http://localhost:5000/api/Pdfs/unificar-especificos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(apiRequest),
+        mode: 'cors',
+      });
+
+      console.log('📡 Status da resposta:', response.status, response.statusText);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data: UnificationAPIResponse = await response.json();
+      console.log('📥 Resposta da API:', data);
+
+      if (!data.sucesso) {
+        throw new Error(data.mensagem || 'Erro ao unificar PDFs');
+      }
+
+      // Converter a resposta da API para UnifiedPDFItem
+      const unifiedPDF: UnifiedPDFItem = {
+        id: `unified-${Date.now()}`,
+        title: request.title,
+        url: data.caminhoArquivoSaida || '',
+        fileName: data.nomeArquivoSaida || `${request.title}.pdf`,
+        size: `${data.tamanhoFinalMB.toFixed(2)} MB`,
+        uploadDate: data.dataCriacao,
+        description: request.description || `PDF unificado com ${data.totalArquivosUnificados} arquivos`,
+        sourceFiles: data.arquivosProcessados,
+        pageCount: 0 // A API não retorna o número de páginas, pode ser calculado depois
+      };
+
+      console.log('✅ PDF unificado criado com sucesso:', unifiedPDF);
+      return unifiedPDF;
+
+    } catch (error) {
+      console.error('❌ Erro ao unificar PDFs:', error);
+      throw error;
     }
-    
-    return response.data;
   }
 
   /**

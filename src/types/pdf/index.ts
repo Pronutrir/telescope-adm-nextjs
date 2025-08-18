@@ -215,6 +215,25 @@ export interface UnificationRequest {
   mergeOrder: string[];
 }
 
+// Interface específica para o endpoint da API real
+export interface UnificationAPIRequest {
+  nomesPdfs: string[];
+  nomeArquivoSaida?: string | null;
+}
+
+// Resposta da API de unificação
+export interface UnificationAPIResponse {
+  sucesso: boolean;
+  mensagem: string;
+  nomeArquivoSaida: string | null;
+  caminhoArquivoSaida: string | null;
+  totalArquivosUnificados: number;
+  tamanhoFinalMB: number;
+  dataCriacao: string;
+  arquivosProcessados: string[];
+  arquivosNaoEncontrados: string[];
+}
+
 // Tipos de erro da API
 export interface APIError {
   code: string;

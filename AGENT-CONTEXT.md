@@ -269,6 +269,96 @@ const MinhaPage = () => {
 }
 ```
 
+## ORGANIZAÇÃO DE EXEMPLOS DE COMPONENTES
+
+### 📚 ESTRUTURA DE EXEMPLOS
+
+**TODOS os exemplos de componentes devem estar organizados dentro da página `ComponentsExamples`:**
+
+```
+src/components/examples/
+├── index.ts                    # Exports centralizados
+├── FlyonCardExamples.tsx      # 🎯 PÁGINA PRINCIPAL (ComponentsExamples)
+└── [outros arquivos]/         # Arquivos auxiliares se necessário
+```
+
+**REGRAS OBRIGATÓRIAS:**
+
+1. ✅ **INTEGRAR** todos os exemplos na função `ComponentsExamples`
+2. ✅ **ORGANIZAR** por seções dentro do mesmo componente
+3. ✅ **NÃO CRIAR** arquivos separados para cada exemplo
+4. ✅ **MANTER** tudo centralizados na `FlyonCardExamples.tsx`
+
+### 🎯 PADRÃO DE INTEGRAÇÃO
+
+**Ao criar exemplos de novos componentes:**
+
+```tsx
+// ✅ PADRÃO CORRETO - Dentro de ComponentsExamples:
+
+const ComponentsExamples: React.FC = () => {
+    const { isDark } = useTheme()
+    
+    return (
+        <div>
+            {/* Seções existentes... */}
+            
+            {/* Nova seção para componente */}
+            <div className="mb-12">
+                <h2 className={`text-3xl font-semibold mb-6 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                    <IconeDoComponente className="w-7 h-7" />
+                    Nome do Componente
+                </h2>
+                <p className="text-lg mb-8">
+                    Descrição do componente...
+                </p>
+
+                {/* Exemplos organizados por subcategoria */}
+                <ExemplosDoComponenteSection isDark={isDark} />
+            </div>
+        </div>
+    )
+}
+
+// ✅ Função auxiliar para os exemplos (mesma arquivo):
+const ExemplosDoComponenteSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
+    // Estados específicos dos exemplos
+    // Lógica dos exemplos
+    // JSX com os exemplos organizados
+}
+```
+
+### 📁 ACESSOS AOS EXEMPLOS
+
+**Formas de acessar os exemplos:**
+
+1. **Importação direta:**
+   ```tsx
+   import { ComponentsExamples } from '@/components/examples'
+   ```
+
+2. **Rota da aplicação:**
+   ```
+   /examples  → ComponentsExamples
+   ```
+
+3. **Documentação:**
+   - Cada componente em `src/components/ui/` deve referenciar os exemplos
+   - Documentar que os exemplos estão na seção específica do ComponentsExamples
+
+### ❌ NÃO FAZER
+
+- ❌ NUNCA criar arquivos separados para exemplos (`ModalExamples.tsx`, `ButtonExamples.tsx`, etc.)
+- ❌ NUNCA criar páginas separadas para cada componente
+- ❌ NUNCA duplicar a estrutura de exemplos
+
+### ✅ SEMPRE FAZER
+
+- ✅ INTEGRAR na função `ComponentsExamples` existente
+- ✅ CRIAR seções organizadas por componente
+- ✅ USAR funções auxiliares se necessário (no mesmo arquivo)
+- ✅ MANTER consistência visual e de tema
+
 ## FLUXO DE TRABALHO PARA AGENTES
 
 ### 1. ADAPTANDO COMPONENTES DE HTML/CSS EXISTENTE

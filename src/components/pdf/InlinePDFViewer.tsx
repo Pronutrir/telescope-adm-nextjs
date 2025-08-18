@@ -91,9 +91,9 @@ export default function InlinePDFViewer({
         )
     }
 
-    const containerClasses = isFullScreen
+    const containerClasses = isFullScreen || height === '100%'
         ? twMerge(
-            `${className} fixed inset-0 z-50`,
+            `${className} w-full h-full`,
             isDark ? 'bg-gray-900' : 'bg-white'
         )
         : twMerge(
@@ -103,8 +103,8 @@ export default function InlinePDFViewer({
                 : 'border-gray-300 bg-white'
         )
 
-    const viewportHeight = isFullScreen
-        ? 'calc(100vh - 60px)' // Full viewport minus header
+    const viewportHeight = isFullScreen || height === '100%'
+        ? '95vh' // 95% da viewport height para modal full - deixa espaço para visualizar melhor
         : `calc(${height} + 20px)` // Adiciona 20px extra para garantir visualização completa
 
     const toggleFullScreen = () => {
@@ -186,7 +186,7 @@ export default function InlinePDFViewer({
                             style={{
                                 display: isLoading ? 'none' : 'block',
                                 background: isDark ? '#1f2937' : '#f9fafb',
-                                height: isFullScreen ? '100vh' : 'max(100%, 800px)', // Altura mínima garantida
+                                height: isFullScreen || height === '100%' ? '95vh' : 'max(100%, 800px)', // 95vh para modal
                                 minHeight: '100%'
                             }}
                             allow="fullscreen"

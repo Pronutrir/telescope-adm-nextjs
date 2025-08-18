@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { PageWrapper } from '@/components/layout'
 import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useLayout } from '@/contexts/LayoutContext'
 import {
@@ -769,101 +770,50 @@ const UnificadosPDFsPage = () => {
                 </div>
             )}
 
-            {/* Modal de Preview */}
-            {previewState.isOpen && (
-                <div className="fixed inset-0 z-50 overflow-hidden">
-                    <div className="absolute inset-0">
-                        <div className={twMerge(
-                            'fixed inset-0 transition-opacity',
-                            isDark ? 'bg-black bg-opacity-90' : 'bg-gray-900 bg-opacity-90'
-                        )} onClick={closePreview}></div>
-
-                        <div className="fixed inset-0 flex flex-col">
-                            {/* Header do modal */}
-                            <div className={twMerge(
-                                'flex items-center justify-between px-6 py-4 border-b',
-                                isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            {/* Modal de Preview - Migrado para componente Modal unificado */}
+            <Modal
+                isOpen={previewState.isOpen}
+                onClose={closePreview}
+                title=""
+                size="full"
+                showCloseButton={false}
+                className="p-0 h-full"
+            >
+                {previewState.isLoading ? (
+                    <div className="flex items-center justify-center h-full">
+                        <div className="text-center">
+                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                            <p className={twMerge(
+                                'mt-4 text-sm',
+                                isDark ? 'text-gray-400' : 'text-gray-500'
                             )}>
-                                <div className="flex-1 min-w-0 pr-4">
-                                    <h3 className={twMerge(
-                                        'text-lg font-medium truncate',
-                                        isDark ? 'text-white' : 'text-gray-900'
-                                    )}>
-                                        {previewState.selectedPdf?.title}
-                                    </h3>
-                                    <p className={twMerge(
-                                        'text-sm mt-1',
-                                        isDark ? 'text-gray-400' : 'text-gray-500'
-                                    )}>
-                                        {previewState.selectedPdf?.sourceFiles.length} arquivos • {previewState.selectedPdf?.pageCount} páginas
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    {previewState.pdfBase64 && (
-                                        <Button
-                                            onClick={() => window.open(previewState.pdfBase64!, '_blank')}
-                                            size="sm"
-                                            className="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700"
-                                        >
-                                            Nova Janela
-                                        </Button>
-                                    )}
-                                    <button
-                                        onClick={closePreview}
-                                        className={twMerge(
-                                            'p-2 rounded-lg transition-colors',
-                                            isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                                        )}
-                                    >
-                                        <X className="w-6 h-6" />
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Conteúdo do modal - área do PDF */}
-                            <div className={twMerge(
-                                'flex-1 relative',
-                                isDark ? 'bg-gray-900' : 'bg-gray-50'
-                            )}>
-                                {previewState.isLoading ? (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="text-center">
-                                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                                            <p className={twMerge(
-                                                'mt-4 text-sm',
-                                                isDark ? 'text-gray-400' : 'text-gray-500'
-                                            )}>
-                                                Carregando PDF unificado...
-                                            </p>
-                                        </div>
-                                    </div>
-                                ) : previewState.pdfBase64 ? (
-                                    <div className="absolute inset-0 p-4">
-                                        <InlinePDFViewer
-                                            pdfBase64={previewState.pdfBase64}
-                                            fileName={previewState.selectedPdf?.fileName || 'documento.pdf'}
-                                            height="100%"
-                                            className="w-full h-full"
-                                            onClose={closePreview}
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="text-center">
-                                            <p className={twMerge(
-                                                'text-sm',
-                                                isDark ? 'text-gray-400' : 'text-gray-500'
-                                            )}>
-                                                Erro ao carregar PDF
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                                Carregando PDF unificado...
+                            </p>
                         </div>
                     </div>
-                </div>
-            )}
+                ) : previewState.pdfBase64 ? (
+                    <div className="w-full h-full">
+                        <InlinePDFViewer
+                            pdfBase64={previewState.pdfBase64}
+                            fileName={previewState.selectedPdf?.fileName || 'documento.pdf'}
+                            height="100%"
+                            className="w-full h-full"
+                            onClose={closePreview}
+                        />
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center h-full">
+                        <div className="text-center">
+                            <p className={twMerge(
+                                'text-sm',
+                                isDark ? 'text-gray-400' : 'text-gray-500'
+                            )}>
+                                Erro ao carregar PDF
+                            </p>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </PageWrapper>
     )
 }

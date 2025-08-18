@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { PageWrapper } from '@/components/layout'
 import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useLayout } from '@/contexts/LayoutContext'
 import {
@@ -11,29 +12,40 @@ import {
     Search,
     Grid,
     List,
-    Download,
-    Trash2,
-    Eye,
-    Plus,
-    Filter,
     ChevronLeft,
     ChevronRight,
     X,
     Layers
 } from 'lucide-react'
 import InlinePDFViewer from '@/components/pdf/InlinePDFViewer'
+import { SortablePDFGrid } from '@/components/pdf/SortablePDFGrid'
 import { twMerge } from 'tailwind-merge'
 import { PDFItem, PDFUIState, SearchParams } from '@/types/pdf'
 import { PDFService } from '@/services/pdf/pdfService'
+import { useUnifiedPDFs } from '@/hooks/useUnifiedPDFs'
 
 const BibliotecaPDFsPage = () => {
     // 🎯 STEP 1: ANÁLISE - Contextos obrigatórios conforme AGENT-CONTEXT
     const { isDark } = useTheme()
     const { isMobile } = useLayout()
 
-    // 🎯 STEP 2: PRESERVAÇÃO - Estados migrados do app_pdfs
+    // 🎯 STEP 2: Hook para unificação de PDFs
+    const {
+        availablePdfs,
+        loadAvailablePDFs,
+        unifyModal,
+        openUnifyModal,
+        closeUnifyModal,
+        togglePDFSelection: unifyTogglePDFSelection,
+        updateUnifyForm,
+        unifySelectedPDFs,
+        canUnify
+    } = useUnifiedPDFs()
+
+    // 🎯 STEP 3: PRESERVAÇÃO - Estados migrados do app_pdfs
     const [ mounted, setMounted ] = useState(false)
     const [ pdfs, setPdfs ] = useState<PDFItem[]>([])
+    const [ selectionOrder, setSelectionOrder ] = useState<string[]>([]) // Nova state para ordem de seleção
     const [ uiState, setUiState ] = useState<PDFUIState>({
         isLoading: true,
         isSearching: false,
@@ -97,7 +109,21 @@ const BibliotecaPDFsPage = () => {
     // Buscar PDFs com paginação - migrado do app_pdfs
     const searchPDFs = useCallback(async (query: string, page: number = 1) => {
         if (!query.trim()) {
-            loadPDFs()
+            // Recarregar PDFs sem dependência do loadPDFs
+            try {
+                setUiState(prev => ({ ...prev, isLoading: true }))
+                const data = await PDFService.listPDFs()
+                setPdfs(data)
+                setUiState(prev => ({
+                    ...prev,
+                    isLoading: false,
+                    totalItems: data.length,
+                    totalPages: Math.ceil(data.length / 12) // usar valor fixo em vez de uiState.itemsPerPage
+                }))
+            } catch (error) {
+                console.error('Erro ao carregar PDFs:', error)
+                setUiState(prev => ({ ...prev, isLoading: false }))
+            }
             return
         }
 
@@ -107,7 +133,7 @@ const BibliotecaPDFsPage = () => {
             const searchParams: SearchParams = {
                 query,
                 page,
-                limit: uiState.itemsPerPage
+                limit: 12 // usar valor fixo em vez de uiState.itemsPerPage
             }
 
             const response = await PDFService.searchPDFs(searchParams)
@@ -123,13 +149,16 @@ const BibliotecaPDFsPage = () => {
             console.error('Erro na busca:', error)
             setUiState(prev => ({ ...prev, isSearching: false }))
             // Fallback para busca local durante desenvolvimento
-            const filteredPdfs = pdfs.filter(pdf =>
-                pdf.title.toLowerCase().includes(query.toLowerCase()) ||
-                pdf.description.toLowerCase().includes(query.toLowerCase())
-            )
-            setPdfs(filteredPdfs)
+            // Usar callback para acessar o valor atual de pdfs
+            setPdfs(currentPdfs => {
+                const filteredPdfs = currentPdfs.filter(pdf =>
+                    pdf.title.toLowerCase().includes(query.toLowerCase()) ||
+                    pdf.description.toLowerCase().includes(query.toLowerCase())
+                )
+                return filteredPdfs
+            })
         }
-    }, [ uiState.itemsPerPage, loadPDFs, pdfs ])
+    }, []) // Removidas dependências problemáticas: uiState.itemsPerPage, loadPDFs, pdfs
 
     // Visualizar PDF - migrado do app_pdfs
     const handleViewPDF = async (pdf: PDFItem) => {
@@ -171,24 +200,71 @@ const BibliotecaPDFsPage = () => {
             isSelectionMode: !prev.isSelectionMode,
             selectedForMerge: new Set()
         }))
+        setSelectionOrder([]) // Limpar ordem de seleção
     }
 
     // Toggle seleção de PDF para merge - migrado do app_pdfs
     const togglePDFSelection = (pdfId: string) => {
         setUiState(prev => {
             const newSelected = new Set(prev.selectedForMerge)
+            let newOrder = [ ...selectionOrder ]
+
             if (newSelected.has(pdfId)) {
+                // Removendo da seleção
                 newSelected.delete(pdfId)
+                newOrder = newOrder.filter(id => id !== pdfId)
             } else {
+                // Adicionando à seleção
                 newSelected.add(pdfId)
+                newOrder.push(pdfId)
             }
+
+            setSelectionOrder(newOrder)
             return { ...prev, selectedForMerge: newSelected }
         })
+    }
+
+    // Iniciar processo de unificação
+    const handleStartUnification = async () => {
+        if (uiState.selectedForMerge.size < 2) {
+            alert('Selecione pelo menos 2 PDFs para unificar')
+            return
+        }
+
+        try {
+            // Obter dados dos PDFs selecionados na ordem correta
+            const selectedPDFData = selectionOrder.map(pdfId => pdfs.find(pdf => pdf.id === pdfId)!).filter(Boolean)
+
+            console.log('📄 Iniciando unificação de PDFs:', selectedPDFData.map(pdf => ({ id: pdf.id, fileName: pdf.fileName })))
+
+            // Preparar dados para o hook
+            // Primeiro, vamos simular o carregamento dos PDFs no hook (se necessário)
+            await loadAvailablePDFs()
+
+            // Selecionar os PDFs no hook usando os IDs na ordem correta
+            selectionOrder.forEach(pdfId => {
+                unifyTogglePDFSelection(pdfId)
+            })
+
+            // Abrir modal de unificação
+            openUnifyModal()
+
+        } catch (error) {
+            console.error('Erro ao iniciar unificação:', error)
+            alert('Erro ao iniciar processo de unificação')
+        }
     }
 
     // Formatar data - migrado do app_pdfs
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('pt-BR')
+    }
+
+    // Função para reorganizar PDFs
+    const handlePDFSort = (sortedPDFs: PDFItem[]) => {
+        setPdfs(sortedPDFs)
+        // Aqui você pode implementar a lógica para salvar a nova ordem no backend
+        console.log('Nova ordem dos PDFs:', sortedPDFs.map(pdf => ({ id: pdf.id, title: pdf.title })))
     }
 
     // Navegação para páginas
@@ -200,22 +276,46 @@ const BibliotecaPDFsPage = () => {
         window.location.href = '/admin/biblioteca-pdfs/unificados'
     }
 
+    // 🎯 EXECUTAR UNIFICAÇÃO
+    const handleExecuteUnification = async () => {
+        if (!canUnify) {
+            alert('Preencha o título e selecione pelo menos 2 PDFs')
+            return
+        }
+
+        try {
+            const result = await unifySelectedPDFs()
+            alert(`PDF unificado criado com sucesso: ${result.title}`)
+
+            // Limpar seleção atual
+            setUiState(prev => ({ ...prev, selectedForMerge: new Set(), isSelectionMode: false }))
+            setSelectionOrder([])
+
+        } catch (error) {
+            console.error('Erro ao unificar PDFs:', error)
+            alert(error instanceof Error ? error.message : 'Erro ao unificar PDFs')
+        }
+    }
+
     // Prevenir hidratação inconsistente
     useEffect(() => {
         setMounted(true)
         loadPDFs()
-    }, [ loadPDFs ])
+    }, []) // Removido loadPDFs da dependência para evitar loop
 
     // Effect para busca com debounce - migrado do app_pdfs
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            if (uiState.searchTerm) {
-                searchPDFs(uiState.searchTerm, 1)
+            if (uiState.searchTerm.trim()) {
+                searchPDFs(uiState.searchTerm.trim(), 1)
+            } else if (uiState.searchTerm === '') {
+                // Se campo está vazio mas foi limpo, recarregar todos os PDFs
+                searchPDFs('', 1)
             }
         }, 500)
 
         return () => clearTimeout(timeoutId)
-    }, [ uiState.searchTerm, searchPDFs ])
+    }, [ uiState.searchTerm ]) // Removido searchPDFs da dependência para evitar loop
 
     if (!mounted) {
         return (
@@ -327,7 +427,8 @@ const BibliotecaPDFsPage = () => {
                                 <button
                                     onClick={() => {
                                         setUiState(prev => ({ ...prev, searchTerm: '' }))
-                                        loadPDFs()
+                                        // Usar searchPDFs com string vazia para recarregar
+                                        searchPDFs('', 1)
                                     }}
                                     className={twMerge(
                                         'absolute right-3 top-1/2 transform -translate-y-1/2',
@@ -342,13 +443,13 @@ const BibliotecaPDFsPage = () => {
                         {/* Controles de visualização */}
                         <div className="flex items-center gap-2">
                             <div className={twMerge(
-                                'flex items-center rounded-lg border',
+                                'flex items-center rounded-lg',
                                 isDark ? 'border-gray-600' : 'border-gray-300'
                             )}>
                                 <button
                                     onClick={() => setUiState(prev => ({ ...prev, viewMode: 'grid' }))}
                                     className={twMerge(
-                                        'p-2 rounded-l-lg transition-all duration-200',
+                                        'p-2 rounded-l-lg transition-all duration-200 mr-1',
                                         uiState.viewMode === 'grid'
                                             ? isDark
                                                 ? 'bg-blue-600 text-white'
@@ -363,7 +464,7 @@ const BibliotecaPDFsPage = () => {
                                 <button
                                     onClick={() => setUiState(prev => ({ ...prev, viewMode: 'list' }))}
                                     className={twMerge(
-                                        'p-2 rounded-r-lg transition-all duration-200',
+                                        'p-2 rounded-r-lg transition-all duration-200 ml-1',
                                         uiState.viewMode === 'list'
                                             ? isDark
                                                 ? 'bg-blue-600 text-white'
@@ -390,6 +491,112 @@ const BibliotecaPDFsPage = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* 🎯 PRESERVAÇÃO: Ações em lote */}
+                {uiState.selectedForMerge.size > 0 && (
+                    <div className={twMerge(
+                        'p-6 rounded-lg border',
+                        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                    )}>
+                        <div className="space-y-4">
+                            {/* Cabeçalho */}
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className={twMerge(
+                                        'text-lg font-semibold',
+                                        isDark ? 'text-white' : 'text-gray-900'
+                                    )}>
+                                        Documentos Selecionados para Unificação
+                                    </h3>
+                                    <p className={twMerge(
+                                        'text-sm mt-1',
+                                        isDark ? 'text-gray-400' : 'text-gray-600'
+                                    )}>
+                                        {uiState.selectedForMerge.size} documento{uiState.selectedForMerge.size > 1 ? 's' : ''} selecionado{uiState.selectedForMerge.size > 1 ? 's' : ''} • Ordem de unificação:
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="inline-flex items-center gap-2"
+                                        onClick={handleStartUnification}
+                                        disabled={uiState.selectedForMerge.size < 2}
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                        Unificar PDFs
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Lista de documentos na ordem de unificação */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {selectionOrder.map((pdfId, index) => {
+                                    const pdf = pdfs.find(p => p.id === pdfId)
+                                    if (!pdf) return null
+
+                                    return (
+                                        <div
+                                            key={pdfId}
+                                            className={twMerge(
+                                                'flex items-center gap-3 p-3 rounded-lg border',
+                                                isDark
+                                                    ? 'bg-gray-700/50 border-gray-600'
+                                                    : 'bg-gray-50 border-gray-200'
+                                            )}
+                                        >
+                                            <div className={twMerge(
+                                                'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
+                                                isDark
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-blue-500 text-white'
+                                            )}>
+                                                {index + 1}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className={twMerge(
+                                                    'font-medium text-sm truncate',
+                                                    isDark ? 'text-white' : 'text-gray-900'
+                                                )}>
+                                                    {pdf.title}
+                                                </h4>
+                                                <p className={twMerge(
+                                                    'text-xs truncate',
+                                                    isDark ? 'text-gray-400' : 'text-gray-500'
+                                                )}>
+                                                    {pdf.size} • {formatDate(pdf.uploadDate)}
+                                                </p>
+                                            </div>
+                                            <div className={twMerge(
+                                                'text-xs font-medium px-2 py-1 rounded',
+                                                isDark
+                                                    ? 'bg-blue-900/30 text-blue-300'
+                                                    : 'bg-blue-100 text-blue-700'
+                                            )}>
+                                                {index === 0 ? '1º' : index === 1 ? '2º' : index === 2 ? '3º' : `${index + 1}º`}
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+
+                            {/* Informação adicional */}
+                            <div className={twMerge(
+                                'text-xs p-3 rounded-lg',
+                                isDark
+                                    ? 'bg-blue-900/20 border border-blue-800/50 text-blue-300'
+                                    : 'bg-blue-50 border border-blue-200 text-blue-700'
+                            )}>
+                                <div className="flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                    </svg>
+                                    <span>Os PDFs serão unificados na ordem mostrada acima. A ordem é definida pela sequência de seleção.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Estados de loading */}
                 {(uiState.isLoading || uiState.isSearching) && (
@@ -433,147 +640,21 @@ const BibliotecaPDFsPage = () => {
 
                 {/* Lista de PDFs */}
                 {!uiState.isLoading && !uiState.isSearching && pdfs.length > 0 && (
-                    <div className={twMerge(
-                        uiState.viewMode === 'grid'
-                            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
-                            : 'space-y-3'
-                    )}>
-                        {pdfs.map((pdf) => (
-                            <div
-                                key={pdf.id}
-                                className={twMerge(
-                                    'group relative rounded-lg border transition-all duration-200 cursor-pointer',
-                                    'hover:shadow-lg',
-                                    uiState.selectedForMerge.has(pdf.id)
-                                        ? isDark
-                                            ? 'border-blue-500 bg-blue-900/20'
-                                            : 'border-blue-500 bg-blue-50'
-                                        : isDark
-                                            ? 'border-gray-700 bg-gray-800/50 hover:border-gray-600'
-                                            : 'border-gray-200 bg-white hover:border-gray-300',
-                                    uiState.viewMode === 'grid' ? 'p-6' : 'p-4'
-                                )}
-                                onClick={() => !uiState.isSelectionMode && handleViewPDF(pdf)}
-                            >
-                                {/* Checkbox para seleção */}
-                                {uiState.isSelectionMode && (
-                                    <div className="absolute top-2 left-2 z-10">
-                                        <input
-                                            type="checkbox"
-                                            checked={uiState.selectedForMerge.has(pdf.id)}
-                                            onChange={() => togglePDFSelection(pdf.id)}
-                                            className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
-                                    </div>
-                                )}
-
-                                {uiState.viewMode === 'grid' ? (
-                                    <div className="text-center space-y-4">
-                                        <div className={twMerge(
-                                            'w-16 h-16 mx-auto rounded-lg flex items-center justify-center transition-colors',
-                                            isDark
-                                                ? 'bg-blue-900/30 border border-blue-800/50'
-                                                : 'bg-blue-50 border border-blue-200/50'
-                                        )}>
-                                            <FileText className={twMerge(
-                                                'w-8 h-8 transition-colors',
-                                                isDark ? 'text-blue-300' : 'text-blue-600'
-                                            )} />
-                                        </div>
-                                        <div>
-                                            <h3 className={twMerge(
-                                                'font-medium text-sm line-clamp-2',
-                                                isDark ? 'text-white' : 'text-gray-900'
-                                            )}>
-                                                {pdf.title}
-                                            </h3>
-                                            <p className={twMerge(
-                                                'text-xs mt-1 line-clamp-2',
-                                                isDark ? 'text-gray-400' : 'text-gray-500'
-                                            )}>
-                                                {pdf.description}
-                                            </p>
-                                            <p className={twMerge(
-                                                'text-xs mt-1',
-                                                isDark ? 'text-gray-400' : 'text-gray-500'
-                                            )}>
-                                                {pdf.size} • {formatDate(pdf.uploadDate)}
-                                            </p>
-                                        </div>
-                                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    handleViewPDF(pdf)
-                                                }}
-                                                className={twMerge(
-                                                    'p-2 rounded-lg transition-all duration-200',
-                                                    isDark
-                                                        ? 'hover:bg-blue-900/50 text-blue-300 hover:text-blue-200 border border-blue-800/50 hover:border-blue-700'
-                                                        : 'hover:bg-blue-50 text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300'
-                                                )}
-                                                title="Visualizar PDF"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-4">
-                                        <div className={twMerge(
-                                            'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors',
-                                            isDark
-                                                ? 'bg-blue-900/30 border border-blue-800/50'
-                                                : 'bg-blue-50 border border-blue-200/50'
-                                        )}>
-                                            <FileText className={twMerge(
-                                                'w-5 h-5 transition-colors',
-                                                isDark ? 'text-blue-300' : 'text-blue-600'
-                                            )} />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className={twMerge(
-                                                'font-medium text-sm truncate',
-                                                isDark ? 'text-white' : 'text-gray-900'
-                                            )}>
-                                                {pdf.title}
-                                            </h3>
-                                            <p className={twMerge(
-                                                'text-xs mt-1 truncate',
-                                                isDark ? 'text-gray-400' : 'text-gray-500'
-                                            )}>
-                                                {pdf.description}
-                                            </p>
-                                            <p className={twMerge(
-                                                'text-xs mt-1',
-                                                isDark ? 'text-gray-400' : 'text-gray-500'
-                                            )}>
-                                                {pdf.size} • {formatDate(pdf.uploadDate)}
-                                            </p>
-                                        </div>
-                                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    handleViewPDF(pdf)
-                                                }}
-                                                className={twMerge(
-                                                    'p-2 rounded-lg transition-all duration-200',
-                                                    isDark
-                                                        ? 'hover:bg-blue-900/50 text-blue-300 hover:text-blue-200 border border-blue-800/50 hover:border-blue-700'
-                                                        : 'hover:bg-blue-50 text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300'
-                                                )}
-                                                title="Visualizar PDF"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
+                    <SortablePDFGrid
+                        items={pdfs}
+                        onSortEnd={handlePDFSort}
+                        isDark={isDark}
+                        viewMode={uiState.viewMode}
+                        isSelectionMode={uiState.isSelectionMode}
+                        selectedItems={uiState.selectedForMerge}
+                        selectionOrder={selectionOrder}
+                        onSelectItem={togglePDFSelection}
+                        onViewPDF={handleViewPDF}
+                        formatDate={formatDate}
+                        animation={200}
+                        disabled={uiState.isSelectionMode} // Desabilita drag durante seleção
+                        className="transition-all duration-300"
+                    />
                 )}
 
                 {/* Paginação */}
@@ -624,93 +705,165 @@ const BibliotecaPDFsPage = () => {
                         </div>
                     </div>
                 )}
-
-                {/* 🎯 PRESERVAÇÃO: Ações em lote */}
-                {uiState.selectedForMerge.size > 0 && (
-                    <div className={twMerge(
-                        'fixed bottom-6 left-1/2 transform -translate-x-1/2 p-4 rounded-lg border shadow-lg z-50',
-                        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-                    )}>
-                        <div className="flex items-center gap-4">
-                            <span className={twMerge(
-                                'text-sm font-medium',
-                                isDark ? 'text-white' : 'text-gray-900'
-                            )}>
-                                {uiState.selectedForMerge.size} documento(s) selecionado(s)
-                            </span>
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="inline-flex items-center gap-2"
-                                    onClick={() => console.log('Unificar PDFs:', Array.from(uiState.selectedForMerge))}
-                                >
-                                    <FileText className="w-4 h-4" />
-                                    Unificar PDFs
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="inline-flex items-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    Excluir
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
 
-            {/* Modal de Preview */}
-            {previewState.isOpen && (
-                <div className="fixed inset-0 z-50 overflow-hidden">
-                    <div className="absolute inset-0">
-                        <div className="fixed inset-0 flex flex-col">
-                            {/* Conteúdo do modal - área do PDF */}
-                            <div className={twMerge(
-                                'flex-1 relative',
-                                isDark ? 'bg-gray-900' : 'bg-gray-50'
+            {/* Modal de Unificação - Usando componente Modal unificado */}
+            <Modal
+                isOpen={unifyModal.isOpen}
+                onClose={closeUnifyModal}
+                title="Unificar PDFs Selecionados"
+                size="xl"
+            >
+                <div className="space-y-4">
+                    {/* Formulário */}
+                    <div className="space-y-4">
+                        <div>
+                            <label className={twMerge(
+                                'block text-sm font-medium mb-2',
+                                isDark ? 'text-gray-300' : 'text-gray-700'
                             )}>
-                                {previewState.isLoading ? (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="text-center">
-                                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                                            <p className={twMerge(
-                                                'mt-4 text-sm',
-                                                isDark ? 'text-gray-400' : 'text-gray-500'
-                                            )}>
-                                                Carregando PDF...
-                                            </p>
-                                        </div>
-                                    </div>
-                                ) : previewState.pdfBase64 ? (
-                                    <div className="absolute inset-0 p-4">
-                                        <InlinePDFViewer
-                                            pdfBase64={previewState.pdfBase64}
-                                            fileName={previewState.selectedPdf?.fileName || 'documento.pdf'}
-                                            height="100%"
-                                            className="w-full h-full"
-                                            onClose={closePreview}
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="text-center">
-                                            <p className={twMerge(
-                                                'text-sm',
-                                                isDark ? 'text-gray-400' : 'text-gray-500'
-                                            )}>
-                                                Erro ao carregar PDF
-                                            </p>
-                                        </div>
-                                    </div>
+                                Título do PDF Unificado *
+                            </label>
+                            <input
+                                type="text"
+                                value={unifyModal.form.title}
+                                onChange={(e) => updateUnifyForm('title', e.target.value)}
+                                placeholder="Digite um título para o PDF unificado"
+                                className={twMerge(
+                                    'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20',
+                                    isDark
+                                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                                 )}
-                            </div>
+                            />
+                        </div>
+
+                        <div>
+                            <label className={twMerge(
+                                'block text-sm font-medium mb-2',
+                                isDark ? 'text-gray-300' : 'text-gray-700'
+                            )}>
+                                Descrição (opcional)
+                            </label>
+                            <textarea
+                                value={unifyModal.form.description}
+                                onChange={(e) => updateUnifyForm('description', e.target.value)}
+                                placeholder="Descreva o conteúdo do PDF unificado"
+                                rows={3}
+                                className={twMerge(
+                                    'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20',
+                                    isDark
+                                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                )}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Resumo da seleção */}
+                    <div className={twMerge(
+                        'p-4 rounded-lg border',
+                        isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
+                    )}>
+                        <h4 className={twMerge(
+                            'font-medium mb-2',
+                            isDark ? 'text-white' : 'text-gray-900'
+                        )}>
+                            PDFs que serão unificados ({unifyModal.selectedPdfs.length}):
+                        </h4>
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                            {selectionOrder.map((pdfId, index) => {
+                                const pdf = pdfs.find(p => p.id === pdfId)
+                                if (!pdf) return null
+                                return (
+                                    <div key={pdfId} className={twMerge(
+                                        'text-sm flex items-center gap-2',
+                                        isDark ? 'text-gray-300' : 'text-gray-600'
+                                    )}>
+                                        <span className="font-mono text-xs bg-blue-100 dark:bg-blue-900 px-1 rounded">
+                                            {index + 1}º
+                                        </span>
+                                        <span className="truncate">{pdf.title}</span>
+                                    </div>
+                                )
+                            })}
                         </div>
                     </div>
                 </div>
-            )}
+
+                {/* Footer customizado */}
+                <div className="flex items-center justify-end gap-3 pt-4">
+                    <Button
+                        variant="outline"
+                        onClick={closeUnifyModal}
+                        disabled={unifyModal.isProcessing}
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={handleExecuteUnification}
+                        disabled={!canUnify || unifyModal.isProcessing}
+                        className="inline-flex items-center gap-2"
+                    >
+                        {unifyModal.isProcessing ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Processando...
+                            </>
+                        ) : (
+                            <>
+                                <Layers className="w-4 h-4" />
+                                Unificar PDFs
+                            </>
+                        )}
+                    </Button>
+                </div>
+            </Modal>
+
+            {/* Modal de Preview - Também migrado para componente Modal unificado */}
+            <Modal
+                isOpen={previewState.isOpen}
+                onClose={closePreview}
+                title=""
+                size="full"
+                showCloseButton={false}
+                className="p-0 h-full"
+            >
+                {previewState.isLoading ? (
+                    <div className="flex items-center justify-center h-full">
+                        <div className="text-center">
+                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                            <p className={twMerge(
+                                'mt-4 text-sm',
+                                isDark ? 'text-gray-400' : 'text-gray-500'
+                            )}>
+                                Carregando PDF...
+                            </p>
+                        </div>
+                    </div>
+                ) : previewState.pdfBase64 ? (
+                    <div className="w-full h-full">
+                        <InlinePDFViewer
+                            pdfBase64={previewState.pdfBase64}
+                            fileName={previewState.selectedPdf?.fileName || 'documento.pdf'}
+                            height="100%"
+                            className="w-full h-full"
+                            onClose={closePreview}
+                        />
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center h-full">
+                        <div className="text-center">
+                            <p className={twMerge(
+                                'text-sm',
+                                isDark ? 'text-gray-400' : 'text-gray-500'
+                            )}>
+                                Erro ao carregar PDF
+                            </p>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </PageWrapper>
     )
 }
