@@ -39,6 +39,7 @@ export interface Route {
   roles?: string[]
   divider?: boolean
   component?: string // Nome do componente para lazy loading futuro
+  visible?: boolean // Controla se a opção deve ser mostrada no menu
 }
 
 // Array de todas as rotas da aplicação
@@ -53,7 +54,8 @@ export const routes: Route[] = [
     private: false,
     defaultRoute: true,
     search: true,
-    component: 'Dashboard'
+    component: 'Dashboard',
+    visible: true
   },
 
   // Biblioteca de Componentes - Componentes reutilizáveis
@@ -65,7 +67,8 @@ export const routes: Route[] = [
     layout: '/admin',
     private: false,
     search: true,
-    component: 'biblioteca-componentes'
+    component: 'biblioteca-componentes',
+    visible: true
   },
 
   // Biblioteca de PDFs - Gerenciamento de documentos
@@ -77,7 +80,8 @@ export const routes: Route[] = [
     layout: '/admin',
     private: false,
     search: true,
-    component: 'BibliotecaPDFs'
+    component: 'BibliotecaPDFs',
+    visible: true
   },
 
   // Bloqueios
@@ -90,7 +94,8 @@ export const routes: Route[] = [
     private: false,
     search: true,
     component: 'Bloqueios',
-    roles: ['default_fullstackdev', 'Gerencial', 'Administrador']
+    roles: ['default_fullstackdev', 'Gerencial', 'Administrador'],
+    visible: false // Exemplo: opção oculta por padrão
   },
 
   // Regra Médica (Primeira Consulta)
@@ -102,8 +107,9 @@ export const routes: Route[] = [
     layout: '/admin',
     private: false,
     search: true,
-    component: 'RegraPrimeiraConsultaMedica',
-    roles: ['default_fullstackdev', 'Gerencial', 'Administrador']
+    component: 'firstDoctorConsultationRule',
+    roles: ['default_fullstackdev', 'Gerencial', 'Administrador'],
+    visible: true
   },
 
   // Médicos Exclusivos
@@ -450,6 +456,17 @@ export function getSubmenus(routes: Route[], menuName: string): Route[] {
 // Função para verificar se uma rota tem submenus
 export function hasSubmenus(routes: Route[], menuName: string): boolean {
   return getSubmenus(routes, menuName).length > 0
+}
+
+// Função para filtrar rotas visíveis
+export function filterVisibleRoutes(routes: Route[]): Route[] {
+  return routes.filter(route => route.visible !== false) // Por padrão, se não especificado, é visível
+}
+
+// Função combinada para filtrar por roles e visibilidade
+export function filterRoutesByRolesAndVisibility(routes: Route[], userRoles: string[] = []): Route[] {
+  const roleFiltered = filterRoutesByRoles(routes, userRoles)
+  return filterVisibleRoutes(roleFiltered)
 }
 
 export default routes

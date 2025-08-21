@@ -5,16 +5,20 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
     Menu,
-    ChevronDown
+    ChevronDown,
+    Settings
 } from 'lucide-react'
 import { useLayout } from '@/contexts/LayoutContext'
 import { useAuth } from '@/contexts/AuthContext'
-import { routes, getMainMenus, getSubmenus, hasSubmenus, filterRoutesByRoles, type Route } from '@/config/routes'
+import { useMenuVisibility } from '@/contexts/MenuVisibilityContext'
+import { routes, getMainMenus, getSubmenus, hasSubmenus, filterRoutesByRoles, filterVisibleRoutes, filterRoutesByRolesAndVisibility, type Route } from '@/config/routes'
+
 import type { SidebarProps } from '@/types/layout'
 
 const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
     const { sidebarOpen, sidebarCollapsed, toggleSidebar, isMobile, mounted } = useLayout()
     const { user, isAuthenticated } = useAuth()
+    const { routeVisibility, setConfigModalOpen } = useMenuVisibility()
     const pathname = usePathname()
     const [ openMenus, setOpenMenus ] = useState<{ [ key: string ]: boolean }>({})
     const [ isClientMounted, setIsClientMounted ] = useState(false)
@@ -50,15 +54,19 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
 
     let availableRoutes: Route[]
     if (isAuthenticated && user) {
-        // Usuário autenticado - filtrar por roles
-        availableRoutes = filterRoutesByRoles(routes, userRoles)
+        // Usuário autenticado - filtrar por roles primeiro
+        const roleFiltered = filterRoutesByRoles(routes, userRoles)
+        // Depois filtrar por visibilidade usando o contexto
+        availableRoutes = roleFiltered.filter(route => routeVisibility[ route.name ] !== false)
     } else {
         // Não autenticado - apenas rotas públicas + algumas básicas
-        availableRoutes = routes.filter(route =>
+        const publicRoutes = routes.filter(route =>
             !route.private ||
             route.name === 'Dashboard' ||
             route.name === 'FlyonUI Cards'
         )
+        // Filtrar por visibilidade usando o contexto
+        availableRoutes = publicRoutes.filter(route => routeVisibility[ route.name ] !== false)
     }
 
     const mainRoutes = getMainMenus(availableRoutes)
@@ -252,7 +260,18 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
 
             {/* Footer */}
             {!sidebarCollapsed && (
-                <div className="drawer-footer p-4 flex-shrink-0">
+                <div className="drawer-footer p-4 flex-shrink-0 space-y-3">
+                    {/* Botão de Configuração de Menu */}
+                    <button
+                        onClick={() => setConfigModalOpen(true)}
+                        className="w-full flex items-center justify-center space-x-2 px-3 py-2 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+                        title="Configurar visibilidade do menu"
+                    >
+                        <Settings className="w-4 h-4" />
+                        <span>Configurar Menu</span>
+                    </button>
+
+                    {/* Informações do App */}
                     <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
                         <p className="font-medium">Telescope ADM</p>
                         <p>v2.0.0 - FlyonUI</p>
