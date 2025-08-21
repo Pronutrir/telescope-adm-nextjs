@@ -116,7 +116,7 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
                     dark:bg-gray-700/80 dark:border-gray-600 dark:hover:bg-gray-600/80 dark:hover:border-blue-400/50
                     bg-gray-100/80 border-gray-300 hover:bg-gray-200/80 hover:border-blue-500/50
                     transition-all duration-300 relative">
-                        <MessageSquare className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        <MessageSquare className="w-5 h-5 navbar-message-icon" />
                         <span className="absolute -top-1 -right-1 w-2 h-2 bg-pink-400 rounded-full"></span>
                     </button>
 
@@ -124,12 +124,11 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
                     <button
                         onClick={toggleNotifications}
                         className="p-2 rounded-lg 
-                        dark:bg-gray-700/80 dark:border-gray-600 dark:hover:bg-gray-600/80 dark:hover:border-blue-400/50
-                        bg-gray-100/80 border-gray-300 hover:bg-gray-200/80 hover:border-blue-500/50
+                        bg-card border border-border hover:bg-card-elevated hover:border-primary-500/50
                         transition-all duration-300 relative"
                         aria-label="Toggle notifications"
                     >
-                        <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        <Bell className="w-5 h-5 navbar-bell-icon" />
                         <span className="absolute -top-1 -right-1 w-2 h-2 bg-pink-400 rounded-full"></span>
                     </button>
 
@@ -138,7 +137,7 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
                     dark:bg-gray-700/80 dark:border-gray-600 dark:hover:bg-gray-600/80 dark:hover:border-blue-400/50
                     bg-gray-100/80 border-gray-300 hover:bg-gray-200/80 hover:border-blue-500/50
                     transition-all duration-300">
-                        <Settings className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        <Settings className="w-5 h-5 navbar-settings-icon" />
                     </button>
 
                     {/* User Menu */}

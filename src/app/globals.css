@@ -1,6 +1,143 @@
 @import "tailwindcss";
 @import "../styles/themes.css";
 
+/* Estilos específicos para ícones do Navbar - Tema Light */
+.navbar-bell-icon {
+  stroke: #374151 !important;
+  fill: #f3f4f6 !important;
+  stroke-width: 1.5 !important;
+}
+
+.navbar-message-icon {
+  stroke: #374151 !important;
+  fill: #f3f4f6 !important;
+  stroke-width: 1.5 !important;
+}
+
+.navbar-settings-icon {
+  stroke: #374151 !important;
+  fill: #f3f4f6 !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Estilos específicos para ícones do Navbar - Tema Dark */
+.dark .navbar-bell-icon {
+  stroke: #d1d5db !important;
+  fill: #374151 !important;
+  stroke-width: 1.5 !important;
+}
+
+.dark .navbar-message-icon {
+  stroke: #d1d5db !important;
+  fill: #374151 !important;
+  stroke-width: 1.5 !important;
+}
+
+.dark .navbar-settings-icon {
+  stroke: #d1d5db !important;
+  fill: #374151 !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Estilos globais para todos os ícones Lucide - Tema Light */
+svg[data-lucide] {
+  stroke: #374151 !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Exceções para ícones que precisam de fill */
+svg[data-lucide="bell"],
+svg[data-lucide="message-square"],
+svg[data-lucide="settings"],
+svg[data-lucide="file-text"],
+svg[data-lucide="eye"],
+svg[data-lucide="calendar"],
+svg[data-lucide="hard-drive"] {
+  fill: #f9fafb !important;
+}
+
+/* Ícones específicos do PDF List */
+.pdf-icon {
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+.pdf-file-icon {
+  stroke: currentColor !important;
+  fill: rgba(59, 130, 246, 0.1) !important;
+  stroke-width: 1.5 !important;
+}
+
+.dark .pdf-file-icon {
+  stroke: currentColor !important;
+  fill: rgba(59, 130, 246, 0.2) !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Ícones do Sidebar - cores especiais para links ativos */
+.text-blue-600 svg[data-lucide],
+.dark .text-blue-400 svg[data-lucide] {
+  stroke: currentColor !important;
+  fill: rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Ícones do Sidebar com classe específica */
+.sidebar-icon {
+  stroke: #6b7280 !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+  transition: all 0.3s ease-in-out;
+}
+
+.dark .sidebar-icon {
+  stroke: #9ca3af !important;
+  fill: none !important;
+}
+
+/* Estados ativos no Sidebar */
+.text-blue-600 .sidebar-icon {
+  stroke: #2563eb !important;
+  fill: rgba(37, 99, 235, 0.1) !important;
+}
+
+.dark .text-blue-400 .sidebar-icon {
+  stroke: #60a5fa !important;
+  fill: rgba(96, 165, 250, 0.1) !important;
+}
+
+/* Estados hover no Sidebar */
+.text-gray-700:hover .sidebar-icon,
+a:hover .sidebar-icon {
+  stroke: #111827 !important;
+}
+
+.dark .text-gray-200:hover .sidebar-icon,
+.dark a:hover .sidebar-icon {
+  stroke: #f9fafb !important;
+}
+
+/* Estilos globais para todos os ícones Lucide - Tema Dark */
+.dark svg[data-lucide] {
+  stroke: #d1d5db !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Exceções para ícones que precisam de fill - Tema Dark */
+.dark svg[data-lucide="bell"],
+.dark svg[data-lucide="message-square"],
+.dark svg[data-lucide="settings"],
+.dark svg[data-lucide="file-text"],
+.dark svg[data-lucide="eye"],
+.dark svg[data-lucide="calendar"],
+.dark svg[data-lucide="hard-drive"] {
+  fill: #374151 !important;
+}
+
 html,
 body {
   overflow-x: hidden;
@@ -17,7 +154,7 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Elevação e sombreamento customizados com melhor contraste para ambos os temas */
+/* Elevação e sombreamento customizados */
 .card-elevation-light {
   box-shadow:
     0 1px 3px 0 rgba(0, 0, 0, 0.25),
@@ -40,330 +177,4 @@ body {
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.5),
     0 2px 4px -1px rgba(0, 0, 0, 0.3);
-}
-
-.card-elevation-heavy {
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.35),
-    0 4px 6px -2px rgba(0, 0, 0, 0.25);
-}
-
-.dark .card-elevation-heavy {
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.6),
-    0 4px 6px -2px rgba(0, 0, 0, 0.4);
-}
-
-.card-elevation-telescope {
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.4),
-    0 10px 10px -5px rgba(0, 0, 0, 0.25),
-    0 0 0 1px rgba(59, 130, 246, 0.2);
-}
-
-.dark .card-elevation-telescope {
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.7),
-    0 10px 10px -5px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(96, 165, 250, 0.3);
-}
-
-/* Transições suaves para interações com melhor contraste */
-.card-hover-lift {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-hover-lift:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(59, 130, 246, 0.25);
-}
-
-.dark .card-hover-lift:hover {
-  box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.8),
-    0 0 0 1px rgba(96, 165, 250, 0.4);
-}
-
-/* Espaçamento distribuído */
-.content-distributed {
-  display: grid;
-  gap: 2rem;
-}
-
-@media (min-width: 768px) {
-  .content-distributed {
-    gap: 2.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .content-distributed {
-    gap: 3rem;
-  }
-}
-
-/* Scroll customizado para os temas */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgb(var(--color-muted));
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgb(var(--color-border));
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgb(var(--color-muted-foreground));
-}
-
-/* Firefox */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgb(var(--color-border)) rgb(var(--color-muted));
-}
-
-/* FlyonUI Card Integration */
-.card {
-  border-radius: 1rem;
-  border: 1px solid rgb(var(--color-border) / 0.2);
-  backdrop-filter: blur(4px);
-  overflow: hidden;
-}
-
-.card-body {
-  display: flex;
-  flex-direction: column;
-}
-
-.card-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.card-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  outline: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-}
-
-.btn:focus {
-  outline: 2px solid rgb(var(--color-primary));
-  outline-offset: 2px;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background-color: rgb(var(--color-primary));
-  color: white;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.btn-primary:hover {
-  background-color: rgb(var(--color-primary) / 0.9);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.btn-secondary {
-  background-color: rgb(var(--color-secondary));
-  color: white;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.btn-secondary:hover {
-  background-color: rgb(var(--color-secondary) / 0.9);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.btn-outline {
-  border: 2px solid rgb(var(--color-primary));
-  color: rgb(var(--color-primary));
-  background-color: transparent;
-}
-
-.btn-outline:hover {
-  background-color: rgb(var(--color-primary));
-  color: white;
-}
-
-.btn-ghost {
-  color: rgb(var(--color-primary));
-  background-color: transparent;
-}
-
-.btn-ghost:hover {
-  background-color: rgb(var(--color-primary) / 0.1);
-}
-
-.btn-link {
-  color: rgb(var(--color-primary));
-  background-color: transparent;
-  text-decoration: none;
-}
-
-.btn-link:hover {
-  text-decoration: underline;
-}
-
-/* FlyonUI Card hover effects */
-.card-hover-lift:hover {
-  transform: translateY(-8px) scale(1.02);
-}
-
-/* Card shadow utilities */
-.shadow-3xl {
-  box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
-}
-
-/* FlyonUI Sidebar/Drawer Components */
-.drawer {
-  position: fixed;
-  top: 0;
-  height: 100vh;
-  background-color: rgb(var(--color-card) / 0.98);
-  backdrop-filter: blur(12px);
-  border-right: 1px solid rgb(var(--color-border) / 0.2);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 40;
-}
-
-.drawer-start {
-  left: 0;
-}
-
-.drawer-header {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid rgb(var(--color-border) / 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.drawer-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, rgb(var(--color-primary)), rgb(var(--color-secondary)));
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-}
-
-.drawer-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
-}
-
-/* FlyonUI Menu Components */
-.menu {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.menu li {
-  margin: 0;
-}
-
-.menu a,
-.menu button {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.625rem 0.75rem;
-  border-radius: 0.5rem;
-  color: rgb(var(--color-foreground));
-  text-decoration: none;
-  transition: all 0.2s ease;
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  width: 100%;
-  text-align: left;
-}
-
-.menu a:hover,
-.menu button:hover {
-  background-color: rgb(var(--color-card-elevated));
-  color: rgb(var(--color-primary));
-}
-
-/* Button Circle */
-.btn-circle {
-  padding: 0.5rem;
-  border-radius: 50%;
-  aspect-ratio: 1;
-}
-
-.btn-text {
-  background-color: transparent;
-  border: none;
-  color: rgb(var(--color-muted-foreground));
-  padding: 0.25rem;
-}
-
-.btn-text:hover:not(:disabled) {
-  color: rgb(var(--color-foreground));
-  background-color: rgb(var(--color-accent));
-}
-
-/* Overlay System */
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  background-color: rgb(var(--color-card) / 0.98);
-  backdrop-filter: blur(12px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 40;
-}
-
-.overlay-open {
-  transform: translateX(0);
-}
-
-/* Width utilities for FlyonUI */
-.w-17 {
-  width: 4.25rem;
-}
-
-.w-66 {
-  width: 16.5rem;
-}
-
-/* Responsive utilities */
-@media (max-width: 640px) {
-  .max-sm\:btn-square {
-    aspect-ratio: 1;
-    padding: 0.5rem;
-  }
 }

@@ -18,7 +18,7 @@ import {
     Layers
 } from 'lucide-react'
 import InlinePDFViewer from '@/components/pdf/InlinePDFViewer'
-import { SortablePDFGrid } from '@/components/pdf/SortablePDFGrid'
+import { SortablePDFList } from '@/components/pdf/SortablePDFList'
 import { twMerge } from 'tailwind-merge'
 import { PDFItem, PDFUIState, SearchParams } from '@/types/pdf'
 import { PDFService } from '@/services/pdf/pdfService'
@@ -360,7 +360,7 @@ const BibliotecaPDFsPage = () => {
                                     : 'bg-blue-500 hover:bg-blue-600 text-white'
                             )}
                         >
-                            <Upload className="w-5 h-5" />
+                            <Upload className="w-5 h-5 pdf-icon" />
                             📤 Upload
                         </Button>
 
@@ -374,7 +374,7 @@ const BibliotecaPDFsPage = () => {
                                     : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                             )}
                         >
-                            <Layers className="w-5 h-5" />
+                            <Layers className="w-5 h-5 pdf-icon" />
                             📚 PDFs Unificados
                         </Button>
 
@@ -407,7 +407,7 @@ const BibliotecaPDFsPage = () => {
                         {/* Busca */}
                         <div className="relative flex-1 max-w-md">
                             <Search className={twMerge(
-                                'absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4',
+                                'absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pdf-icon',
                                 isDark ? 'text-gray-400' : 'text-gray-500'
                             )} />
                             <input
@@ -435,7 +435,7 @@ const BibliotecaPDFsPage = () => {
                                         isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'
                                     )}
                                 >
-                                    <X className="w-4 h-4" />
+                                    <X className="w-4 h-4 pdf-icon" />
                                 </button>
                             )}
                         </div>
@@ -459,7 +459,7 @@ const BibliotecaPDFsPage = () => {
                                                 : 'text-gray-500 hover:text-gray-700'
                                     )}
                                 >
-                                    <Grid className="w-4 h-4" />
+                                    <Grid className="w-4 h-4 pdf-icon" />
                                 </button>
                                 <button
                                     onClick={() => setUiState(prev => ({ ...prev, viewMode: 'list' }))}
@@ -474,7 +474,7 @@ const BibliotecaPDFsPage = () => {
                                                 : 'text-gray-500 hover:text-gray-700'
                                     )}
                                 >
-                                    <List className="w-4 h-4" />
+                                    <List className="w-4 h-4 pdf-icon" />
                                 </button>
                             </div>
 
@@ -523,7 +523,7 @@ const BibliotecaPDFsPage = () => {
                                         onClick={handleStartUnification}
                                         disabled={uiState.selectedForMerge.size < 2}
                                     >
-                                        <FileText className="w-4 h-4" />
+                                        <FileText className="w-4 h-4 pdf-icon" />
                                         Unificar PDFs
                                     </Button>
                                 </div>
@@ -588,7 +588,7 @@ const BibliotecaPDFsPage = () => {
                                     : 'bg-blue-50 border border-blue-200 text-blue-700'
                             )}>
                                 <div className="flex items-center gap-2">
-                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg className="w-4 h-4 pdf-icon" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                                     </svg>
                                     <span>Os PDFs serão unificados na ordem mostrada acima. A ordem é definida pela sequência de seleção.</span>
@@ -640,19 +640,20 @@ const BibliotecaPDFsPage = () => {
 
                 {/* Lista de PDFs */}
                 {!uiState.isLoading && !uiState.isSearching && pdfs.length > 0 && (
-                    <SortablePDFGrid
+                    <SortablePDFList
                         items={pdfs}
                         onSortEnd={handlePDFSort}
+                        onViewPDF={handleViewPDF}
+                        onSelectPDF={togglePDFSelection}
                         isDark={isDark}
                         viewMode={uiState.viewMode}
                         isSelectionMode={uiState.isSelectionMode}
                         selectedItems={uiState.selectedForMerge}
                         selectionOrder={selectionOrder}
-                        onSelectItem={togglePDFSelection}
-                        onViewPDF={handleViewPDF}
                         formatDate={formatDate}
                         animation={200}
-                        disabled={uiState.isSelectionMode} // Desabilita drag durante seleção
+                        disabled={false}
+                        gridCols={3}
                         className="transition-all duration-300"
                     />
                 )}
@@ -679,7 +680,7 @@ const BibliotecaPDFsPage = () => {
                                         : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                                 )}
                             >
-                                <ChevronLeft className="w-4 h-4" />
+                                <ChevronLeft className="w-4 h-4 pdf-icon" />
                             </button>
 
                             <span className={twMerge(
@@ -700,7 +701,7 @@ const BibliotecaPDFsPage = () => {
                                         : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                                 )}
                             >
-                                <ChevronRight className="w-4 h-4" />
+                                <ChevronRight className="w-4 h-4 pdf-icon" />
                             </button>
                         </div>
                     </div>
@@ -812,7 +813,7 @@ const BibliotecaPDFsPage = () => {
                             </>
                         ) : (
                             <>
-                                <Layers className="w-4 h-4" />
+                                <Layers className="w-4 h-4 pdf-icon" />
                                 Unificar PDFs
                             </>
                         )}

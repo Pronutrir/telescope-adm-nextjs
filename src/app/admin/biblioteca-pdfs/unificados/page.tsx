@@ -23,6 +23,7 @@ import {
     Loader2
 } from 'lucide-react'
 import InlinePDFViewer from '@/components/pdf/InlinePDFViewer'
+import { SortablePDFList } from '@/components/pdf/SortablePDFList'
 import { twMerge } from 'tailwind-merge'
 import { UnifiedPDFItem, PDFItem, ViewMode, SearchParams, UnificationRequest } from '@/types/pdf'
 import { mapPdfInfoToUnifiedPDFItem, PDFService, UnifiedPDFService } from '@/services/pdf/pdfService'
@@ -241,6 +242,19 @@ const UnificadosPDFsPage = () => {
         }
     }
 
+    // Converter UnifiedPDFItem para PDFItem para compatibilidade com SortablePDFList
+    const convertToPDFItems = (unifiedPdfs: UnifiedPDFItem[]): PDFItem[] => {
+        return unifiedPdfs.map(pdf => ({
+            id: pdf.id,
+            title: pdf.title,
+            url: pdf.url,
+            fileName: pdf.fileName,
+            size: pdf.size,
+            uploadDate: pdf.uploadDate,
+            description: `${pdf.description} • ${pdf.sourceFiles.length} arquivos • ${pdf.pageCount} páginas`
+        }))
+    }
+
     // Formatar data
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('pt-BR')
@@ -289,7 +303,7 @@ const UnificadosPDFsPage = () => {
                             size="sm"
                             className="inline-flex items-center gap-2"
                         >
-                            <ArrowLeft className="w-4 h-4" />
+                            <ArrowLeft className="w-4 h-4 pdf-icon" />
                             Voltar
                         </Button>
                         <h1 className={twMerge(
@@ -317,7 +331,7 @@ const UnificadosPDFsPage = () => {
                                 : 'bg-green-500 hover:bg-green-600 text-white'
                         )}
                     >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-4 h-4 pdf-icon" />
                         Criar PDF Unificado
                     </Button>
                 </div>
@@ -331,7 +345,7 @@ const UnificadosPDFsPage = () => {
                         {/* Busca */}
                         <div className="relative flex-1 max-w-md">
                             <Search className={twMerge(
-                                'absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4',
+                                'absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pdf-icon',
                                 isDark ? 'text-gray-400' : 'text-gray-500'
                             )} />
                             <input
@@ -358,21 +372,20 @@ const UnificadosPDFsPage = () => {
                                         isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'
                                     )}
                                 >
-                                    <X className="w-4 h-4" />
+                                    <X className="w-4 h-4 pdf-icon" />
                                 </button>
                             )}
                         </div>
 
                         {/* Controles de visualização */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex gap-2">
                             <div className={twMerge(
-                                'flex items-center rounded-lg border',
-                                isDark ? 'border-gray-600' : 'border-gray-300'
+                                'flex rounded-lg'
                             )}>
                                 <button
                                     onClick={() => setViewMode('grid')}
                                     className={twMerge(
-                                        'p-2 rounded-l-lg transition-all duration-200',
+                                        'p-2 rounded-l-lg transition-all duration-200 mr-1',
                                         viewMode === 'grid'
                                             ? isDark
                                                 ? 'bg-blue-600 text-white'
@@ -382,12 +395,12 @@ const UnificadosPDFsPage = () => {
                                                 : 'text-gray-500 hover:text-gray-700'
                                     )}
                                 >
-                                    <Grid className="w-4 h-4" />
+                                    <Grid className="w-4 h-4 pdf-icon" />
                                 </button>
                                 <button
                                     onClick={() => setViewMode('list')}
                                     className={twMerge(
-                                        'p-2 rounded-r-lg transition-all duration-200',
+                                        'p-2 rounded-r-lg transition-all duration-200 ml-1',
                                         viewMode === 'list'
                                             ? isDark
                                                 ? 'bg-blue-600 text-white'
@@ -397,7 +410,7 @@ const UnificadosPDFsPage = () => {
                                                 : 'text-gray-500 hover:text-gray-700'
                                     )}
                                 >
-                                    <List className="w-4 h-4" />
+                                    <List className="w-4 h-4 pdf-icon" />
                                 </button>
                             </div>
                         </div>
@@ -417,7 +430,7 @@ const UnificadosPDFsPage = () => {
                     </div>
                 )}
 
-                {/* Lista de PDFs unificados */}
+                {/* Lista de PDFs unificados usando SortablePDFList */}
                 {!isLoading && unifiedPdfs.length === 0 && (
                     <div className={twMerge(
                         'text-center py-12 rounded-lg border-2 border-dashed',
@@ -426,7 +439,7 @@ const UnificadosPDFsPage = () => {
                             : 'border-gray-300 bg-gray-50/50'
                     )}>
                         <Layers className={twMerge(
-                            'w-16 h-16 mx-auto mb-4',
+                            'w-16 h-16 mx-auto mb-4 pdf-icon',
                             isDark ? 'text-gray-500' : 'text-gray-400'
                         )} />
                         <h3 className={twMerge(
@@ -445,148 +458,23 @@ const UnificadosPDFsPage = () => {
                 )}
 
                 {!isLoading && unifiedPdfs.length > 0 && (
-                    <div className={twMerge(
-                        viewMode === 'grid'
-                            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
-                            : 'space-y-4'
-                    )}>
-                        {unifiedPdfs.map((pdf) => (
-                            <div
-                                key={pdf.id}
-                                className={twMerge(
-                                    'group relative rounded-lg border transition-all duration-200 cursor-pointer',
-                                    'hover:shadow-lg',
-                                    isDark
-                                        ? 'border-gray-700 bg-gray-800/50 hover:border-gray-600'
-                                        : 'border-gray-200 bg-white hover:border-gray-300',
-                                    viewMode === 'grid' ? 'p-6' : 'p-4'
-                                )}
-                                onClick={() => handleViewPDF(pdf)}
-                            >
-                                {viewMode === 'grid' ? (
-                                    <div className="text-center space-y-4">
-                                        <div className={twMerge(
-                                            'w-16 h-16 mx-auto rounded-lg flex items-center justify-center relative transition-colors',
-                                            isDark
-                                                ? 'bg-purple-900/30 border border-purple-800/50'
-                                                : 'bg-purple-50 border border-purple-200/50'
-                                        )}>
-                                            <Layers className={twMerge(
-                                                'w-8 h-8 transition-colors',
-                                                isDark ? 'text-purple-300' : 'text-purple-600'
-                                            )} />
-                                            <div className={twMerge(
-                                                'absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border',
-                                                isDark
-                                                    ? 'bg-blue-700 text-blue-100 border-blue-600'
-                                                    : 'bg-blue-500 text-white border-blue-400'
-                                            )}>
-                                                {pdf.sourceFiles.length}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h3 className={twMerge(
-                                                'font-medium text-sm line-clamp-2 mb-2',
-                                                isDark ? 'text-white' : 'text-gray-900'
-                                            )}>
-                                                {pdf.title}
-                                            </h3>
-                                            <p className={twMerge(
-                                                'text-xs line-clamp-2 mb-2',
-                                                isDark ? 'text-gray-400' : 'text-gray-500'
-                                            )}>
-                                                {pdf.description}
-                                            </p>
-                                            <div className={twMerge(
-                                                'text-xs space-y-1',
-                                                isDark ? 'text-gray-400' : 'text-gray-500'
-                                            )}>
-                                                <p>{pdf.size} • {pdf.pageCount} páginas</p>
-                                                <p>Criado em {formatDate(pdf.uploadDate)}</p>
-                                                <p>{pdf.sourceFiles.length} arquivos fonte</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    handleViewPDF(pdf)
-                                                }}
-                                                className={twMerge(
-                                                    'p-2 rounded-lg transition-all duration-200',
-                                                    isDark
-                                                        ? 'hover:bg-purple-900/50 text-purple-300 hover:text-purple-200 border border-purple-800/50 hover:border-purple-700'
-                                                        : 'hover:bg-purple-50 text-purple-600 hover:text-purple-700 border border-purple-200 hover:border-purple-300'
-                                                )}
-                                                title="Visualizar PDF Unificado"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-4">
-                                        <div className={twMerge(
-                                            'w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 relative transition-colors',
-                                            isDark
-                                                ? 'bg-purple-900/30 border border-purple-800/50'
-                                                : 'bg-purple-50 border border-purple-200/50'
-                                        )}>
-                                            <Layers className={twMerge(
-                                                'w-6 h-6 transition-colors',
-                                                isDark ? 'text-purple-300' : 'text-purple-600'
-                                            )} />
-                                            <div className={twMerge(
-                                                'absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold border',
-                                                isDark
-                                                    ? 'bg-blue-700 text-blue-100 border-blue-600'
-                                                    : 'bg-blue-500 text-white border-blue-400'
-                                            )}>
-                                                {pdf.sourceFiles.length}
-                                            </div>
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className={twMerge(
-                                                'font-medium text-sm line-clamp-1 mb-1',
-                                                isDark ? 'text-white' : 'text-gray-900'
-                                            )}>
-                                                {pdf.title}
-                                            </h3>
-                                            <p className={twMerge(
-                                                'text-xs line-clamp-1 mb-2',
-                                                isDark ? 'text-gray-400' : 'text-gray-500'
-                                            )}>
-                                                {pdf.description}
-                                            </p>
-                                            <div className={twMerge(
-                                                'text-xs',
-                                                isDark ? 'text-gray-400' : 'text-gray-500'
-                                            )}>
-                                                {pdf.size} • {pdf.pageCount} páginas • {pdf.sourceFiles.length} arquivos
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    handleViewPDF(pdf)
-                                                }}
-                                                className={twMerge(
-                                                    'p-2 rounded-lg transition-all duration-200',
-                                                    isDark
-                                                        ? 'hover:bg-purple-900/50 text-purple-300 hover:text-purple-200 border border-purple-800/50 hover:border-purple-700'
-                                                        : 'hover:bg-purple-50 text-purple-600 hover:text-purple-700 border border-purple-200 hover:border-purple-300'
-                                                )}
-                                                title="Visualizar PDF Unificado"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
+                    <SortablePDFList
+                        items={convertToPDFItems(unifiedPdfs)}
+                        onViewPDF={(pdfItem) => {
+                            // Encontrar o PDF unificado original usando o ID
+                            const originalPdf = unifiedPdfs.find(pdf => pdf.id === pdfItem.id)
+                            if (originalPdf) {
+                                handleViewPDF(originalPdf)
+                            }
+                        }}
+                        isDark={isDark}
+                        viewMode={viewMode}
+                        gridCols={viewMode === 'grid' ? 3 : 1}
+                        formatDate={formatDate}
+                        disabled={false}
+                        animation={150}
+                        className="w-full"
+                    />
                 )}
             </div>
 
@@ -621,7 +509,7 @@ const UnificadosPDFsPage = () => {
                                             isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
                                         )}
                                     >
-                                        <X className="w-6 h-6" />
+                                        <X className="w-6 h-6 pdf-icon" />
                                     </button>
                                 </div>
 
@@ -752,12 +640,12 @@ const UnificadosPDFsPage = () => {
                                     >
                                         {isUnifying ? (
                                             <>
-                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                <Loader2 className="w-4 h-4 animate-spin pdf-icon" />
                                                 Unificando...
                                             </>
                                         ) : (
                                             <>
-                                                <Layers className="w-4 h-4" />
+                                                <Layers className="w-4 h-4 pdf-icon" />
                                                 Unificar PDFs
                                             </>
                                         )}

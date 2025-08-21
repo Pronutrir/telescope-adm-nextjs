@@ -83,7 +83,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
     const renderIcon = (route: Route, size: string = 'size-5') => {
         if (!route.icon) return null
         const IconComponent = route.icon
-        return <IconComponent className={`${size} flex-shrink-0`} />
+        return <IconComponent className={`${size} flex-shrink-0 sidebar-icon`} />
     }
 
     // Background dinâmico baseado no tema
