@@ -58,14 +58,14 @@ export const routes: Route[] = [
 
   // Biblioteca de Componentes - Componentes reutilizáveis
   {
-    path: '/flyon-cards',
+    path: '/biblioteca-componentes',
     name: 'Biblioteca de Componentes',
     icon: Layout,
     iconColor: 'Primary',
     layout: '/admin',
     private: false,
     search: true,
-    component: 'FlyonCards'
+    component: 'biblioteca-componentes'
   },
 
   // Biblioteca de PDFs - Gerenciamento de documentos

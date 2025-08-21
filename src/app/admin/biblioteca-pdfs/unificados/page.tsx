@@ -22,7 +22,6 @@ import {
     X,
     Loader2
 } from 'lucide-react'
-import DirectPDFViewer from '@/components/DirectPDFViewer'
 import InlinePDFViewer from '@/components/pdf/InlinePDFViewer'
 import { twMerge } from 'tailwind-merge'
 import { UnifiedPDFItem, PDFItem, ViewMode, SearchParams, UnificationRequest } from '@/types/pdf'
