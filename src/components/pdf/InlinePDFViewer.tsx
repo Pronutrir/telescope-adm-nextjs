@@ -11,6 +11,7 @@ interface InlinePDFViewerProps {
     fileName?: string
     fullScreen?: boolean
     onClose?: () => void
+    onEdit?: () => void  // Nova prop para callback de edição
 }
 
 export default function InlinePDFViewer({
@@ -19,7 +20,8 @@ export default function InlinePDFViewer({
     height = '600px',
     fileName = 'documento.pdf',
     fullScreen = false,
-    onClose
+    onClose,
+    onEdit
 }: InlinePDFViewerProps) {
     const { isDark } = useTheme()
     const [ isClient, setIsClient ] = useState(false)
@@ -137,6 +139,24 @@ export default function InlinePDFViewer({
                 </div>
 
                 <div className="flex gap-2">
+                    {/* Botão de Editar - apenas se onEdit foi fornecido */}
+                    {onEdit && (
+                        <button
+                            onClick={onEdit}
+                            className={twMerge(
+                                'px-3 py-1 text-sm rounded transition-colors flex items-center gap-1',
+                                isDark
+                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                            )}
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Editar
+                        </button>
+                    )}
+
                     <button
                         onClick={() => {
                             if (onClose) {

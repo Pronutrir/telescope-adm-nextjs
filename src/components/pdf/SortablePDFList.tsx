@@ -16,6 +16,7 @@ interface SortablePDFListProps {
     items: PDFItem[]
     onSortEnd?: (items: PDFItem[]) => void
     onViewPDF?: (pdf: PDFItem) => void
+    onEditPDF?: (pdf: PDFItem) => void
     onSelectPDF?: (pdfId: string) => void
     className?: string
     isDark?: boolean
@@ -33,6 +34,7 @@ const SortablePDFList: React.FC<SortablePDFListProps> = ({
     items,
     onSortEnd,
     onViewPDF,
+    onEditPDF,
     onSelectPDF,
     className = '',
     isDark = false,
@@ -111,6 +113,10 @@ const SortablePDFList: React.FC<SortablePDFListProps> = ({
 
     const handleViewPDF = (pdf: PDFItem) => {
         onViewPDF?.(pdf)
+    }
+
+    const handleEditPDF = (pdf: PDFItem) => {
+        onEditPDF?.(pdf)
     }
 
     const handleSelectPDF = (pdfId: string) => {
@@ -242,21 +248,23 @@ const SortablePDFList: React.FC<SortablePDFListProps> = ({
                                 'pt-2 border-t',
                                 isDark ? 'border-gray-700' : 'border-gray-200'
                             )}>
-                                <button
-                                    className={twMerge(
-                                        'w-full flex items-center justify-center gap-2 text-sm h-9 font-medium rounded-lg transition-all duration-200 shadow-sm',
-                                        isDark
-                                            ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 hover:text-white border border-gray-600'
-                                            : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md hover:-translate-y-0.5'
-                                    )}
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleViewPDF(pdf)
-                                    }}
-                                >
-                                    <Eye className="w-4 h-4 pdf-icon" />
-                                    Visualizar
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        className={twMerge(
+                                            'w-full flex items-center justify-center gap-2 text-sm h-9 font-medium rounded-lg transition-all duration-200 shadow-sm',
+                                            isDark
+                                                ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 hover:text-white border border-gray-600'
+                                                : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md hover:-translate-y-0.5'
+                                        )}
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            handleViewPDF(pdf)
+                                        }}
+                                    >
+                                        <Eye className="w-4 h-4 pdf-icon" />
+                                        Visualizar
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>

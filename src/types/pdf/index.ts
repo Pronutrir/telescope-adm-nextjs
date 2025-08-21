@@ -240,3 +240,38 @@ export interface APIError {
   message: string;
   details?: Record<string, unknown>;
 }
+
+// Tipos para edição de PDFs
+export interface PDFPageInfo {
+  pageNumber: number;
+  thumbnail?: string;
+  selected: boolean;
+}
+
+export interface PDFEditState {
+  isOpen: boolean;
+  selectedPdf: PDFItem | null;
+  isLoading: boolean;
+  isLoadingPages: boolean;
+  form: {
+    title: string;
+    description: string;
+    fileName: string;
+  };
+  pages: PDFPageInfo[];
+  pdfBase64?: string;
+}
+
+export interface PDFEditRequest {
+  id: string;
+  title: string;
+  description: string;
+  fileName: string;
+  pagesToKeep: number[];
+}
+
+export interface PDFEditResponse {
+  success: boolean;
+  message: string;
+  updatedPdf?: PDFItem;
+}

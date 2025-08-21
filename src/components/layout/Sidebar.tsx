@@ -98,18 +98,18 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
     return (
         <aside
             className={`
-                overlay drawer drawer-start border-e border-base-content/20 flex flex-col overflow-x-hidden
+                overlay drawer drawer-start flex flex-col overflow-hidden sidebar-no-scrollbar
                 ${!mounted || !isClientMounted
                     ? 'w-66 sm:flex sm:translate-x-0'
                     : isMobile
                         ? (sidebarOpen ? 'w-66 translate-x-0' : 'w-66 -translate-x-full')
                         : sidebarCollapsed
-                            ? 'overlay-minified:w-17 w-17'
-                            : 'w-66'
+                            ? 'w-16 overlay-minified:w-16'
+                            : 'w-64'
                 }
                 ${sidebarCollapsed ? 'overlay-minified' : ''}
                 fixed top-0 left-0 h-screen backdrop-blur-xl
-                shadow-xl shadow-black/10 transition-all duration-500 ease-in-out z-40
+                shadow-xl shadow-black/10 transition-all duration-300 ease-in-out z-40
                 ${className}
             `}
             style={{
@@ -119,52 +119,36 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
             tabIndex={-1}
         >
             {/* Header com Logo e Toggle */}
-            <div className="drawer-header overlay-minified:px-3.75 py-2 w-full flex items-center justify-between gap-3 flex-shrink-0">
-                {/* <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg">
-                            <svg
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="text-white"
-                            >
-                                <circle cx="12" cy="8" r="3" fill="currentColor" />
-                                <circle cx="8" cy="16" r="2" fill="currentColor" />
-                                <circle cx="16" cy="16" r="2" fill="currentColor" />
-                                <path d="M12 11v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                <path d="M10 15l4-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                <path d="M14 15l-4-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                <rect x="3" y="3" width="5" height="1" rx="0.5" fill="currentColor" />
-                                <rect x="16" y="3" width="5" height="1" rx="0.5" fill="currentColor" />
-                                <rect x="3" y="20" width="5" height="1" rx="0.5" fill="currentColor" />
-                                <rect x="16" y="20" width="5" height="1" rx="0.5" fill="currentColor" />
-                                <rect x="3" y="11.5" width="3" height="1" rx="0.5" fill="currentColor" />
-                                <rect x="18" y="11.5" width="3" height="1" rx="0.5" fill="currentColor" />
-                                <rect x="9" y="6.5" width="6" height="1" rx="0.5" fill="currentColor" />
-                                <rect x="15" y="11.5" width="3" height="1" rx="0.5" fill="currentColor" />
-                            </svg>
-                        </div>
-                        <h3 className="drawer-title text-xl font-semibold overlay-minified:hidden text-gray-800 dark:text-white">
-                            Telescope ADM
-                        </h3>
-                    </div> */}
-
-                {/* Toggle Button - FlyonUI Original Style */}
+            <div className="drawer-header px-4 py-3 w-full flex items-center justify-center gap-3 flex-shrink-0">
+                {/* Toggle Button - Sempre centralizado quando colapsado */}
                 {!isMobile && (
                     <button
                         onClick={toggleSidebar}
-                        className="overlay-minified:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors duration-200"
+                        className={`
+                            p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 
+                            transition-colors duration-200 
+                            ${sidebarCollapsed ? 'mx-auto' : 'ml-auto'}
+                        `}
                         aria-label="Toggle sidebar"
+                        title={sidebarCollapsed ? "Expandir menu" : "Recolher menu"}
                     >
                         <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     </button>
                 )}
+
+                {/* Logo - só mostra quando não está colapsado */}
+                {!sidebarCollapsed && !isMobile && (
+                    <div className="flex items-center space-x-3 flex-1">
+
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                            Telescope ADM
+                        </h3>
+                    </div>
+                )}
             </div>
 
             {/* Navigation Menu */}
-            <div className="drawer-body px-2 pt-4 overflow-y-auto overflow-x-hidden flex-1">
+            <div className="drawer-body px-2 pt-2 overflow-y-auto overflow-x-hidden flex-1 scrollbar-hidden">
                 <ul className="menu p-0 space-y-1">
                     {mainRoutes.map((route) => {
                         const isActive = isRouteActive(route)
@@ -177,43 +161,44 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
                                 <li
                                     key={route.path}
                                     className={`
-                                            dropdown relative [--adaptive:none] [--strategy:static] 
-                                            overlay-minified:[--adaptive:adaptive] overlay-minified:[--strategy:fixed] 
-                                            overlay-minified:[--offset:15] overlay-minified:[--trigger:hover] 
-                                            overlay-minified:[--placement:right-start]
-                                            ${isMenuActive(route.name) ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
-                                        `}
+                                        dropdown relative [--adaptive:none] [--strategy:static] 
+                                        ${sidebarCollapsed ? '[--adaptive:adaptive] [--strategy:fixed] [--offset:15] [--trigger:hover] [--placement:right-start]' : ''}
+                                        ${isMenuActive(route.name) ? 'bg-blue-50 dark:bg-blue-900/20 rounded-xl' : ''}
+                                    `}
                                 >
                                     <button
                                         type="button"
                                         className={`
-                                                dropdown-toggle w-full flex items-center justify-between px-3 py-3 rounded-xl
-                                                text-sm font-medium transition-all duration-300
-                                                hover:bg-gray-100 dark:hover:bg-gray-700/50
-                                                ${isMenuActive(route.name)
+                                            dropdown-toggle w-full flex items-center rounded-xl
+                                            text-sm font-medium transition-all duration-300
+                                            hover:bg-gray-100 dark:hover:bg-gray-700/50
+                                            ${sidebarCollapsed ? 'justify-center px-3 py-3' : 'justify-between px-4 py-3'}
+                                            ${isMenuActive(route.name)
                                                 ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
                                                 : 'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white'
                                             }
-                                            `}
-                                        onClick={() => handleMenuToggle(route.name)}
+                                        `}
+                                        onClick={() => !sidebarCollapsed && handleMenuToggle(route.name)}
                                         aria-haspopup="menu"
-                                        aria-expanded={isMenuOpen}
+                                        aria-expanded={!sidebarCollapsed && isMenuOpen}
+                                        title={sidebarCollapsed ? route.name : undefined}
                                     >
-                                        <div className="flex items-center space-x-3">
-                                            {renderIcon(route)}
-                                            <span className="overlay-minified:hidden">{route.name}</span>
+                                        <div className={`flex items-center ${sidebarCollapsed ? '' : 'space-x-3'}`}>
+                                            {renderIcon(route, sidebarCollapsed ? 'size-5' : 'size-5')}
+                                            {!sidebarCollapsed && <span>{route.name}</span>}
                                         </div>
-                                        <ChevronDown className={`size-4 overlay-minified:hidden transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
+                                        {!sidebarCollapsed && (
+                                            <ChevronDown className={`size-4 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} />
+                                        )}
                                     </button>
 
                                     {/* Submenu */}
                                     <ul className={`
-                                            dropdown-menu mt-0 shadow-none overlay-minified:shadow-md overlay-minified:shadow-base-300/20
-                                            min-w-60 ml-6 overlay-minified:ml-0 space-y-1
-                                            overlay-minified:before:absolute overlay-minified:before:-start-4 overlay-minified:before:top-0 
-                                            overlay-minified:before:h-full overlay-minified:before:w-4 overlay-minified:before:bg-transparent
-                                            ${isMenuOpen ? 'block' : 'hidden'}
-                                        `}>
+                                        dropdown-menu mt-0 shadow-none
+                                        ${sidebarCollapsed ? 'shadow-md shadow-base-300/20 min-w-60' : 'ml-6 space-y-1'}
+                                        ${sidebarCollapsed ? 'before:absolute before:-start-4 before:top-0 before:h-full before:w-4 before:bg-transparent' : ''}
+                                        ${!sidebarCollapsed && isMenuOpen ? 'block' : sidebarCollapsed ? '' : 'hidden'}
+                                    `}>
                                         {submenus.map((submenu) => {
                                             const isSubmenuActive = isRouteActive(submenu)
                                             return (
@@ -221,13 +206,13 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
                                                     <Link
                                                         href={submenu.layout + submenu.path}
                                                         className={`
-                                                                flex items-center space-x-3 px-3 py-2 rounded-lg
-                                                                text-sm transition-all duration-200
-                                                                ${isSubmenuActive
+                                                            flex items-center px-4 py-2.5 rounded-lg
+                                                            text-sm transition-all duration-200 space-x-3
+                                                            ${isSubmenuActive
                                                                 ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30'
                                                                 : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/30'
                                                             }
-                                                            `}
+                                                        `}
                                                     >
                                                         {renderIcon(submenu)}
                                                         <span>{submenu.name}</span>
@@ -246,18 +231,18 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
                                 <Link
                                     href={route.layout + route.path}
                                     className={`
-                                            flex items-center space-x-3 px-3 py-3 rounded-xl
-                                            text-sm font-medium transition-all duration-300
-                                            hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-[1.02]
-                                            ${isActive
+                                        flex items-center rounded-xl text-sm font-medium transition-all duration-300
+                                        hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-[1.02]
+                                        ${sidebarCollapsed ? 'justify-center px-3 py-3' : 'space-x-3 px-4 py-3'}
+                                        ${isActive
                                             ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 shadow-md border border-blue-200 dark:border-blue-700'
                                             : 'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white'
                                         }
-                                        `}
+                                    `}
                                     title={sidebarCollapsed ? route.name : undefined}
                                 >
                                     {renderIcon(route)}
-                                    <span className="overlay-minified:hidden">{route.name}</span>
+                                    {!sidebarCollapsed && <span>{route.name}</span>}
                                 </Link>
                             </li>
                         )
@@ -266,12 +251,14 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
             </div>
 
             {/* Footer */}
-            <div className="drawer-footer p-4 border-t border-gray-200/30 dark:border-gray-700/30 overlay-minified:hidden flex-shrink-0">
-                <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                    <p className="font-medium">Telescope ADM</p>
-                    <p>v2.0.0 - FlyonUI</p>
+            {!sidebarCollapsed && (
+                <div className="drawer-footer p-4 flex-shrink-0">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                        <p className="font-medium">Telescope ADM</p>
+                        <p>v2.0.0 - FlyonUI</p>
+                    </div>
                 </div>
-            </div>
+            )}
         </aside>
     )
 }

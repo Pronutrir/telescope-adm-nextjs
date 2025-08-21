@@ -93,15 +93,15 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
                     ${isMobile
                         ? 'ml-0'
                         : sidebarCollapsed
-                            ? 'ml-[68px]'
-                            : 'ml-[264px]'
+                            ? 'ml-16'
+                            : 'ml-64'
                     }
                 `} style={{
                         width: isMobile
                             ? '100%'
                             : sidebarCollapsed
-                                ? 'calc(100vw - 68px)'
-                                : 'calc(100vw - 264px)',
+                                ? 'calc(100vw - 64px)'
+                                : 'calc(100vw - 256px)',
                         maxWidth: '100vw',
                         position: 'relative',
                         overflowX: 'hidden'

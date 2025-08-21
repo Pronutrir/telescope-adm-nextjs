@@ -64,23 +64,33 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
         <nav
             className={`
                 fixed top-0 z-30
-                backdrop-blur-xl
+                backdrop-blur-xl navbar-adjusted
                 transition-all duration-300 ease-in-out
                 ${isMobile
                     ? 'left-0 right-0'
                     : sidebarCollapsed
-                        ? 'left-17 right-0'
-                        : 'left-66 right-0'
+                        ? 'left-16 right-0'
+                        : 'left-64 right-0'
                 }
                 ${className}
             `}
             style={{
-                backgroundColor: isDark ? 'rgba(31, 41, 55, 0.95)' : 'transparent'
+                backgroundColor: isDark ? 'rgba(31, 41, 55, 0.95)' : 'transparent',
+                width: isMobile
+                    ? '100%'
+                    : sidebarCollapsed
+                        ? 'calc(100vw - 64px)'
+                        : 'calc(100vw - 256px)',
+                maxWidth: '100vw'
             }}
         >
             <div className="flex items-center justify-between h-16 px-4 lg:px-6">
                 {/* Search Bar - Desktop - Centralizada */}
-                <div className="hidden md:flex flex-1 justify-center max-w-2xl mx-auto">
+                <div className={`
+                    hidden md:flex flex-1 justify-center mx-auto
+                    ${sidebarCollapsed ? 'max-w-xl' : 'max-w-2xl'}
+                    transition-all duration-300
+                `}>
                     <div className="relative w-full max-w-md">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-gray-400" />
                         <input
@@ -96,6 +106,13 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
 
                 {/* Actions */}
                 <div className="flex items-center space-x-2">
+                    {/* Sidebar State Indicator - Hidden in production */}
+                    {process.env.NODE_ENV === 'development' && (
+                        <span className="hidden lg:block text-xs text-gray-500 dark:text-gray-400 px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded">
+                            {sidebarCollapsed ? 'Collapsed' : 'Expanded'}
+                        </span>
+                    )}
+
                     {/* Theme Toggle */}
                     <ThemeToggle size="md" />
 
@@ -151,9 +168,9 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
 
             {/* Mobile Search Bar */}
             {searchOpen && (
-                <div className="md:hidden border-t p-4 
-                dark:border-gray-700 dark:bg-gray-800
-                border-gray-200 bg-white">
+                <div className="md:hidden p-4 
+                dark:bg-gray-800
+                bg-white">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 dark:text-gray-400 text-gray-500" />
                         <input

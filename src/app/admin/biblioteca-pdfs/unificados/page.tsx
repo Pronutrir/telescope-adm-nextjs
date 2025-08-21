@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { PageWrapper } from '@/components/layout'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
+import { Input } from '@/components/ui/Input'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useLayout } from '@/contexts/LayoutContext'
 import {
@@ -20,12 +21,14 @@ import {
     ChevronDown,
     CheckCircle,
     X,
-    Loader2
+    Loader2,
+    Check,
+    Edit3
 } from 'lucide-react'
 import InlinePDFViewer from '@/components/pdf/InlinePDFViewer'
 import { SortablePDFList } from '@/components/pdf/SortablePDFList'
 import { twMerge } from 'tailwind-merge'
-import { UnifiedPDFItem, PDFItem, ViewMode, SearchParams, UnificationRequest } from '@/types/pdf'
+import { UnifiedPDFItem, PDFItem, ViewMode, SearchParams, UnificationRequest, PDFPageInfo, PDFEditState } from '@/types/pdf'
 import { mapPdfInfoToUnifiedPDFItem, PDFService, UnifiedPDFService } from '@/services/pdf/pdfService'
 
 const UnificadosPDFsPage = () => {
@@ -57,6 +60,192 @@ const UnificadosPDFsPage = () => {
         pdfBase64: null as string | null,
         isLoading: false
     })
+
+    // Estado para edição de PDF com páginas
+    const [ editState, setEditState ] = useState<PDFEditState>({
+        isOpen: false,
+        selectedPdf: null,
+        isLoading: false,
+        isLoadingPages: false,
+        form: {
+            title: '',
+            description: '',
+            fileName: ''
+        },
+        pages: []
+    })
+
+    // Funções de edição
+    const openEditModal = async (pdf: UnifiedPDFItem) => {
+        setEditState(prev => ({
+            ...prev,
+            isOpen: true,
+            selectedPdf: pdf,
+            isLoadingPages: true,
+            form: {
+                title: pdf.title,
+                description: pdf.description || '',
+                fileName: pdf.fileName
+            }
+        }))
+
+        try {
+            // Para PDFs unificados, usar método específico que obtém o número correto de páginas
+            const pagesData = await UnifiedPDFService.getUnifiedPDFPages(pdf.fileName)
+
+            setEditState(prev => ({
+                ...prev,
+                pages: pagesData,
+                isLoadingPages: false
+            }))
+        } catch (error) {
+            console.error('Erro ao carregar páginas:', error)
+            console.error('Erro ao carregar páginas de PDF unificado')
+            setEditState(prev => ({ ...prev, isLoadingPages: false }))
+        }
+    }
+
+    const closeEditModal = () => {
+        setEditState({
+            isOpen: false,
+            selectedPdf: null,
+            isLoading: false,
+            isLoadingPages: false,
+            form: {
+                title: '',
+                description: '',
+                fileName: ''
+            },
+            pages: []
+        })
+    }
+
+    const togglePageSelection = (pageNumber: number) => {
+        setEditState(prev => ({
+            ...prev,
+            pages: prev.pages.map(page =>
+                page.pageNumber === pageNumber
+                    ? { ...page, selected: !page.selected }
+                    : page
+            )
+        }))
+    }
+
+    // Selecionar/desselecionar todas as páginas
+    const toggleAllPages = () => {
+        const allSelected = editState.pages.every(page => page.selected)
+        setEditState(prev => ({
+            ...prev,
+            pages: prev.pages.map(page => ({
+                ...page,
+                selected: !allSelected
+            }))
+        }))
+    }
+
+    const handleSaveEdit = async () => {
+        if (!editState.selectedPdf) return
+
+        console.log('🔍 Estado atual do edit:', {
+            selectedPdf: editState.selectedPdf,
+            fileName: editState.form.fileName,
+            totalPages: editState.pages.length,
+            pagesState: editState.pages.map(p => ({ num: p.pageNumber, selected: p.selected }))
+        })
+
+        const selectedPages = editState.pages
+            .filter(page => page.selected)
+            .map(page => page.pageNumber)
+
+        const excludedPages = editState.pages
+            .filter(page => !page.selected)
+            .map(page => page.pageNumber)
+
+        console.log('📄 Análise de páginas:', {
+            totalPages: editState.pages.length,
+            selectedPages: selectedPages,
+            excludedPages: excludedPages,
+            selectedCount: selectedPages.length,
+            excludedCount: excludedPages.length
+        })
+
+        if (excludedPages.length === editState.pages.length) {
+            console.error('❌ Erro: Você deve manter pelo menos uma página no PDF')
+            return
+        }
+
+        if (excludedPages.length === 0) {
+            console.log('ℹ️ Nenhuma página para remover, cancelando operação')
+            return
+        }
+
+        console.log('🚀 Iniciando edição do PDF:', {
+            fileName: editState.form.fileName,
+            pagesToRemove: excludedPages,
+            originalPdf: editState.selectedPdf
+        })
+
+        setEditState(prev => ({ ...prev, isLoading: true }))
+
+        try {
+            // Primeiro, vamos verificar se conseguimos listar os PDFs unificados para ver quais existem
+            console.log('🔍 Verificando PDFs disponíveis...');
+            const availablePdfs = await UnifiedPDFService.listUnifiedPDFs();
+            console.log('📋 PDFs unificados disponíveis:', availablePdfs.map(pdf => pdf.fileName));
+
+            // Verificar se o arquivo que estamos tentando editar está na lista
+            const targetPdf = availablePdfs.find(pdf => pdf.fileName === editState.form.fileName);
+
+            let result;
+
+            if (!targetPdf) {
+                console.warn('⚠️ Arquivo não encontrado na lista de PDFs unificados');
+                console.log('💡 Como é um arquivo mock, vamos tentar com um nome mais simples...');
+
+                // Se não encontrou o arquivo na lista, vamos testar com nomes mais simples
+                const testFileNames = [
+                    editState.form.fileName,
+                    'test.pdf',
+                    'documento.pdf',
+                    'arquivo.pdf'
+                ];
+
+                console.log('🧪 Tentando com diferentes nomes:', testFileNames);
+
+                // Usar o primeiro nome da lista para teste
+                const testFileName = testFileNames[ 0 ];
+                console.log('🎯 Usando arquivo:', testFileName);
+
+                result = await UnifiedPDFService.editUnifiedPDF(testFileName, excludedPages);
+
+            } else {
+                console.log('✅ Arquivo encontrado:', targetPdf);
+                // Usar o método específico para PDFs unificados
+                result = await UnifiedPDFService.editUnifiedPDF(editState.form.fileName, excludedPages);
+            }
+
+            if (result.sucesso) {
+                console.log('PDF unificado editado com sucesso!', {
+                    arquivo: result.nomeArquivo,
+                    paginasOriginais: result.totalPaginasOriginais,
+                    paginasFinais: result.totalPaginasFinais,
+                    paginasRemovidas: result.paginasRemovidasCount
+                })
+
+                closeEditModal()
+                // Recarregar a lista
+                loadUnifiedPDFs()
+            } else {
+                console.error('Falha na edição:', result.mensagem)
+            }
+
+        } catch (error) {
+            console.error('Erro ao salvar edição:', error)
+            console.error('Falha ao salvar alterações')
+        } finally {
+            setEditState(prev => ({ ...prev, isLoading: false }))
+        }
+    }
 
     // Carregar PDFs unificados
     const loadUnifiedPDFs = useCallback(async () => {
@@ -686,6 +875,12 @@ const UnificadosPDFsPage = () => {
                             height="100%"
                             className="w-full h-full"
                             onClose={closePreview}
+                            onEdit={() => {
+                                if (previewState.selectedPdf) {
+                                    openEditModal(previewState.selectedPdf)
+                                    closePreview()
+                                }
+                            }}
                         />
                     </div>
                 ) : (
@@ -700,6 +895,305 @@ const UnificadosPDFsPage = () => {
                         </div>
                     </div>
                 )}
+            </Modal>
+
+            {/* Modal de Edição de PDF */}
+            <Modal
+                isOpen={editState.isOpen}
+                onClose={closeEditModal}
+                title="Editar PDF"
+                size="xl"
+                className="max-h-[90vh]"
+            >
+                <div className="space-y-6">
+                    {/* Formulário de Edição - Apenas Nome do Arquivo */}
+                    <div className="space-y-4">
+                        <div>
+                            <label className={twMerge(
+                                'block text-sm font-medium mb-2',
+                                isDark ? 'text-gray-300' : 'text-gray-700'
+                            )}>
+                                Nome do Arquivo *
+                            </label>
+                            <input
+                                type="text"
+                                value={editState.form.fileName}
+                                onChange={(e) => setEditState(prev => ({
+                                    ...prev,
+                                    form: { ...prev.form, fileName: e.target.value }
+                                }))}
+                                placeholder="nome-do-arquivo.pdf"
+                                className={twMerge(
+                                    'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20',
+                                    isDark
+                                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                )}
+                            />
+                            <p className={twMerge(
+                                'text-xs mt-1',
+                                isDark ? 'text-gray-400' : 'text-gray-500'
+                            )}>
+                                Altere apenas o nome do arquivo, mantendo a extensão .pdf
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Visualização e Seleção de Páginas para Exclusão */}
+                    <div className={twMerge(
+                        'border rounded-lg p-4',
+                        isDark ? 'border-gray-600' : 'border-gray-200'
+                    )}>
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 className={twMerge(
+                                    'font-medium',
+                                    isDark ? 'text-white' : 'text-gray-900'
+                                )}>
+                                    Páginas do Documento
+                                </h4>
+                                <p className={twMerge(
+                                    'text-sm mt-1',
+                                    isDark ? 'text-gray-400' : 'text-gray-600'
+                                )}>
+                                    Desmarque as páginas que deseja excluir do documento
+                                </p>
+                            </div>
+
+                            {editState.pages.length > 0 && (
+                                <div className="flex items-center gap-4">
+                                    <span className={twMerge(
+                                        'text-sm',
+                                        isDark ? 'text-gray-300' : 'text-gray-600'
+                                    )}>
+                                        {editState.pages.filter(p => p.selected).length} de {editState.pages.length} páginas mantidas
+                                    </span>
+
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={toggleAllPages}
+                                    >
+                                        {editState.pages.every(page => page.selected) ? 'Desmarcar Todas' : 'Marcar Todas'}
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+
+                        {editState.isLoadingPages ? (
+                            <div className="flex items-center justify-center py-8">
+                                <div className="text-center">
+                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                    <p className={twMerge(
+                                        'mt-2 text-sm',
+                                        isDark ? 'text-gray-400' : 'text-gray-500'
+                                    )}>
+                                        Carregando páginas do PDF...
+                                    </p>
+                                </div>
+                            </div>
+                        ) : editState.pages.length > 0 ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-96 overflow-y-auto">
+                                {editState.pages.map((page) => (
+                                    <div
+                                        key={page.pageNumber}
+                                        onClick={() => togglePageSelection(page.pageNumber)}
+                                        className={twMerge(
+                                            'relative cursor-pointer rounded-lg border-2 p-2 transition-all duration-200 hover:shadow-md',
+                                            page.selected
+                                                ? isDark
+                                                    ? 'border-green-500 bg-green-900/20'
+                                                    : 'border-green-500 bg-green-50'
+                                                : isDark
+                                                    ? 'border-red-500 bg-red-900/20'
+                                                    : 'border-red-300 bg-red-50'
+                                        )}
+                                    >
+                                        {/* Status da página */}
+                                        <div className="absolute top-1 right-1 z-10">
+                                            <div className={twMerge(
+                                                'w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold',
+                                                page.selected
+                                                    ? 'bg-green-500 border-green-500 text-white'
+                                                    : 'bg-red-500 border-red-500 text-white'
+                                            )}>
+                                                {page.selected ? '✓' : '✗'}
+                                            </div>
+                                        </div>
+
+                                        {/* Miniatura da página */}
+                                        <div className="aspect-[3/4] mb-2 rounded overflow-hidden bg-white border">
+                                            {page.thumbnail ? (
+                                                <img
+                                                    src={page.thumbnail}
+                                                    alt={`Página ${page.pageNumber}`}
+                                                    className="w-full h-full object-contain"
+                                                    onError={(e) => {
+                                                        // Fallback para um placeholder em caso de erro na imagem
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.style.display = 'none';
+                                                        const parent = target.parentElement;
+                                                        if (parent) {
+                                                            parent.innerHTML = `
+                                                                <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-700">
+                                                                    <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                                                    </svg>
+                                                                    <span class="text-xs text-gray-400 dark:text-gray-500">PDF</span>
+                                                                </div>
+                                                            `;
+                                                        }
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-700">
+                                                    <FileText className="w-8 h-8 text-gray-400 dark:text-gray-500 mb-1" />
+                                                    <span className="text-xs text-gray-400 dark:text-gray-500">PDF</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Informações da página */}
+                                        <div className="text-center space-y-1">
+                                            <div className={twMerge(
+                                                'text-sm font-medium',
+                                                isDark ? 'text-gray-300' : 'text-gray-700'
+                                            )}>
+                                                Página {page.pageNumber}
+                                            </div>
+                                            <div className={twMerge(
+                                                'text-xs px-2 py-1 rounded-full font-medium',
+                                                page.selected
+                                                    ? isDark
+                                                        ? 'bg-green-900/50 text-green-300'
+                                                        : 'bg-green-100 text-green-700'
+                                                    : isDark
+                                                        ? 'bg-red-900/50 text-red-300'
+                                                        : 'bg-red-100 text-red-700'
+                                            )}>
+                                                {page.selected ? 'Manter' : 'Excluir'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8">
+                                <p className={twMerge(
+                                    'text-sm',
+                                    isDark ? 'text-gray-400' : 'text-gray-500'
+                                )}>
+                                    Não foi possível carregar as páginas do PDF
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Informação adicional */}
+                        {editState.pages.length > 0 && (
+                            <div className={twMerge(
+                                'mt-4 text-xs p-3 rounded-lg',
+                                isDark
+                                    ? 'bg-blue-900/20 border border-blue-800/50 text-blue-300'
+                                    : 'bg-blue-50 border border-blue-200 text-blue-700'
+                            )}>
+                                <div className="flex items-center gap-2">
+                                    <svg className="w-4 h-4 pdf-icon" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                    </svg>
+                                    <span>
+                                        Clique nas páginas para alternar entre "Manter" e "Excluir".
+                                        Páginas marcadas como "Excluir" serão removidas permanentemente do documento.
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Resumo das alterações */}
+                        {editState.pages.length > 0 && (
+                            <div className={twMerge(
+                                'mt-4 p-4 rounded-lg border',
+                                isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
+                            )}>
+                                <h5 className={twMerge(
+                                    'font-medium mb-2',
+                                    isDark ? 'text-white' : 'text-gray-900'
+                                )}>
+                                    Resumo das Alterações
+                                </h5>
+                                <div className="grid grid-cols-3 gap-4 text-sm">
+                                    <div className="text-center">
+                                        <div className={twMerge(
+                                            'text-lg font-bold',
+                                            isDark ? 'text-gray-300' : 'text-gray-600'
+                                        )}>
+                                            {editState.pages.length}
+                                        </div>
+                                        <div className={twMerge(
+                                            'text-xs',
+                                            isDark ? 'text-gray-400' : 'text-gray-500'
+                                        )}>
+                                            Total
+                                        </div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-lg font-bold text-green-500">
+                                            {editState.pages.filter(p => p.selected).length}
+                                        </div>
+                                        <div className={twMerge(
+                                            'text-xs',
+                                            isDark ? 'text-gray-400' : 'text-gray-500'
+                                        )}>
+                                            Manter
+                                        </div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-lg font-bold text-red-500">
+                                            {editState.pages.filter(p => !p.selected).length}
+                                        </div>
+                                        <div className={twMerge(
+                                            'text-xs',
+                                            isDark ? 'text-gray-400' : 'text-gray-500'
+                                        )}>
+                                            Excluir
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Footer com botões de ação */}
+                    <div className="flex items-center justify-end gap-3 pt-4">
+                        <Button
+                            variant="outline"
+                            onClick={closeEditModal}
+                            disabled={editState.isLoading}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleSaveEdit}
+                            disabled={
+                                !editState.form.fileName.trim() ||
+                                editState.pages.filter(p => p.selected).length === 0 ||
+                                editState.isLoading
+                            }
+                            className="inline-flex items-center gap-2"
+                        >
+                            {editState.isLoading ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    Salvando...
+                                </>
+                            ) : (
+                                <>
+                                    <Edit3 className="w-4 h-4" />
+                                    Salvar Alterações
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </div>
             </Modal>
         </PageWrapper>
     )
