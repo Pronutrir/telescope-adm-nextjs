@@ -1,44 +1,6 @@
 @import "tailwindcss";
 @import "../styles/themes.css";
 
-/* Estilos específicos para ícones do Navbar - Tema Light */
-.navbar-bell-icon {
-  stroke: #374151 !important;
-  fill: #f3f4f6 !important;
-  stroke-width: 1.5 !important;
-}
-
-.navbar-message-icon {
-  stroke: #374151 !important;
-  fill: #f3f4f6 !important;
-  stroke-width: 1.5 !important;
-}
-
-.navbar-settings-icon {
-  stroke: #374151 !important;
-  fill: #f3f4f6 !important;
-  stroke-width: 1.5 !important;
-}
-
-/* Estilos específicos para ícones do Navbar - Tema Dark */
-.dark .navbar-bell-icon {
-  stroke: #d1d5db !important;
-  fill: #374151 !important;
-  stroke-width: 1.5 !important;
-}
-
-.dark .navbar-message-icon {
-  stroke: #d1d5db !important;
-  fill: #374151 !important;
-  stroke-width: 1.5 !important;
-}
-
-.dark .navbar-settings-icon {
-  stroke: #d1d5db !important;
-  fill: #374151 !important;
-  stroke-width: 1.5 !important;
-}
-
 /* Estilos globais para todos os ícones Lucide - Tema Light */
 svg[data-lucide] {
   stroke: #374151 !important;
@@ -51,10 +13,17 @@ svg[data-lucide] {
 svg[data-lucide="bell"],
 svg[data-lucide="message-square"],
 svg[data-lucide="settings"],
+svg[data-lucide="search"],
 svg[data-lucide="file-text"],
 svg[data-lucide="eye"],
 svg[data-lucide="calendar"],
-svg[data-lucide="hard-drive"] {
+svg[data-lucide="hard-drive"],
+svg[data-lucide="bar-chart-3"],
+svg[data-lucide="trending-up"],
+svg[data-lucide="users"],
+svg[data-lucide="user-check"],
+svg[data-lucide="activity"],
+svg[data-lucide="monitor"] {
   fill: #f9fafb !important;
 }
 
@@ -119,6 +88,114 @@ a:hover .sidebar-icon {
   stroke: #f9fafb !important;
 }
 
+/* Estilos específicos para ícones do Navbar com maior especificidade - Tema Light */
+svg.navbar-bell-icon,
+svg.navbar-message-icon,
+svg.navbar-settings-icon,
+svg.navbar-search-icon {
+  stroke: #374151 !important;
+  fill: #f3f4f6 !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Estilos específicos para ícones do Navbar com maior especificidade - Tema Dark */
+.dark svg.navbar-bell-icon,
+.dark svg.navbar-message-icon,
+.dark svg.navbar-settings-icon,
+.dark svg.navbar-search-icon {
+  stroke: #d1d5db !important;
+  fill: #374151 !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Estilos específicos para ícones do Dashboard - Tema Light */
+svg.dashboard-icon {
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+svg.dashboard-wifi-icon {
+  stroke: #22c55e !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+svg.dashboard-wifi-off-icon {
+  stroke: #ef4444 !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+svg.dashboard-alert-icon {
+  stroke: #ef4444 !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+svg.dashboard-refresh-icon {
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Estilos específicos para ícones do Dashboard - Tema Dark */
+.dark svg.dashboard-icon {
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+.dark svg.dashboard-wifi-icon {
+  stroke: #22c55e !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+.dark svg.dashboard-wifi-off-icon {
+  stroke: #ef4444 !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+.dark svg.dashboard-alert-icon {
+  stroke: #ef4444 !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+.dark svg.dashboard-refresh-icon {
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Estilos específicos para ícones dos Botões - Tema Light e Dark */
+svg.button-icon {
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+.dark svg.button-icon {
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Estilos específicos para ícones dos StatsCard - Tema Light e Dark */
+svg.stats-card-icon {
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+.dark svg.stats-card-icon {
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
 /* Estilos globais para todos os ícones Lucide - Tema Dark */
 .dark svg[data-lucide] {
   stroke: #d1d5db !important;
@@ -131,10 +208,17 @@ a:hover .sidebar-icon {
 .dark svg[data-lucide="bell"],
 .dark svg[data-lucide="message-square"],
 .dark svg[data-lucide="settings"],
+.dark svg[data-lucide="search"],
 .dark svg[data-lucide="file-text"],
 .dark svg[data-lucide="eye"],
 .dark svg[data-lucide="calendar"],
-.dark svg[data-lucide="hard-drive"] {
+.dark svg[data-lucide="hard-drive"],
+.dark svg[data-lucide="bar-chart-3"],
+.dark svg[data-lucide="trending-up"],
+.dark svg[data-lucide="users"],
+.dark svg[data-lucide="user-check"],
+.dark svg[data-lucide="activity"],
+.dark svg[data-lucide="monitor"] {
   fill: #374151 !important;
 }
 

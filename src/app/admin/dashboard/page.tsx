@@ -147,14 +147,14 @@ const Dashboard = () => {
                     <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
                         {analyticsState.isConnected ? (
                             <>
-                                <Wifi className="h-4 w-4 text-green-500" />
+                                <Wifi className="h-4 w-4 dashboard-wifi-icon" />
                                 <span className="text-sm text-green-600 dark:text-green-400">
                                     GA4 Conectado
                                 </span>
                             </>
                         ) : (
                             <>
-                                <WifiOff className="h-4 w-4 text-red-500" />
+                                <WifiOff className="h-4 w-4 dashboard-wifi-off-icon" />
                                 <span className="text-sm text-red-600 dark:text-red-400">
                                     GA4 Desconectado
                                 </span>
@@ -190,7 +190,7 @@ const Dashboard = () => {
                 {/* Alerta de erro se houver */}
                 {analyticsState.error && (
                     <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                        <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+                        <AlertCircle className="h-5 w-5 dashboard-alert-icon flex-shrink-0" />
                         <div className="flex-1">
                             <p className="text-sm font-medium text-red-800 dark:text-red-200">
                                 Erro nos dados
@@ -245,7 +245,7 @@ const Dashboard = () => {
                                 variant="outline"
                                 className="ml-2"
                             >
-                                <RefreshCw className={`w-4 h-4 ${isLoadingTraffic ? 'animate-spin' : ''}`} />
+                                <RefreshCw className={`w-4 h-4 dashboard-refresh-icon ${isLoadingTraffic ? 'animate-spin' : ''}`} />
                             </Button>
                         </div>
                         <p className={`${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>

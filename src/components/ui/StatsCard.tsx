@@ -255,6 +255,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
                             >
                                 <Icon
                                     size={24}
+                                    className="stats-card-icon"
                                     style={{ color: iconColors.text }}
                                 />
                             </div>

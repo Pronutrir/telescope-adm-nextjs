@@ -92,7 +92,7 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
                     transition-all duration-300
                 `}>
                     <div className="relative w-full max-w-md">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 navbar-search-icon" />
                         <input
                             type="text"
                             placeholder="Pesquisar médicos, agendamentos..."
@@ -125,7 +125,7 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
                         transition-all duration-300"
                         aria-label="Toggle search"
                     >
-                        <Search className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        <Search className="w-5 h-5 navbar-search-icon" />
                     </button>
 
                     {/* Messages */}
@@ -172,7 +172,7 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
                 dark:bg-gray-800
                 bg-white">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 dark:text-gray-400 text-gray-500" />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 navbar-search-icon" />
                         <input
                             type="text"
                             placeholder="Pesquisar..."

@@ -48,10 +48,10 @@ const Button: React.FC<ButtonProps> = ({
     }
 
     const iconSizes = {
-        sm: "w-4 h-4",
-        md: "w-4 h-4",
-        lg: "w-5 h-5",
-        xl: "w-6 h-6"
+        sm: "w-4 h-4 button-icon",
+        md: "w-4 h-4 button-icon",
+        lg: "w-5 h-5 button-icon",
+        xl: "w-6 h-6 button-icon"
     }
 
     return (
