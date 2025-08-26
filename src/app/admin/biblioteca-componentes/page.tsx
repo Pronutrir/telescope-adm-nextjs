@@ -8,8 +8,6 @@ import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { ProgressStat } from '@/components/ui/ProgressStat'
 import { SortableProgressStats } from '@/components/ui/SortableProgressStats'
-import { DropdownTest } from '@/components/ui/DropdownTest'
-import { DropdownWithTitle } from '@/components/ui/DropdownWithTitle'
 import { Modal, useModal } from '@/components/ui/Modal'
 import { LucideIcon } from 'lucide-react'
 import {
