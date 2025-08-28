@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useIsClient } from '@/hooks/useIsClient'
 import { twMerge } from 'tailwind-merge'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 
@@ -74,7 +75,7 @@ export default function InlinePDFViewer({
     onSave
 }: InlinePDFViewerProps) {
     const { isDark } = useTheme()
-    const [ isClient, setIsClient ] = useState(false)
+    const isClient = useIsClient()
     const [ showFallback, setShowFallback ] = useState(false)
     const [ isLoading, setIsLoading ] = useState(true)
     const [ isFullScreen, setIsFullScreen ] = useState(fullScreen)
@@ -139,8 +140,6 @@ export default function InlinePDFViewer({
     }
 
     useEffect(() => {
-        setIsClient(true)
-
         // Timeout para mostrar fallback se o PDF não carregar
         const timer = setTimeout(() => {
             setIsLoading(false)

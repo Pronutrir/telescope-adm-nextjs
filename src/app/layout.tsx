@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Providers } from './providers'
+import { themeScript } from '@/lib/theme-script'
 import './globals.css'
 
 const inter = Inter({ subsets: [ 'latin' ] })
@@ -17,7 +18,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className={inter.className}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body className={`${inter.className} transition-colors duration-200`} suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

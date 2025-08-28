@@ -1,10 +1,15 @@
 // Serviço para gerenciar chamadas da API interna do Telescope
+import { API_CONFIG, getApiConfig } from '@/config/env'
+
 class TelescopeAPIService {
     private baseURL: string
     private token: string | null = null
+    private timeout: number
 
     constructor() {
-        this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+        const config = getApiConfig()
+        this.baseURL = config.baseUrl
+        this.timeout = config.timeout
     }
 
     // Configurar token de autenticação
@@ -33,159 +38,93 @@ class TelescopeAPIService {
             ...(token && { 'Authorization': `Bearer ${token}` })
         }
 
-        const config: RequestInit = {
-            ...options,
-            headers
-        }
-
         try {
-            const response = await fetch(url, config)
-            
-            // Se token expirou, tentar renovar
-            if (response.status === 401) {
-                const refreshed = await this.refreshToken()
-                if (refreshed) {
-                    // Tentar novamente com novo token
-                    const newHeaders = { ...headers, 'Authorization': `Bearer ${this.token}` }
-                    return fetch(url, { ...config, headers: newHeaders })
-                }
+            const response = await fetch(url, {
+                ...options,
+                headers,
+                signal: AbortSignal.timeout(this.timeout)
+            })
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`)
             }
 
             return response
         } catch (error) {
-            console.error('Erro na requisição:', error)
+            console.error(`Erro na requisição para ${url}:`, error)
             throw error
         }
     }
 
-    // Renovar token de autenticação
-    private async refreshToken(): Promise<boolean> {
-        try {
-            const refreshToken = localStorage.getItem('telescope_refresh_token')
-            if (!refreshToken) return false
-
-            const response = await fetch(`${this.baseURL}/auth/refresh`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refreshToken })
-            })
-
-            if (response.ok) {
-                const data = await response.json()
-                this.setAuthToken(data.accessToken)
-                localStorage.setItem('telescope_refresh_token', data.refreshToken)
-                return true
-            }
-        } catch (error) {
-            console.error('Erro ao renovar token:', error)
-        }
-        return false
+    // GET request
+    async get(endpoint: string) {
+        const response = await this.request(endpoint, { method: 'GET' })
+        return response.json()
     }
 
-    // Buscar estatísticas do dashboard
-    async getDashboardStats() {
-        try {
-            const response = await this.request('/api/dashboard/stats')
-            if (response.ok) {
-                return await response.json()
-            }
-            
-            // Retornar dados fallback se API não estiver disponível
-            return {
-                pacientes: 0,
-                agendas: 2201,
-                medicos: 45,
-                consultas: 1890
-            }
-        } catch (error) {
-            console.error('Erro ao buscar stats do dashboard:', error)
-            return {
-                pacientes: 0,
-                agendas: 2201,
-                medicos: 45,
-                consultas: 1890
-            }
-        }
+    // POST request
+    async post(endpoint: string, data?: any) {
+        const response = await this.request(endpoint, {
+            method: 'POST',
+            body: data ? JSON.stringify(data) : undefined
+        })
+        return response.json()
     }
 
-    // Buscar dados de pacientes
-    async getPacientesData() {
-        try {
-            const response = await this.request('/api/pacientes/summary')
-            if (response.ok) {
-                return await response.json()
-            }
-            return { total: 0, novos: 0, ativos: 0 }
-        } catch (error) {
-            console.error('Erro ao buscar dados de pacientes:', error)
-            return { total: 0, novos: 0, ativos: 0 }
-        }
+    // PUT request
+    async put(endpoint: string, data?: any) {
+        const response = await this.request(endpoint, {
+            method: 'PUT',
+            body: data ? JSON.stringify(data) : undefined
+        })
+        return response.json()
     }
 
-    // Buscar dados de agendas
-    async getAgendasData() {
-        try {
-            const response = await this.request('/api/agendas/summary')
-            if (response.ok) {
-                return await response.json()
-            }
-            return { total: 2201, pendentes: 150, confirmadas: 2051 }
-        } catch (error) {
-            console.error('Erro ao buscar dados de agendas:', error)
-            return { total: 2201, pendentes: 150, confirmadas: 2051 }
-        }
+    // DELETE request
+    async delete(endpoint: string) {
+        const response = await this.request(endpoint, { method: 'DELETE' })
+        return response.json()
     }
 
-    // Buscar dados de médicos
-    async getMedicosData() {
+    // Login
+    async login(credentials: { username: string; password: string }) {
         try {
-            const response = await this.request('/api/medicos/summary')
-            if (response.ok) {
-                return await response.json()
+            const response = await this.post('/auth/login', credentials)
+            if (response.token) {
+                this.setAuthToken(response.token)
             }
-            return { total: 45, ativos: 42, inativos: 3 }
-        } catch (error) {
-            console.error('Erro ao buscar dados de médicos:', error)
-            return { total: 45, ativos: 42, inativos: 3 }
-        }
-    }
-
-    // Fazer login
-    async login(credentials: { email: string, password: string }) {
-        try {
-            const response = await fetch(`${this.baseURL}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(credentials)
-            })
-
-            if (response.ok) {
-                const data = await response.json()
-                this.setAuthToken(data.accessToken)
-                localStorage.setItem('telescope_refresh_token', data.refreshToken)
-                return { success: true, user: data.user }
-            }
-
-            return { success: false, error: 'Credenciais inválidas' }
+            return response
         } catch (error) {
             console.error('Erro no login:', error)
-            return { success: false, error: 'Erro de conexão' }
+            throw error
         }
     }
 
-    // Fazer logout
-    logout() {
-        this.token = null
-        localStorage.removeItem('telescope_token')
-        localStorage.removeItem('telescope_refresh_token')
+    // Logout
+    async logout() {
+        try {
+            await this.post('/auth/logout')
+        } catch (error) {
+            console.error('Erro no logout:', error)
+        } finally {
+            this.token = null
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem('telescope_token')
+            }
+        }
     }
 
-    // Verificar se usuário está autenticado
-    isAuthenticated(): boolean {
-        return !!this.getAuthToken()
+    // Obter informações do usuário
+    async getCurrentUser() {
+        return this.get('/auth/user')
+    }
+
+    // Atualizar senha
+    async updatePassword(data: { currentPassword: string; newPassword: string }) {
+        return this.put('/auth/updatePassword', data)
     }
 }
 
-// Singleton instance
-export const telescopeAPI = new TelescopeAPIService()
+// Exportar instância singleton
+const telescopeAPI = new TelescopeAPIService()
 export default telescopeAPI

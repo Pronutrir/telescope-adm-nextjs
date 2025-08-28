@@ -2,22 +2,24 @@
 const nextConfig = {
   output: "standalone",
   async rewrites() {
+    const apiBaseUrl = process.env.API_BASE_URL || 'https://servicesapp.pronutrir.com.br'
+
     return [
       {
         source: '/api/:path*',
-        destination: 'https://servicesapp.pronutrir.com.br/:path*',
+        destination: `${apiBaseUrl}/:path*`,
       },
       {
         source: '/usershield/:path*',
-        destination: 'https://servicesapp.pronutrir.com.br/usershield/:path*',
+        destination: `${apiBaseUrl}/usershield/:path*`,
       },
       {
         source: '/apitasy/:path*',
-        destination: 'https://servicesapp.pronutrir.com.br/apitasy/:path*',
+        destination: `${apiBaseUrl}/apitasy/:path*`,
       },
       {
         source: '/notify/:path*',
-        destination: 'https://servicesapp.pronutrir.com.br/notify/:path*',
+        destination: `${apiBaseUrl}/notify/:path*`,
       },
     ]
   },

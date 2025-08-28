@@ -8,6 +8,7 @@ interface ThemeContextType {
     theme: Theme
     toggleTheme: () => void
     isDark: boolean
+    setTheme: (theme: Theme) => void
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
@@ -25,27 +26,42 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-    const [ theme, setTheme ] = useState<Theme>('dark') // Default to dark theme for better UX
+    const [ theme, setThemeState ] = useState<Theme>('dark') // Default to dark theme for better UX
     const [ mounted, setMounted ] = useState(false)
+
+    // Função para aplicar o tema no DOM
+    const applyTheme = (newTheme: Theme) => {
+        try {
+            document.documentElement.classList.remove('light', 'dark')
+            document.documentElement.classList.add(newTheme)
+            console.log(`🎨 Tema aplicado: ${newTheme}`)
+        } catch (error) {
+            console.warn('Erro ao aplicar tema:', error)
+        }
+    }
 
     // Carregar tema do localStorage ao inicializar (client-side only)
     useEffect(() => {
         try {
+            // Verificar se já existe um tema aplicado no HTML (pelo script)
+            const hasExistingTheme = document.documentElement.classList.contains('dark')
+
+            // Obter tema do localStorage ou preferência do sistema
             const savedTheme = localStorage.getItem('telescope-theme') as Theme
             const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-
             const initialTheme = savedTheme || systemTheme || 'dark'
-            setTheme(initialTheme)
 
-            // Aplicar classe no html imediatamente
-            document.documentElement.classList.remove('light', 'dark')
-            document.documentElement.classList.add(initialTheme)
+            // Se o tema atual não corresponde ao que deveria ser, aplicar o correto
+            if ((initialTheme === 'dark') !== hasExistingTheme) {
+                applyTheme(initialTheme)
+            }
 
+            setThemeState(initialTheme)
             setMounted(true)
-            console.log(`🎨 Tema inicial carregado: ${initialTheme}`)
+            console.log(`🎨 Tema inicial sincronizado: ${initialTheme}`)
         } catch (error) {
             console.warn('Erro ao carregar tema:', error)
-            setTheme('dark')
+            setThemeState('dark')
             setMounted(true)
         }
     }, [])
@@ -59,9 +75,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             const handleChange = (e: MediaQueryListEvent) => {
                 if (!localStorage.getItem('telescope-theme')) {
                     const newTheme = e.matches ? 'dark' : 'light'
-                    setTheme(newTheme)
-                    document.documentElement.classList.remove('light', 'dark')
-                    document.documentElement.classList.add(newTheme)
+                    setThemeState(newTheme)
+                    applyTheme(newTheme)
                     console.log(`🎨 Tema do sistema alterado para: ${newTheme}`)
                 }
             }
@@ -73,25 +88,26 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         }
     }, [ mounted ])
 
-    const toggleTheme = () => {
+    const setTheme = (newTheme: Theme) => {
         try {
-            const newTheme = theme === 'light' ? 'dark' : 'light'
-            setTheme(newTheme)
+            setThemeState(newTheme)
+            applyTheme(newTheme)
             localStorage.setItem('telescope-theme', newTheme)
-
-            // Aplicar classe no html
-            document.documentElement.classList.remove('light', 'dark')
-            document.documentElement.classList.add(newTheme)
-
             console.log(`🎨 Tema alterado para: ${newTheme}`)
         } catch (error) {
             console.warn('Erro ao alterar tema:', error)
         }
     }
 
+    const toggleTheme = () => {
+        const newTheme = theme === 'light' ? 'dark' : 'light'
+        setTheme(newTheme)
+    }
+
     const value = {
         theme,
         toggleTheme,
+        setTheme,
         isDark: theme === 'dark'
     }
 
@@ -99,7 +115,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     if (!mounted) {
         return (
             <ThemeContext.Provider value={value}>
-                <div suppressHydrationWarning>
+                <div style={{ visibility: 'hidden' }} suppressHydrationWarning>
                     {children}
                 </div>
             </ThemeContext.Provider>

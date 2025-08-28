@@ -3,6 +3,7 @@
  * Baseado nos endpoints identificados no projeto app_pdfs
  */
 
+import { getPdfApiConfig } from '@/config/env'
 import { 
   PDFItem, 
   PdfInfo,
@@ -43,7 +44,8 @@ export const mapPdfInfoToUnifiedPDFItem = (pdfInfo: PdfInfo): UnifiedPDFItem => 
 });
 
 // Configuração base da API
-const API_BASE_URL = process.env.NEXT_PUBLIC_PDF_API_URL || '/api';
+const pdfApiConfig = getPdfApiConfig()
+const API_BASE_URL = pdfApiConfig.publicUrl
 
 // Headers padrão para as requisições
 const getHeaders = (): HeadersInit => ({
@@ -51,7 +53,7 @@ const getHeaders = (): HeadersInit => ({
   'Accept': 'application/json',
   // Adicionar token de autenticação se necessário
   // 'Authorization': `Bearer ${getAuthToken()}`,
-});
+})
 
 // Função utilitária para tratar erros da API
 const handleAPIError = async (response: Response): Promise<never> => {
@@ -76,9 +78,13 @@ const apiRequest = async <T>(
 ): Promise<T> => {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: getHeaders(),
       ...options,
-    });
+      headers: {
+        ...getHeaders(),
+        ...options?.headers,
+      },
+      signal: AbortSignal.timeout(pdfApiConfig.timeout),
+    })
 
     if (!response.ok) {
       await handleAPIError(response);
@@ -105,7 +111,7 @@ export class PDFService {
     console.log('📂 Listando todos os PDFs...');
 
     try {
-      const url = 'http://localhost:5000/api/Pdfs/listar';
+      const url = 'http://20.65.208.119:5000/api/Pdfs/listar';
       console.log('🌐 URL da listagem:', url);
 
       const response = await fetch(url, {
@@ -151,7 +157,7 @@ export class PDFService {
         itensPorPagina: params.limit.toString(), // API usa 'itensPorPagina' em vez de 'limit'
       });
 
-      const url = `http://localhost:5000/api/Pdfs/buscar-paginado?${queryParams}`;
+      const url = `http://20.65.208.119:5000/api/Pdfs/buscar-paginado?${queryParams}`;
       console.log('🌐 URL da busca:', url);
 
       const response = await fetch(url, {
@@ -271,7 +277,7 @@ export class PDFService {
     try {
       // URL encode para caracteres especiais - usar endpoint correto da API
       const nomeEncoded = encodeURIComponent(fileName);
-      const url = `http://localhost:5000/api/Pdfs/download/${nomeEncoded}`;
+      const url = `http://20.65.208.119:5000/api/Pdfs/download/${nomeEncoded}`;
 
       console.log('🌐 URL da requisição:', url);
       const response = await fetch(url, {
@@ -397,7 +403,7 @@ export class PDFService {
       }
 
       // Chamar API real para remover páginas
-      const url = `http://localhost:5000/api/Pdfs/remover-paginas/${encodeURIComponent(editData.fileName)}`;
+      const url = `http://20.65.208.119:5000/api/Pdfs/remover-paginas/${encodeURIComponent(editData.fileName)}`;
       console.log('🌐 Chamando API de remoção de páginas:', url);
 
       const response = await fetch(url, {
@@ -467,7 +473,7 @@ export class PDFService {
 
       // Primeiro, tentar obter informações reais da API
       try {
-        const url = `http://localhost:5000/api/Pdfs/listar?nome=${encodeURIComponent(fileName)}`;
+        const url = `http://20.65.208.119:5000/api/Pdfs/listar?nome=${encodeURIComponent(fileName)}`;
         console.log('🌐 Tentando obter informações reais da API:', url);
         
         const response = await fetch(url, {
@@ -585,7 +591,7 @@ export class UnifiedPDFService {
     console.log('🚀 Carregando PDFs unificados da API...');
 
     try {
-      const url = 'http://localhost:5000/api/Pdfs/unificados';
+      const url = 'http://20.65.208.119:5000/api/Pdfs/unificados';
       console.log('🌐 URL da requisição:', url);
 
       const response = await fetch(url, {
@@ -690,7 +696,7 @@ export class UnifiedPDFService {
 
       console.log('📤 Payload para API:', apiRequest);
 
-      const response = await fetch('http://localhost:5000/api/Pdfs/unificar-especificos', {
+      const response = await fetch('http://20.65.208.119:5000/api/Pdfs/unificar-especificos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -765,7 +771,7 @@ export class UnifiedPDFService {
     try {
       // URL encode para caracteres especiais - endpoint específico para PDFs unificados
       const nomeEncoded = encodeURIComponent(fileName);
-      const url = `http://localhost:5000/api/Pdfs/download-unificado/${nomeEncoded}`;
+      const url = `http://20.65.208.119:5000/api/Pdfs/download-unificado/${nomeEncoded}`;
 
       console.log('🌐 URL da requisição (unificado):', url);
       const response = await fetch(url, {
@@ -877,11 +883,11 @@ export class UnifiedPDFService {
     try {
       // URL encode para caracteres especiais
       const nomeEncoded = encodeURIComponent(fileName);
-      const url = `http://localhost:5000/api/Pdfs/remover-paginas-unificado/${nomeEncoded}`;
+      const url = `http://20.65.208.119:5000/api/Pdfs/remover-paginas-unificado/${nomeEncoded}`;
 
       console.log('🔗 URLs de comparação:', {
         'URL construída': url,
-        'URL exemplo (curl)': `http://localhost:5000/api/Pdfs/remover-paginas-unificado/{nomePdf}`,
+        'URL exemplo (curl)': `http://20.65.208.119:5000/api/Pdfs/remover-paginas-unificado/{nomePdf}`,
         'Nome original': fileName,
         'Nome encoded': nomeEncoded,
         'Diferença': fileName !== nomeEncoded ? 'SIM - Nome foi encoded' : 'NÃO - Nome não mudou'

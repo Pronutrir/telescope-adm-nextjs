@@ -336,3 +336,54 @@ body {
 .sidebar-no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* =========================================
+   PREVENÇÃO DE FLASH DO TEMA (FOUC)
+   ========================================= */
+
+/* Prevenir transições durante carregamento inicial do tema */
+html[style*="--theme-loading"] *,
+html[style*="--theme-loading"] *:before,
+html[style*="--theme-loading"] *:after {
+  transition: none !important;
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+}
+
+/* Garantir que o html sempre tenha uma cor de fundo definida */
+html {
+  background-color: rgb(255, 255, 255);
+  /* light theme background */
+  transition: background-color 200ms ease-in-out;
+}
+
+html.dark {
+  background-color: rgb(17, 24, 39);
+  /* dark theme background - gray-900 */
+}
+
+/* Melhorar as transições de tema para elementos do body */
+body {
+  transition: background-color 200ms ease-in-out, color 200ms ease-in-out;
+}
+
+/* Transições suaves para elementos com tema */
+.transition-colors {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Prevenir flash em componentes específicos */
+[data-theme-sensitive] {
+  transition: all 200ms ease-in-out;
+}
+
+/* Esconder conteúdo até o tema estar carregado quando necessário */
+.theme-loading-hidden {
+  visibility: hidden;
+}
+
+.theme-loading-hidden.theme-loaded {
+  visibility: visible;
+}
