@@ -145,8 +145,8 @@ const GerenciadorPDFsPage = () => {
     }
 
     const handleUpload = () => {
-        console.log('📤 [GerenciadorPDFsPage] Função upload chamada')
-        // TODO: Implementar upload
+        console.log('📤 [GerenciadorPDFsPage] Redirecionando para upload')
+        window.location.href = '/admin/gerenciador-pdfs/upload'
     }
 
     const handleUnifiedPDFs = () => {

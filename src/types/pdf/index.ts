@@ -146,12 +146,25 @@ export interface UploadFileInfo {
   progress: number;
   status: 'pending' | 'uploading' | 'success' | 'error';
   error?: string;
+  // Parâmetros de composição do nome
+  cdPessoaFisica?: string;
+  numeroAtendimento?: string;
+  dataUpload?: string;
+  hash?: string;
 }
 
 export interface UploadState {
   files: UploadFileInfo[];
   isUploading: boolean;
   overallProgress: number;
+}
+
+// Interface para composição do nome dos arquivos
+export interface NomeComposicao {
+  cdPessoaFisica: string;
+  numeroAtendimento: string;
+  dataUpload: string;
+  hash: string;
 }
 
 // Tipos para busca

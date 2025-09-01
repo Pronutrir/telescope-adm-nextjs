@@ -250,8 +250,8 @@ export class PDFManagerService {
       // Se lastModified já é uma string de data válida, usar diretamente
       if (typeof item.lastModified === 'string') {
         uploadDate = item.lastModified
-      } else if (item.lastModified instanceof Date) {
-        uploadDate = item.lastModified.toISOString()
+      } else if (item.lastModified && Object.prototype.toString.call(item.lastModified) === '[object Date]') {
+        uploadDate = (item.lastModified as Date).toISOString()
       }
     }
     
@@ -348,6 +348,90 @@ export class PDFManagerService {
       console.error('🗓️ [PDFManagerService.formatDate] Error:', error, 'Input:', dateString)
       return 'Data inválida'
     }
+  }
+  
+  /**
+   * Faz upload de múltiplos PDFs para o SharePoint em lote
+   * @param files Array com arquivos e parâmetros de composição
+   * @returns Promise<any>
+   */
+  static async uploadMultiplePDFs(
+    files: Array<{
+      file: File
+      nomeComposicao: {
+        cdPessoaFisica: string
+        numeroAtendimento: string
+        dataUpload: string
+        hash: string
+      }
+    }>
+  ): Promise<any> {
+    try {
+      console.log(`📤 [PDFManagerService] uploadMultiplePDFs iniciado - ${files.length} arquivos`)
+      
+      const formData = new FormData()
+      
+      // Adicionar todos os arquivos ao FormData
+      files.forEach((fileData, index) => {
+        const { file, nomeComposicao } = fileData
+        
+        // Compor o nome do arquivo com hash único
+        const uniqueHash = `${nomeComposicao.hash}${index.toString().padStart(2, '0')}`
+        const nomeComposto = `${nomeComposicao.cdPessoaFisica}_${nomeComposicao.numeroAtendimento}_${nomeComposicao.dataUpload}_${uniqueHash}.pdf`
+        
+        console.log(`📄 [PDFManagerService] Arquivo ${index + 1}: ${file.name} → ${nomeComposto}`)
+        
+        // Criar um novo arquivo com o nome composto
+        const renamedFile = new File([file], nomeComposto, { type: file.type })
+        formData.append('PdfFiles', renamedFile)
+      })
+      
+      formData.append('OverwriteExisting', 'false')
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minutos para múltiplos arquivos
+      
+      const response = await fetch(`/pdf-api/Pdfs/upload`, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const result = await response.json()
+      
+      console.log('✅ [PDFManagerService] Upload em lote realizado com sucesso')
+      console.log(`� [PDFManagerService] ${files.length} arquivos enviados`)
+      return result
+      
+    } catch (error) {
+      console.error('❌ [PDFManagerService] Erro no upload em lote:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Faz upload de um PDF para o SharePoint com composição personalizada do nome
+   * @param file Arquivo PDF para upload
+   * @param nomeComposicao Parâmetros para composição do nome do arquivo
+   * @returns Promise<any>
+   */
+  static async uploadPDF(
+    file: File, 
+    nomeComposicao: {
+      cdPessoaFisica: string
+      numeroAtendimento: string
+      dataUpload: string
+      hash: string
+    }
+  ): Promise<any> {
+    // Para um único arquivo, usar o método de lote
+    return this.uploadMultiplePDFs([{ file, nomeComposicao }])
   }
 }
 
