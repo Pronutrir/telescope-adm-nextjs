@@ -1,314 +1,189 @@
-'use client'
-
 import { useState, useEffect, useCallback } from 'react'
-import { 
-    PDFItem, 
-    ViewMode, 
-    PDFUIState, 
-    SearchParams,
-    PDFPreviewState,
-    PDFFilters 
-} from '@/types/pdf'
-import { PDFService } from '@/services/pdf/pdfService'
+import PDFManagerService, { 
+  type SharePointPdfItem, 
+  type PagedPdfResponse,
+  type EditPdfRequest
+} from '@/services/pdfManager/pdfManagerService'
+import type { PDFItem } from '@/types/pdf'
 
-/**
- * Hook personalizado para gerenciamento completo de PDFs
- * Centraliza toda a lógica de estado e operações relacionadas a PDFs
- */
-export const usePDFManager = () => {
-    // 🎯 Estados principais migrados do app_pdfs
+interface UsePDFManagerReturn {
+    pdfs: PDFItem[]
+    filteredPdfs: PDFItem[]
+    isLoading: boolean
+    error: string | null
+    totalItems: number
+    currentPage: number
+    totalPages: number
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+    loadPDFs: () => Promise<void>
+    searchPDFs: (term: string, page?: number) => Promise<void>
+    refreshPDFs: () => Promise<void>
+    clearError: () => void
+}
+
+export const usePDFManager = (): UsePDFManagerReturn => {
     const [pdfs, setPdfs] = useState<PDFItem[]>([])
     const [filteredPdfs, setFilteredPdfs] = useState<PDFItem[]>([])
-    const [uiState, setUiState] = useState<PDFUIState>({
-        isLoading: true,
-        isSearching: false,
-        error: null,
-        isSelectionMode: false,
-        selectedForMerge: new Set(),
-        viewMode: 'grid',
-        searchTerm: '',
-        currentPage: 1,
-        totalPages: 1,
-        totalItems: 0,
-        itemsPerPage: 20
-    })
-    
-    // Estados para preview
-    const [previewState, setPreviewState] = useState<PDFPreviewState>({
-        isOpen: false,
-        selectedPdf: null,
-        pdfBase64: null,
-        isLoading: false
-    })
+    const [isLoading, setIsLoading] = useState(true) // Iniciar como loading para evitar flash
+    const [error, setError] = useState<string | null>(null)
+    const [totalItems, setTotalItems] = useState(0)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
+    const [currentSearchTerm, setCurrentSearchTerm] = useState('')
 
-    // Estados para filtros avançados
-    const [filters, setFilters] = useState<PDFFilters>({})
+    // Função para converter SharePoint items para PDFItem
+    const convertSharePointToPDFItems = useCallback((items: SharePointPdfItem[]): PDFItem[] => {
+        return (items || []).map(item => PDFManagerService.convertToPDFItem(item))
+    }, [])
 
-    // 🎯 CARREGAR PDFs
-    const loadPDFs = useCallback(async (params?: {
-        page?: number
-        limit?: number
-        searchTerm?: string
-        filters?: PDFFilters
-    }) => {
+    // Carregar todos os PDFs
+    const loadPDFs = useCallback(async () => {
+        console.log('🔍 [usePDFManager] Iniciando loadPDFs...')
+        setIsLoading(true)
+        setError(null) // Limpar erro no início
+        
         try {
-            setUiState(prev => ({ ...prev, isLoading: true, error: null }))
+            // Não verifica status aqui, deixa o serviço lidar com fallback
+            console.log('📡 [usePDFManager] Chamando PDFManagerService.listarTodosPdfs()...')
+            const sharePointItems = await PDFManagerService.listarTodosPdfs()
+            console.log('📊 [usePDFManager] Recebidos', sharePointItems.length, 'itens do SharePoint')
             
-            const searchParams = {
-                page: params?.page || uiState.currentPage,
-                limit: params?.limit || uiState.itemsPerPage,
-                searchTerm: params?.searchTerm || uiState.searchTerm,
-                ...params?.filters
-            }
-
-            // Se há termo de busca, usar busca
-            if (searchParams.searchTerm) {
-                const response = await PDFService.searchPDFs({
-                    query: searchParams.searchTerm,
-                    page: searchParams.page,
-                    limit: searchParams.limit
-                })
-                
-                setPdfs(response.data)
-                setFilteredPdfs(response.data)
-                setUiState(prev => ({
-                    ...prev,
-                    totalItems: response.pagination.totalItems,
-                    totalPages: response.pagination.totalPages,
-                    currentPage: response.pagination.currentPage
-                }))
-            } else {
-                // Carregamento normal
-                const data = await PDFService.listPDFs()
-                setPdfs(data)
-                setFilteredPdfs(data)
-                setUiState(prev => ({
-                    ...prev,
-                    totalItems: data.length,
-                    totalPages: Math.ceil(data.length / searchParams.limit)
-                }))
-            }
+            const pdfItems = convertSharePointToPDFItems(sharePointItems)
+            console.log('🔄 [usePDFManager] Convertidos para', pdfItems.length, 'PDFItems')
+            
+            setPdfs(pdfItems)
+            setFilteredPdfs(pdfItems)
+            setTotalItems(pdfItems.length)
+            setCurrentPage(1)
+            setTotalPages(1)
+            setCurrentSearchTerm('')
+            
+            // Com as APIs diretas, sempre temos dados reais
+            console.log('✅ [usePDFManager] Dados reais do SharePoint carregados')
+            setError(null) // Limpar qualquer erro anterior
+            
         } catch (error) {
-            console.error('Erro ao carregar PDFs:', error)
-            setUiState(prev => ({
-                ...prev,
-                error: error instanceof Error ? error.message : 'Erro desconhecido'
-            }))
+            console.error('❌ [usePDFManager] Erro ao carregar PDFs:', error)
+            const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido ao carregar PDFs'
             
-            // Fallback para dados mock durante desenvolvimento
-            const mockPdfs: PDFItem[] = [
-                {
-                    id: '1',
-                    title: 'Manual do Usuário',
-                    fileName: 'manual-usuario.pdf',
-                    size: '2.5 MB',
-                    uploadDate: '2025-01-10',
-                    description: 'Manual completo do sistema',
-                    url: '/pdfs/manual-usuario.pdf'
-                },
-                {
-                    id: '2',
-                    title: 'Relatório Anual 2024',
-                    fileName: 'relatorio-2024.pdf',
-                    size: '15.2 MB',
-                    uploadDate: '2025-01-05',
-                    description: 'Relatório financeiro anual',
-                    url: '/pdfs/relatorio-2024.pdf'
-                }
-            ]
-            setPdfs(mockPdfs)
-            setFilteredPdfs(mockPdfs)
+            // Não mostrar erros relacionados a modo demonstração (não usamos mais)
+            if (!errorMessage.includes('demonstração') && !errorMessage.includes('indisponível')) {
+                setError(errorMessage)
+            }
+            
+            setPdfs([])
+            setFilteredPdfs([])
+            setTotalItems(0)
+            setTotalPages(1)
+            setCurrentPage(1)
         } finally {
-            setUiState(prev => ({ ...prev, isLoading: false }))
+            setIsLoading(false)
+            console.log('🏁 [usePDFManager] loadPDFs finalizado')
         }
-    }, [uiState.currentPage, uiState.itemsPerPage, uiState.searchTerm])
+    }, [convertSharePointToPDFItems])
 
-    // 🎯 BUSCAR PDFs
-    const searchPDFs = useCallback(async (searchTerm: string) => {
-        setUiState(prev => ({ ...prev, searchTerm, currentPage: 1 }))
-        await loadPDFs({ searchTerm, page: 1 })
-    }, [loadPDFs])
-
-    // 🎯 VISUALIZAR PDF
-    const viewPDF = useCallback(async (pdf: PDFItem) => {
-        setPreviewState(prev => ({ 
-            ...prev, 
-            isOpen: true, 
-            selectedPdf: pdf, 
-            isLoading: true,
-            pdfBase64: null 
-        }))
-
+    // Buscar PDFs
+    const searchPDFs = useCallback(async (term: string, page: number = 1) => {
+        setIsLoading(true)
+        setError(null)
+        
         try {
-            const base64 = await PDFService.viewPDF(pdf.fileName)
-            setPreviewState(prev => ({ 
-                ...prev, 
-                pdfBase64: base64, 
-                isLoading: false 
-            }))
-        } catch (error) {
-            console.error('Erro ao carregar PDF:', error)
-            setPreviewState(prev => ({ 
-                ...prev, 
-                isLoading: false,
-                error: error instanceof Error ? error.message : 'Erro ao carregar PDF'
-            }))
-        }
-    }, [])
+            // Não verifica status aqui, deixa o serviço lidar com fallback
+            let response: PagedPdfResponse
 
-    // 🎯 FECHAR PREVIEW
-    const closePreview = useCallback(() => {
-        setPreviewState({
-            isOpen: false,
-            selectedPdf: null,
-            pdfBase64: null,
-            isLoading: false
-        })
-    }, [])
-
-    // 🎯 ALTERAR MODO DE VISUALIZAÇÃO
-    const changeViewMode = useCallback((mode: ViewMode) => {
-        setUiState(prev => ({ ...prev, viewMode: mode }))
-    }, [])
-
-    // 🎯 PAGINAÇÃO
-    const goToPage = useCallback(async (page: number) => {
-        if (page >= 1 && page <= uiState.totalPages) {
-            setUiState(prev => ({ ...prev, currentPage: page }))
-            await loadPDFs({ page })
-        }
-    }, [uiState.totalPages, loadPDFs])
-
-    const nextPage = useCallback(() => {
-        if (uiState.currentPage < uiState.totalPages) {
-            goToPage(uiState.currentPage + 1)
-        }
-    }, [uiState.currentPage, uiState.totalPages, goToPage])
-
-    const prevPage = useCallback(() => {
-        if (uiState.currentPage > 1) {
-            goToPage(uiState.currentPage - 1)
-        }
-    }, [uiState.currentPage, goToPage])
-
-    // 🎯 SELEÇÃO PARA MERGE
-    const toggleSelectionMode = useCallback(() => {
-        setUiState(prev => ({
-            ...prev,
-            isSelectionMode: !prev.isSelectionMode,
-            selectedForMerge: new Set()
-        }))
-    }, [])
-
-    const togglePDFSelection = useCallback((pdfId: string) => {
-        setUiState(prev => {
-            const newSelected = new Set(prev.selectedForMerge)
-            if (newSelected.has(pdfId)) {
-                newSelected.delete(pdfId)
+            if (term.trim()) {
+                // Fazer busca específica
+                response = await PDFManagerService.buscarPdfs({
+                    searchTerm: term,
+                    page,
+                    pageSize: 20
+                })
+                setCurrentSearchTerm(term)
             } else {
-                newSelected.add(pdfId)
+                // Para sem termo de busca, carregar todos e simular paginação
+                const allItems = await PDFManagerService.listarTodosPdfs()
+                const startIndex = (page - 1) * 20
+                const endIndex = startIndex + 20
+                const pageItems = allItems.slice(startIndex, endIndex)
+                
+                response = {
+                    items: pageItems,
+                    currentPage: page,
+                    pageSize: 20,
+                    totalItems: allItems.length,
+                    totalPages: Math.ceil(allItems.length / 20),
+                    hasPreviousPage: page > 1,
+                    hasNextPage: endIndex < allItems.length,
+                    searchTerm: ''
+                }
+                setCurrentSearchTerm('')
             }
-            return { ...prev, selectedForMerge: newSelected }
-        })
-    }, [])
 
-    const clearSelection = useCallback(() => {
-        setUiState(prev => ({ ...prev, selectedForMerge: new Set() }))
-    }, [])
-
-    // 🎯 FILTROS AVANÇADOS
-    const applyFilters = useCallback(async (newFilters: PDFFilters) => {
-        setFilters(newFilters)
-        await loadPDFs({ filters: newFilters, page: 1 })
-    }, [loadPDFs])
-
-    const clearFilters = useCallback(async () => {
-        setFilters({})
-        await loadPDFs({ filters: {}, page: 1 })
-    }, [loadPDFs])
-
-    // 🎯 UPLOAD PDF
-    const uploadPDF = useCallback(async (file: File, customName?: string): Promise<PDFItem> => {
-        const response = await PDFService.uploadPDF(file, customName)
-        
-        // Recarregar lista após upload
-        await loadPDFs()
-        
-        return response
-    }, [loadPDFs])
-
-    // 🎯 DELETAR PDF
-    const deletePDF = useCallback(async (id: string) => {
-        try {
-            await PDFService.deletePDF(id)
+            const pdfItems = convertSharePointToPDFItems(response.items || [])
+            setPdfs(pdfItems)
+            setFilteredPdfs(pdfItems)
+            setTotalItems(response.totalItems)
+            setCurrentPage(response.currentPage)
+            setTotalPages(response.totalPages)
             
-            // Remover da lista local
-            setPdfs(prev => prev.filter(pdf => pdf.id !== id))
-            setFilteredPdfs(prev => prev.filter(pdf => pdf.id !== id))
+            // Com as APIs diretas, sempre temos dados reais - sem verificação de demo
             
-            // Atualizar contadores
-            setUiState(prev => ({
-                ...prev,
-                totalItems: prev.totalItems - 1,
-                selectedForMerge: new Set([...prev.selectedForMerge].filter(selectedId => selectedId !== id))
-            }))
         } catch (error) {
-            console.error('Erro ao deletar PDF:', error)
-            throw error
+            console.error('Erro na busca:', error)
+            const errorMessage = error instanceof Error ? error.message : 'Erro na busca de PDFs'
+            
+            // Não mostrar erros relacionados a modo demonstração (não usamos mais)
+            if (!errorMessage.includes('demonstração') && !errorMessage.includes('indisponível')) {
+                setError(errorMessage)
+            }
+            
+            setPdfs([])
+            setFilteredPdfs([])
+            setTotalItems(0)
+            setTotalPages(1)
+            setCurrentPage(1)
+        } finally {
+            setIsLoading(false)
         }
+    }, [convertSharePointToPDFItems])
+
+    // Atualizar dados
+    const refreshPDFs = useCallback(async () => {
+        if (currentSearchTerm) {
+            await searchPDFs(currentSearchTerm, currentPage)
+        } else {
+            await loadPDFs()
+        }
+    }, [currentSearchTerm, currentPage, searchPDFs, loadPDFs])
+
+    // Limpar erro
+    const clearError = useCallback(() => {
+        setError(null)
     }, [])
 
-    // 🎯 ATUALIZAR DADOS
-    const refreshData = useCallback(() => {
-        loadPDFs()
-    }, [loadPDFs])
-
-    // Effect inicial para carregar dados
+    // Carregar PDFs na inicialização
     useEffect(() => {
         loadPDFs()
-    }, []) // Removido loadPDFs das dependências para evitar loop
+    }, [loadPDFs])
+
+    // Calcular navegação de páginas
+    const hasNextPage = currentPage < totalPages
+    const hasPreviousPage = currentPage > 1
 
     return {
-        // Estados
         pdfs,
         filteredPdfs,
-        uiState,
-        previewState,
-        filters,
-        
-        // Ações de carregamento
+        isLoading,
+        error,
+        totalItems,
+        currentPage,
+        totalPages,
+        hasNextPage,
+        hasPreviousPage,
         loadPDFs,
         searchPDFs,
-        refreshData,
-        
-        // Ações de visualização
-        viewPDF,
-        closePreview,
-        changeViewMode,
-        
-        // Ações de paginação
-        goToPage,
-        nextPage,
-        prevPage,
-        
-        // Ações de seleção
-        toggleSelectionMode,
-        togglePDFSelection,
-        clearSelection,
-        
-        // Ações de filtros
-        applyFilters,
-        clearFilters,
-        
-        // Ações de CRUD
-        uploadPDF,
-        deletePDF,
-        
-        // Estados computados
-        selectedPDFs: pdfs.filter(pdf => uiState.selectedForMerge.has(pdf.id)),
-        hasNextPage: uiState.currentPage < uiState.totalPages,
-        hasPrevPage: uiState.currentPage > 1,
-        isLastPage: uiState.currentPage === uiState.totalPages,
-        isFirstPage: uiState.currentPage === 1
+        refreshPDFs,
+        clearError
     }
 }

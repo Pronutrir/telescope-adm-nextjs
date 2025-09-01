@@ -43,9 +43,20 @@ async function handleRequest(
     // Obter token do cookie
     const token = request.cookies.get('token')?.value
 
-    // Construir URL da API
+    // Construir URL da API baseado no tipo de requisição
     const apiPath = pathSegments.join('/')
-    const url = `${API_BASE_URL}/apitasy/api/v1/${apiPath}`
+    
+    // Se for uma requisição para PDFs, usar a API específica de PDFs
+    let url: string
+    if (pathSegments[0] === 'Pdfs') {
+      const PDF_API_BASE = process.env.PDF_API_URL || 'http://localhost:5000/api'
+      url = `${PDF_API_BASE}/${apiPath}`
+    } else {
+      // Para outras APIs, usar a API padrão
+      url = `${API_BASE_URL}/apitasy/api/v1/${apiPath}`
+    }
+
+    console.log('🔗 Proxy URL:', url)
 
     // Preparar headers
     const headers: Record<string, string> = {

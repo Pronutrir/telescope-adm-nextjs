@@ -84,6 +84,19 @@ export const routes: Route[] = [
     visible: true
   },
 
+  // Gerenciador de PDFs - Sistema duplicado para gerenciamento avançado
+  {
+    path: '/gerenciador-pdfs',
+    name: 'Gerenciador de PDFs',
+    icon: FileText,
+    iconColor: 'Warning',
+    layout: '/admin',
+    private: false,
+    search: true,
+    component: 'GerenciadorPDFs',
+    visible: true
+  },
+
   // Bloqueios
   {
     path: '/bloqueios',

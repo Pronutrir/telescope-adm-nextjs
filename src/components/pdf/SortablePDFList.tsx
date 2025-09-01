@@ -7,9 +7,8 @@ import { PDFItem } from '@/types/pdf'
 import {
     FileText,
     Eye,
-    Calendar,
-    HardDrive,
-    Check
+    Check,
+    Edit3
 } from 'lucide-react'
 
 interface SortablePDFListProps {
@@ -121,7 +120,16 @@ const SortablePDFList: React.FC<SortablePDFListProps> = ({
 
     const handleSelectPDF = (pdfId: string) => {
         if (isSelectionMode && onSelectPDF) {
+            console.log('🔍 SortablePDFList: Selecionando PDF', pdfId)
             onSelectPDF(pdfId)
+        }
+    }
+
+    const handleCardClick = (e: React.MouseEvent, pdfId: string) => {
+        if (isSelectionMode) {
+            e.preventDefault()
+            e.stopPropagation()
+            handleSelectPDF(pdfId)
         }
     }
 
@@ -164,15 +172,15 @@ const SortablePDFList: React.FC<SortablePDFListProps> = ({
                     // Cursor
                     disabled || isSelectionMode ? 'cursor-pointer' : 'cursor-grab'
                 )}
-                onClick={() => isSelectionMode ? handleSelectPDF(pdf.id) : undefined}
+                onClick={(e) => handleCardClick(e, pdf.id)}
                 data-id={pdf.id}
             >
                 {/* Header */}
-                <div className="p-6 pb-3">
-                    <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="p-5 pb-3">
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
                             <div className={twMerge(
-                                'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 border',
+                                'w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 border shadow-sm',
                                 isDark
                                     ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
                                     : 'bg-blue-100 text-blue-800 border-blue-300'
@@ -182,19 +190,17 @@ const SortablePDFList: React.FC<SortablePDFListProps> = ({
 
                             <div className="flex-1 min-w-0">
                                 <h3 className={twMerge(
-                                    'text-sm font-semibold leading-tight truncate mb-1',
+                                    'text-sm font-semibold leading-tight mb-1 line-clamp-2',
                                     isDark ? 'text-slate-50' : 'text-slate-900'
                                 )}>
-                                    {pdf.title}
+                                    {pdf.fileName}
                                 </h3>
-                                {pdf.description && (
-                                    <p className={twMerge(
-                                        'text-xs mt-1 truncate',
-                                        isDark ? 'text-gray-400' : 'text-gray-600'
-                                    )}>
-                                        {pdf.description}
-                                    </p>
-                                )}
+                                <p className={twMerge(
+                                    'text-xs font-medium',
+                                    isDark ? 'text-blue-400' : 'text-blue-600'
+                                )}>
+                                    {formatDate(pdf.uploadDate)}
+                                </p>
                             </div>
                         </div>
 
@@ -217,44 +223,21 @@ const SortablePDFList: React.FC<SortablePDFListProps> = ({
                 </div>
 
                 {/* Content */}
-                <div className="px-6 pt-0 pb-6">
+                <div className="px-5 pt-1 pb-5">
                     <div className="space-y-3">
-                        {/* Metadados */}
-                        <div className="grid grid-cols-2 gap-3 text-xs">
-                            <div className="flex items-center gap-2">
-                                <HardDrive className="w-3 h-3 pdf-icon" />
-                                <span className={twMerge(
-                                    'truncate font-medium',
-                                    isDark ? 'text-gray-300' : 'text-gray-700'
-                                )}>
-                                    {pdf.size}
-                                </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <Calendar className="w-3 h-3 pdf-icon" />
-                                <span className={twMerge(
-                                    'truncate font-medium',
-                                    isDark ? 'text-gray-300' : 'text-gray-700'
-                                )}>
-                                    {formatDate(pdf.uploadDate)}
-                                </span>
-                            </div>
-                        </div>
-
                         {/* Ações */}
                         {!isSelectionMode && (
                             <div className={twMerge(
-                                'pt-2 border-t',
-                                isDark ? 'border-gray-700' : 'border-gray-200'
+                                'pt-3 border-t',
+                                isDark ? 'border-gray-700/50' : 'border-gray-200'
                             )}>
-                                <div className="flex items-center gap-2">
+                                <div className="flex gap-2">
                                     <button
                                         className={twMerge(
-                                            'w-full flex items-center justify-center gap-2 text-sm h-9 font-medium rounded-lg transition-all duration-200 shadow-sm',
+                                            'flex-1 flex items-center justify-center gap-2 text-sm h-10 font-semibold rounded-xl transition-all duration-200 shadow-sm border',
                                             isDark
-                                                ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 hover:text-white border border-gray-600'
-                                                : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md hover:-translate-y-0.5'
+                                                ? 'bg-blue-600/90 text-white hover:bg-blue-600 border-blue-500/50 hover:shadow-blue-500/25 hover:shadow-lg'
+                                                : 'bg-blue-600 text-white hover:bg-blue-700 border-blue-500 hover:shadow-blue-600/25 hover:shadow-lg hover:-translate-y-0.5'
                                         )}
                                         onClick={(e) => {
                                             e.stopPropagation()
@@ -262,7 +245,23 @@ const SortablePDFList: React.FC<SortablePDFListProps> = ({
                                         }}
                                     >
                                         <Eye className="w-4 h-4 pdf-icon" />
-                                        Visualizar
+                                        <span>Ver</span>
+                                    </button>
+
+                                    <button
+                                        className={twMerge(
+                                            'flex-1 flex items-center justify-center gap-2 text-sm h-10 font-semibold rounded-xl transition-all duration-200 shadow-sm border',
+                                            isDark
+                                                ? 'bg-green-600/90 text-white hover:bg-green-600 border-green-500/50 hover:shadow-green-500/25 hover:shadow-lg'
+                                                : 'bg-green-600 text-white hover:bg-green-700 border-green-500 hover:shadow-green-600/25 hover:shadow-lg hover:-translate-y-0.5'
+                                        )}
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            handleEditPDF(pdf)
+                                        }}
+                                    >
+                                        <Edit3 className="w-4 h-4 pdf-icon" />
+                                        <span>Editar</span>
                                     </button>
                                 </div>
                             </div>
@@ -289,6 +288,13 @@ const SortablePDFList: React.FC<SortablePDFListProps> = ({
                     opacity: 0.8;
                     transform: rotate(2deg);
                     z-index: 9999;
+                }
+                
+                .line-clamp-2 {
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
                 }
                 
                 .pdf-list-container .pdf-list-item {

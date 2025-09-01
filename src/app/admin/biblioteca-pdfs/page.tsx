@@ -345,19 +345,28 @@ const BibliotecaPDFsPage = () => {
 
     // Toggle seleção de PDF para merge - migrado do app_pdfs
     const togglePDFSelection = (pdfId: string) => {
+        console.log('📋 BibliotecaPDFs: Toggle seleção para PDF', pdfId)
+        console.log('📋 Estado atual selectedForMerge:', Array.from(uiState.selectedForMerge))
+        console.log('📋 Estado atual selectionOrder:', selectionOrder)
+
         setUiState(prev => {
             const newSelected = new Set(prev.selectedForMerge)
             let newOrder = [ ...selectionOrder ]
 
             if (newSelected.has(pdfId)) {
                 // Removendo da seleção
+                console.log('➖ Removendo PDF da seleção:', pdfId)
                 newSelected.delete(pdfId)
                 newOrder = newOrder.filter(id => id !== pdfId)
             } else {
                 // Adicionando à seleção
+                console.log('➕ Adicionando PDF à seleção:', pdfId)
                 newSelected.add(pdfId)
                 newOrder.push(pdfId)
             }
+
+            console.log('📋 Nova seleção:', Array.from(newSelected))
+            console.log('📋 Nova ordem:', newOrder)
 
             setSelectionOrder(newOrder)
             return { ...prev, selectedForMerge: newSelected }

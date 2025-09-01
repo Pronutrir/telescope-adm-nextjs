@@ -3,8 +3,14 @@ const nextConfig = {
   output: "standalone",
   async rewrites() {
     const apiBaseUrl = process.env.API_BASE_URL || 'https://servicesapp.pronutrir.com.br'
+    const pdfApiBaseUrl = process.env.PDF_API_URL || 'http://localhost:5000/api'
 
     return [
+      // Rota específica para PDFs
+      {
+        source: '/pdf-api/:path*',
+        destination: `${pdfApiBaseUrl}/:path*`,
+      },
       {
         source: '/api/:path*',
         destination: `${apiBaseUrl}/:path*`,

@@ -41,7 +41,7 @@ export const PDFProvider: React.FC<PDFProviderProps> = ({ children }) => {
     // 🎯 AÇÕES GLOBAIS
     const refreshAllData = async () => {
         await Promise.all([
-            pdfManager.refreshData(),
+            pdfManager.refreshPDFs(),
             unifiedPDFs.refreshData()
         ])
     }
