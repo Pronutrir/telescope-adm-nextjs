@@ -53,7 +53,6 @@ export const tokenStorage = {
       document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT`
     })
     
-    console.log('🧹 Todos os tokens e dados de sessão foram limpos')
   },
 
   // Verificar se o token é válido
@@ -92,7 +91,6 @@ export async function refreshToken(): Promise<string | null> {
     // })
     // return response.data.token
     
-    console.log('Refresh token logic not implemented yet')
     return null
   } catch (error) {
     console.error('Error refreshing token:', error)

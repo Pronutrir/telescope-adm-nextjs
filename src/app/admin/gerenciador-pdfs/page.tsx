@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, startTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
@@ -32,6 +33,7 @@ import PDFManagerService from '@/services/pdfManager/pdfManagerService'
 const GerenciadorPDFsPage = () => {
     console.log('🏗️ [GerenciadorPDFsPage] Componente renderizado')
 
+    const router = useRouter()
     const { isDark } = useTheme()
     const { isMobile } = useLayout()
 
@@ -63,6 +65,35 @@ const GerenciadorPDFsPage = () => {
     const [ isSelectionMode, setIsSelectionMode ] = useState(false)
     const [ selectedForMerge, setSelectedForMerge ] = useState<Set<string>>(new Set())
     const [ isToggling, setIsToggling ] = useState(false) // Prevent double clicks
+
+    // Estados para processo de unificação
+    const [ isMerging, setIsMerging ] = useState(false)
+    const [ mergeProgress, setMergeProgress ] = useState<{
+        show: boolean
+        message: string
+        type: 'info' | 'success' | 'error'
+    }>({
+        show: false,
+        message: '',
+        type: 'info'
+    })
+
+    // Estados para modal de composição do nome
+    const [ showCompositionModal, setShowCompositionModal ] = useState(false)
+    const [ nomeComposicao, setNomeComposicao ] = useState({
+        cdPessoaFisica: '',
+        numeroAtendimento: '',
+        dataUpload: '',
+        hash: ''
+    })
+
+    // Função para formatar data no formato DDMMAAAA
+    const formatDateDDMMAAAA = (date: Date = new Date()): string => {
+        const day = date.getDate().toString().padStart(2, '0')
+        const month = (date.getMonth() + 1).toString().padStart(2, '0')
+        const year = date.getFullYear().toString()
+        return `${day}${month}${year}`
+    }
 
     // Estados para modal de edição de páginas
     const [ editState, setEditState ] = useState({
@@ -106,6 +137,13 @@ const GerenciadorPDFsPage = () => {
     useEffect(() => {
         console.log('🔄 [GerenciadorPDFsPage] Componente montado')
         setMounted(true)
+
+        // Inicializar composição do nome com data e hash
+        setNomeComposicao(prev => ({
+            ...prev,
+            dataUpload: formatDateDDMMAAAA(),
+            hash: Math.random().toString(36).substring(2, 8).toUpperCase()
+        }))
     }, [])
 
     // Carregar PDFs na inicialização
@@ -150,8 +188,145 @@ const GerenciadorPDFsPage = () => {
     }
 
     const handleUnifiedPDFs = () => {
-        console.log('📚 [GerenciadorPDFsPage] Função PDFs unificados chamada')
-        // TODO: Implementar redirecionamento
+        console.log('📚 [GerenciadorPDFsPage] Redirecionando para PDFs unificados')
+        router.push('/admin/gerenciador-pdfs/unificados')
+    }
+
+    /**
+     * Função para abrir modal de composição de nome antes da unificação
+     */
+    const handleMergePDFs = async () => {
+        if (selectedForMerge.size < 2) {
+            setMergeProgress({
+                show: true,
+                message: '⚠️ É necessário selecionar pelo menos 2 PDFs para unificação',
+                type: 'error'
+            })
+            setTimeout(() => {
+                setMergeProgress(prev => ({ ...prev, show: false }))
+            }, 3000)
+            return
+        }
+
+        // Abrir modal de composição do nome
+        setShowCompositionModal(true)
+    }
+
+    /**
+     * Função para confirmar a unificação com composição do nome
+     */
+    const handleConfirmMerge = async () => {
+        // Validar composição do nome
+        if (!nomeComposicao.cdPessoaFisica.trim()) {
+            alert('Código da Pessoa Física é obrigatório')
+            return
+        }
+
+        if (!nomeComposicao.numeroAtendimento.trim()) {
+            alert('Número do Atendimento é obrigatório')
+            return
+        }
+
+        if (!nomeComposicao.dataUpload.trim() || nomeComposicao.dataUpload.length !== 8) {
+            alert('Data deve estar no formato DDMMAAAA (8 dígitos)')
+            return
+        }
+
+        // Validar se a data é válida
+        const day = parseInt(nomeComposicao.dataUpload.substring(0, 2))
+        const month = parseInt(nomeComposicao.dataUpload.substring(2, 4))
+        const year = parseInt(nomeComposicao.dataUpload.substring(4, 8))
+
+        if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2100) {
+            alert('Data inválida. Use o formato DDMMAAAA com uma data válida.')
+            return
+        }
+
+        setShowCompositionModal(false)
+
+        try {
+            setIsMerging(true)
+            setMergeProgress({
+                show: true,
+                message: '🔄 Iniciando processo de unificação...',
+                type: 'info'
+            })
+
+            // Obter IDs na ordem correta
+            const orderedPdfIds = selectionOrder.filter(id => selectedForMerge.has(id))
+
+            console.log('🔗 [GerenciadorPDFsPage] Unificando PDFs:', {
+                selectedCount: selectedForMerge.size,
+                orderedIds: orderedPdfIds,
+                composicaoNome: nomeComposicao
+            })
+
+            // Gerar nome composto para o arquivo unificado com prefixo UNI_
+            const nomeComposto = `UNI_${nomeComposicao.cdPessoaFisica}_${nomeComposicao.numeroAtendimento}_${nomeComposicao.dataUpload}_${nomeComposicao.hash}`
+
+            setMergeProgress({
+                show: true,
+                message: `📄 Unificando ${orderedPdfIds.length} PDFs: "${nomeComposto}.pdf"...`,
+                type: 'info'
+            })
+
+            // Chamada para API de unificação
+            const result = await PDFManagerService.mergePDFs(
+                orderedPdfIds,
+                nomeComposto, // Usar nome composto
+                true, // maintainOrder
+                true  // overwrite
+            )
+
+            if (result.success) {
+                setMergeProgress({
+                    show: true,
+                    message: `✅ PDFs unificados com sucesso! Arquivo: "${result.mergedFileName}"`,
+                    type: 'success'
+                })
+
+                // Limpar seleções
+                setSelectedForMerge(new Set())
+                setSelectionOrder([])
+                setIsSelectionMode(false)
+
+                // Gerar novo hash para próxima unificação
+                setNomeComposicao(prev => ({
+                    ...prev,
+                    hash: Math.random().toString(36).substring(2, 8).toUpperCase()
+                }))
+
+                // Aguardar um pouco para mostrar o feedback e então redirecionar
+                setTimeout(() => {
+                    console.log('🎯 [GerenciadorPDFsPage] Redirecionando para PDFs unificados')
+                    router.push('/admin/gerenciador-pdfs/unificados')
+                }, 2000)
+
+            } else {
+                throw new Error(result.errorMessage || 'Erro desconhecido na unificação')
+            }
+
+        } catch (error) {
+            console.error('❌ [GerenciadorPDFsPage] Erro ao unificar PDFs:', error)
+
+            const errorMessage = error instanceof Error
+                ? error.message
+                : 'Erro inesperado ao unificar PDFs'
+
+            setMergeProgress({
+                show: true,
+                message: `❌ Erro na unificação: ${errorMessage}`,
+                type: 'error'
+            })
+
+            // Remover mensagem de erro após 5 segundos
+            setTimeout(() => {
+                setMergeProgress(prev => ({ ...prev, show: false }))
+            }, 5000)
+
+        } finally {
+            setIsMerging(false)
+        }
     }
 
     const handleEdit = (pdf: PDFItem) => {
@@ -539,6 +714,36 @@ const GerenciadorPDFsPage = () => {
                     </div>
                 )}
 
+                {/* Feedback do processo de unificação */}
+                {mergeProgress.show && (
+                    <div className={twMerge(
+                        'p-4 rounded-lg border-l-4',
+                        mergeProgress.type === 'success'
+                            ? 'border-green-500 bg-green-50 text-green-700'
+                            : mergeProgress.type === 'error'
+                                ? 'border-red-500 bg-red-50 text-red-700'
+                                : 'border-blue-500 bg-blue-50 text-blue-700',
+                        isDark && mergeProgress.type === 'success'
+                            ? 'bg-green-900/20 text-green-400 border-green-500'
+                            : isDark && mergeProgress.type === 'error'
+                                ? 'bg-red-900/20 text-red-400 border-red-500'
+                                : isDark && mergeProgress.type === 'info'
+                                    ? 'bg-blue-900/20 text-blue-400 border-blue-500' : ''
+                    )}>
+                        <div className="flex items-center gap-2">
+                            {isMerging && (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            )}
+                            <span className="font-medium">
+                                {mergeProgress.type === 'success' && '✅ Sucesso'}
+                                {mergeProgress.type === 'error' && '❌ Erro'}
+                                {mergeProgress.type === 'info' && '🔄 Processando'}
+                            </span>
+                        </div>
+                        <p className="mt-1 text-sm">{mergeProgress.message}</p>
+                    </div>
+                )}
+
                 {/* Controles de busca e visualização */}
                 <div className="space-y-4">
                     <div className="flex flex-col lg:flex-row gap-4">
@@ -635,12 +840,21 @@ const GerenciadorPDFsPage = () => {
                                     </Button>
                                     <Button
                                         size="sm"
-                                        variant="outline"
-                                        className="inline-flex items-center gap-2 text-xs"
-                                        disabled={selectedForMerge.size < 2}
+                                        onClick={handleMergePDFs}
+                                        disabled={selectedForMerge.size < 2 || isMerging}
+                                        className={twMerge(
+                                            'inline-flex items-center gap-2 text-xs transition-all',
+                                            selectedForMerge.size >= 2 && !isMerging
+                                                ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-600'
+                                                : 'opacity-50 cursor-not-allowed'
+                                        )}
                                     >
-                                        <Layers className="w-3 h-3" />
-                                        Unificar PDFs
+                                        {isMerging ? (
+                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                        ) : (
+                                            <Layers className="w-3 h-3" />
+                                        )}
+                                        {isMerging ? 'Unificando...' : 'Unificar PDFs'}
                                     </Button>
                                 </div>
                             </div>
@@ -1030,6 +1244,157 @@ const GerenciadorPDFsPage = () => {
                                 <>
                                     <Edit3 className="w-4 h-4" />
                                     Salvar Alterações
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal de Composição do Nome */}
+            <Modal
+                isOpen={showCompositionModal}
+                onClose={() => setShowCompositionModal(false)}
+                title="Composição do Nome do Arquivo Unificado"
+                size="lg"
+            >
+                <div className="space-y-6">
+                    <p className={twMerge(
+                        'text-sm',
+                        isDark ? 'text-gray-400' : 'text-gray-600'
+                    )}>
+                        Os arquivos serão nomeados no formato: <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">UNI_cdPessoa_numAtendimento_DDMMAAAA_hash.pdf</code>
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Código Pessoa Física *</label>
+                            <Input
+                                type="text"
+                                placeholder="Ex: 123456"
+                                value={nomeComposicao.cdPessoaFisica}
+                                onChange={(e) => setNomeComposicao(prev => ({
+                                    ...prev,
+                                    cdPessoaFisica: e.target.value
+                                }))}
+                                className={twMerge(
+                                    'w-full',
+                                    isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
+                                )}
+                                required
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Número Atendimento *</label>
+                            <Input
+                                type="text"
+                                placeholder="Ex: ATD001"
+                                value={nomeComposicao.numeroAtendimento}
+                                onChange={(e) => setNomeComposicao(prev => ({
+                                    ...prev,
+                                    numeroAtendimento: e.target.value
+                                }))}
+                                className={twMerge(
+                                    'w-full',
+                                    isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
+                                )}
+                                required
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Data Upload</label>
+                            <Input
+                                type="text"
+                                value={nomeComposicao.dataUpload}
+                                onChange={(e) => {
+                                    // Permitir apenas números e máximo 8 dígitos
+                                    const value = e.target.value.replace(/\D/g, '').slice(0, 8)
+                                    setNomeComposicao(prev => ({
+                                        ...prev,
+                                        dataUpload: value
+                                    }))
+                                }}
+                                className={twMerge(
+                                    'w-full',
+                                    isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
+                                )}
+                                placeholder="DDMMAAAA"
+                                maxLength={8}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Hash</label>
+                            <Input
+                                type="text"
+                                value={nomeComposicao.hash}
+                                onChange={(e) => setNomeComposicao(prev => ({
+                                    ...prev,
+                                    hash: e.target.value.toUpperCase()
+                                }))}
+                                className={twMerge(
+                                    'w-full',
+                                    isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
+                                )}
+                                placeholder="Ex: ABC123"
+                                maxLength={8}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Preview do nome */}
+                    <div className={twMerge(
+                        'mt-4 p-3 rounded-md border',
+                        isDark ? 'bg-gray-800/50 border-gray-600' : 'bg-gray-100 border-gray-200'
+                    )}>
+                        <div className="text-sm">
+                            <span className="font-medium">Nome do arquivo:</span>
+                            <code className={twMerge(
+                                'ml-2 px-2 py-1 rounded text-xs',
+                                isDark ? 'bg-gray-700 text-gray-300' : 'bg-white text-gray-700'
+                            )}>
+                                UNI_{nomeComposicao.cdPessoaFisica || 'cdPessoa'}_{nomeComposicao.numeroAtendimento || 'numAtendimento'}_{nomeComposicao.dataUpload}_{nomeComposicao.hash || 'hash'}.pdf
+                            </code>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end space-x-3">
+                        <Button
+                            onClick={() => setShowCompositionModal(false)}
+                            variant="outline"
+                            disabled={isMerging}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleConfirmMerge}
+                            disabled={
+                                isMerging ||
+                                !nomeComposicao.cdPessoaFisica.trim() ||
+                                !nomeComposicao.numeroAtendimento.trim()
+                            }
+                            className={twMerge(
+                                'inline-flex items-center gap-2',
+                                (isMerging ||
+                                    !nomeComposicao.cdPessoaFisica.trim() ||
+                                    !nomeComposicao.numeroAtendimento.trim())
+                                    ? 'cursor-not-allowed opacity-50'
+                                    : isDark
+                                        ? 'bg-green-600 hover:bg-green-700 text-white'
+                                        : 'bg-green-500 hover:bg-green-600 text-white'
+                            )}
+                        >
+                            {isMerging ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Unificando...
+                                </>
+                            ) : (
+                                <>
+                                    <Layers className="w-4 h-4" />
+                                    Confirmar Unificação
                                 </>
                             )}
                         </Button>

@@ -9,9 +9,10 @@ const SHAREPOINT_API_BASE = 'http://localhost:5000/api'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  context: { params: Promise<{ path: string[] }> }
 ) {
   try {
+    const params = await context.params
     const path = params.path.join('/')
     
     // Converter 'pdfs' para 'Pdfs' para compatibilidade com API SharePoint
@@ -77,9 +78,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  context: { params: Promise<{ path: string[] }> }
 ) {
   try {
+    const params = await context.params
     const path = params.path.join('/')
     const body = await request.text()
     

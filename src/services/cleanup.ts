@@ -3,7 +3,6 @@
 export const cleanupService = {
   // Limpeza completa de todos os dados da aplicação
   async performCompleteCleanup(): Promise<void> {
-    console.log('🧹 Iniciando limpeza completa da aplicação...')
 
     try {
       // 1. Limpar localStorage completamente
@@ -37,7 +36,6 @@ export const cleanupService = {
         await Promise.all(
           cacheNames.map(cacheName => caches.delete(cacheName))
         )
-        console.log('💾 Cache da aplicação limpo')
       }
       
       // 5. Limpar IndexedDB
@@ -47,10 +45,8 @@ export const cleanupService = {
           try {
             indexedDB.deleteDatabase(dbName)
           } catch (error) {
-            console.warn(`Erro ao limpar IndexedDB ${dbName}:`, error)
           }
         })
-        console.log('🗄️ IndexedDB limpo')
       }
       
       // 6. Limpar WebSQL (se suportado)
@@ -65,11 +61,9 @@ export const cleanupService = {
             })
           }
         } catch (error) {
-          console.warn('Erro ao limpar WebSQL:', error)
         }
       }
       
-      console.log('✅ Limpeza completa finalizada com sucesso')
       
     } catch (error) {
       console.error('❌ Erro durante limpeza completa:', error)
@@ -78,7 +72,6 @@ export const cleanupService = {
 
   // Limpeza específica apenas dos dados de autenticação
   clearAuthData(): void {
-    console.log('🔐 Limpando dados de autenticação...')
     
     // Tokens e dados de auth
     const authKeys = [
@@ -103,7 +96,6 @@ export const cleanupService = {
       document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
     })
     
-    console.log('✅ Dados de autenticação limpos')
   },
 
   // Verificar se ainda existem dados de sessão
@@ -127,11 +119,9 @@ export const cleanupService = {
     const hasRemainingData = hasLocalStorageAuth || hasSessionStorageAuth || hasAuthCookies
     
     if (hasRemainingData) {
-      console.warn('⚠️ Ainda existem dados de sessão no navegador')
       return true
     }
     
-    console.log('✅ Nenhum dado de sessão encontrado')
     return false
   }
 }

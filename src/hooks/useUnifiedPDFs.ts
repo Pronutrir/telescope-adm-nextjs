@@ -252,7 +252,11 @@ export const useUnifiedPDFs = () => {
             await loadUnifiedPDFs()
             closeUnifyModal()
             
-            return result
+            if (!result.success || !result.data) {
+                throw new Error(result.error || result.message || 'Failed to unify PDFs')
+            }
+            
+            return result.data
         } catch (err) {
             console.error('Erro ao unificar PDFs:', err)
             throw err

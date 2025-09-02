@@ -157,7 +157,7 @@ const UploadGerenciadorPDFsPage = () => {
         const day = parseInt(nomeComposicao.dataUpload.substring(0, 2))
         const month = parseInt(nomeComposicao.dataUpload.substring(2, 4))
         const year = parseInt(nomeComposicao.dataUpload.substring(4, 8))
-        
+
         if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2100) {
             setError('Data inválida. Use o formato DDMMAAAA com uma data válida')
             return
@@ -233,15 +233,15 @@ const UploadGerenciadorPDFsPage = () => {
 
         } catch (error) {
             console.error('❌ [UploadPage] Erro no upload em lote:', error)
-            
+
             // Marcar todos os arquivos em uploading como erro
             setUploadState(prev => ({
                 ...prev,
                 files: prev.files.map(f =>
                     f.status === 'uploading'
-                        ? { 
-                            ...f, 
-                            status: 'error' as const, 
+                        ? {
+                            ...f,
+                            status: 'error' as const,
                             error: error instanceof Error ? error.message : 'Erro no upload em lote'
                         }
                         : f
@@ -331,7 +331,7 @@ const UploadGerenciadorPDFsPage = () => {
                     )}>
                         Os arquivos serão nomeados no formato: <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">cdPessoa_numAtendimento_DDMMAAAA_hash.pdf</code>
                     </p>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Código Pessoa Física *</label>

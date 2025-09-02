@@ -117,7 +117,6 @@ export const authService = {
     // Remover headers de autorização de todas as instâncias
     delete ApiAuth.defaults.headers.common['Authorization']
     
-    console.log('🚪 Logout completo realizado - todos os dados limpos')
   },
 
   async updatePassword(username: string, newPassword: string): Promise<{ success: boolean; message?: string }> {

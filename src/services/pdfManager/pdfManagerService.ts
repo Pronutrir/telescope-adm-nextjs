@@ -47,9 +47,6 @@ export class PDFManagerService {
    */
   static async listarTodosPdfs(): Promise<SharePointPdfItem[]> {
     try {
-      console.log('📊 [PDFManagerService] listarTodosPdfs iniciado')
-      console.log('📡 [PDFManagerService] Fazendo requisição para /api/test-list...')
-      
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 segundos timeout
       
@@ -64,17 +61,11 @@ export class PDFManagerService {
 
       clearTimeout(timeoutId)
 
-      console.log('📈 [PDFManagerService] Response status:', response.status)
-      console.log('📈 [PDFManagerService] Response ok:', response.ok)
-
       if (!response.ok) {
         throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`)
       }
 
       const pdfs: SharePointPdfItem[] = await response.json()
-      
-      console.log(`✅ [PDFManagerService] ${pdfs.length} PDFs carregados do SharePoint`)
-      console.log('📋 [PDFManagerService] Primeiros itens:', pdfs.slice(0, 3).map(p => ({ id: p.id, name: p.name })))
       return pdfs
       
     } catch (error) {
@@ -91,13 +82,25 @@ export class PDFManagerService {
    */
   static async editarPdf(request: EditPdfRequest): Promise<Response> {
     try {
-      console.log(`✂️ Editando PDF: ${request.pdfId}`, {
-        pagesToRemove: request.pagesToRemove,
-        outputFileName: request.outputFileName
-      })
+      // Validações mais rigorosas
+      if (!request.pdfId || typeof request.pdfId !== 'string' || request.pdfId.trim().length === 0) {
+        throw new Error('pdfId é obrigatório e deve ser uma string não vazia')
+      }
+
+      if (!request.pagesToRemove || !Array.isArray(request.pagesToRemove) || request.pagesToRemove.length === 0) {
+        throw new Error('pagesToRemove é obrigatório e deve ser um array não vazio')
+      }
+
+      // Verificar se todos os elementos são números
+      const invalidPages = request.pagesToRemove.filter(page => typeof page !== 'number' || isNaN(page) || page < 1)
+      if (invalidPages.length > 0) {
+        throw new Error(`Páginas inválidas encontradas: ${invalidPages.join(', ')}. Todas as páginas devem ser números positivos.`)
+      }
       
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 segundos para edição
+      
+      const requestBody = JSON.stringify(request)
       
       // Usar o endpoint correto da API de PDFs
       const response = await fetch(`/pdf-api/Pdfs/edit`, {
@@ -106,17 +109,35 @@ export class PDFManagerService {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify(request),
+        body: requestBody,
         signal: controller.signal
       })
 
       clearTimeout(timeoutId)
 
       if (!response.ok) {
-        throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`)
+        let errorMessage = `Erro HTTP: ${response.status} ${response.statusText}`
+        let errorData = null
+        
+        try {
+          const responseText = await response.text()
+          
+          // Tentar parsear como JSON se possível
+          if (responseText) {
+            try {
+              errorData = JSON.parse(responseText)
+              errorMessage = errorData.message || errorData.error || errorData.title || errorMessage
+            } catch (parseError) {
+              errorMessage = responseText || errorMessage
+            }
+          }
+        } catch (readError) {
+          // Silently handle read error
+        }
+        
+        throw new Error(errorMessage)
       }
 
-      console.log(`✅ PDF ${request.pdfId} editado com sucesso`)
       return response
       
     } catch (error) {
@@ -137,13 +158,8 @@ export class PDFManagerService {
         page = 1,
         pageSize = 10
       } = params
-
-      console.log('🔍 Buscando PDFs no SharePoint:', { searchTerm, page, pageSize })
       
       const url = `/api/test-search?searchTerm=${encodeURIComponent(searchTerm)}&page=${page}&pageSize=${pageSize}`
-      
-      console.log('🔍 [buscarPdfs] URL construída:', url)
-      console.log('🔍 [buscarPdfs] Parâmetros:', { searchTerm, page, pageSize })
       
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 segundos timeout
@@ -161,24 +177,10 @@ export class PDFManagerService {
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('❌ Erro na resposta da API:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorText
-        })
         throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`)
       }
 
       const searchResponse: PagedPdfResponse = await response.json()
-      
-      console.log(`✅ Busca concluída:`, {
-        totalItems: searchResponse.totalItems,
-        currentPage: searchResponse.currentPage,
-        totalPages: searchResponse.totalPages,
-        itemsCount: searchResponse.items?.length || 0,
-        searchTerm: searchResponse.searchTerm
-      })
-      
       return searchResponse
       
     } catch (error) {
@@ -204,8 +206,6 @@ export class PDFManagerService {
    */
   static async baixarPdf(id: string): Promise<Response> {
     try {
-      console.log(`📥 Tentando baixar PDF: ${id}`)
-      
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 segundos para download
       
@@ -220,7 +220,6 @@ export class PDFManagerService {
         throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`)
       }
 
-      console.log(`✅ PDF ${id} baixado com sucesso`)
       return response
       
     } catch (error) {
@@ -235,14 +234,6 @@ export class PDFManagerService {
    * @returns PDFItem formatado
    */
   static convertToPDFItem(item: SharePointPdfItem) {
-    console.log('🔄 [convertToPDFItem] SharePoint item:', {
-      id: item.id,
-      name: item.name,
-      lastModified: item.lastModified,
-      lastModifiedType: typeof item.lastModified,
-      downloadUrl: item.downloadUrl
-    })
-    
     // Garantir que temos uma data válida
     let uploadDate = new Date().toISOString() // Fallback para data atual
     
@@ -266,13 +257,6 @@ export class PDFManagerService {
       thumbnailUrl: null // SharePoint não fornece thumbnail diretamente
     }
     
-    console.log('🔄 [convertToPDFItem] Converted item:', {
-      id: converted.id,
-      fileName: converted.fileName,
-      uploadDate: converted.uploadDate,
-      uploadDateType: typeof converted.uploadDate
-    })
-    
     return converted
   }
 
@@ -285,7 +269,6 @@ export class PDFManagerService {
   static async uploadPdf(file: File, fileName?: string): Promise<SharePointPdfItem> {
     try {
       const finalFileName = fileName || file.name
-      console.log(`📤 Fazendo upload do PDF: ${finalFileName}`)
       
       const formData = new FormData()
       formData.append('file', file)
@@ -309,8 +292,6 @@ export class PDFManagerService {
       }
 
       const uploadedPdf: SharePointPdfItem = await response.json()
-      
-      console.log(`✅ PDF ${finalFileName} enviado com sucesso:`, uploadedPdf)
       return uploadedPdf
       
     } catch (error) {
@@ -326,24 +307,17 @@ export class PDFManagerService {
    */
   static formatDate(dateString: string): string {
     try {
-      console.log('🗓️ [PDFManagerService.formatDate] Input:', dateString, typeof dateString)
-      
       if (!dateString) {
-        console.log('🗓️ [PDFManagerService.formatDate] Input vazio')
         return 'Data inválida'
       }
       
       const date = new Date(dateString)
-      console.log('🗓️ [PDFManagerService.formatDate] Date object:', date)
       
       if (isNaN(date.getTime())) {
-        console.log('🗓️ [PDFManagerService.formatDate] Data inválida detectada')
         return 'Data inválida'
       }
       
-      const formatted = date.toLocaleDateString('pt-BR')
-      console.log('🗓️ [PDFManagerService.formatDate] Formatted:', formatted)
-      return formatted
+      return date.toLocaleDateString('pt-BR')
     } catch (error) {
       console.error('🗓️ [PDFManagerService.formatDate] Error:', error, 'Input:', dateString)
       return 'Data inválida'
@@ -367,8 +341,6 @@ export class PDFManagerService {
     }>
   ): Promise<any> {
     try {
-      console.log(`📤 [PDFManagerService] uploadMultiplePDFs iniciado - ${files.length} arquivos`)
-      
       const formData = new FormData()
       
       // Adicionar todos os arquivos ao FormData
@@ -378,8 +350,6 @@ export class PDFManagerService {
         // Compor o nome do arquivo com hash único
         const uniqueHash = `${nomeComposicao.hash}${index.toString().padStart(2, '0')}`
         const nomeComposto = `${nomeComposicao.cdPessoaFisica}_${nomeComposicao.numeroAtendimento}_${nomeComposicao.dataUpload}_${uniqueHash}.pdf`
-        
-        console.log(`📄 [PDFManagerService] Arquivo ${index + 1}: ${file.name} → ${nomeComposto}`)
         
         // Criar um novo arquivo com o nome composto
         const renamedFile = new File([file], nomeComposto, { type: file.type })
@@ -404,9 +374,6 @@ export class PDFManagerService {
       }
 
       const result = await response.json()
-      
-      console.log('✅ [PDFManagerService] Upload em lote realizado com sucesso')
-      console.log(`� [PDFManagerService] ${files.length} arquivos enviados`)
       return result
       
     } catch (error) {
@@ -432,6 +399,228 @@ export class PDFManagerService {
   ): Promise<any> {
     // Para um único arquivo, usar o método de lote
     return this.uploadMultiplePDFs([{ file, nomeComposicao }])
+  }
+
+  /**
+   * Extrai informações de composição de nome a partir de um nome de arquivo PDF
+   * Formato esperado: cdPessoaFisica_numeroAtendimento_dataUpload_hash.pdf
+   */
+  private static extractNomeComposicao(fileName: string): {
+    cdPessoaFisica: string;
+    numeroAtendimento: string;
+    dataUpload: string;
+    hash: string;
+  } | null {
+    try {
+      // Remove a extensão .pdf
+      const nameWithoutExt = fileName.replace(/\.pdf$/i, '');
+      
+      // Divide por underscore
+      const parts = nameWithoutExt.split('_');
+      
+      // Verifica se tem pelo menos 4 partes (cdPessoa_numAtend_data_hash)
+      if (parts.length >= 4) {
+        return {
+          cdPessoaFisica: parts[0],
+          numeroAtendimento: parts[1], 
+          dataUpload: parts[2],
+          hash: parts[3]
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Gera nome composto para PDF unificado baseado nas informações dos arquivos selecionados
+   */
+  private static generateUnifiedFileName(pdfIds: string[], customFileName?: string): string {
+    // Tentar extrair informações do primeiro arquivo que segue o padrão
+    let baseComposicao: { cdPessoaFisica: string; numeroAtendimento: string; dataUpload: string; hash: string } | null = null;
+    
+    for (const pdfId of pdfIds) {
+      const composicao = this.extractNomeComposicao(pdfId);
+      if (composicao) {
+        baseComposicao = composicao;
+        break;
+      }
+    }
+    
+    if (baseComposicao) {
+      // Usar padrão de nomeação estruturado
+      const dataUnificacao = new Date().toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit', 
+        year: 'numeric'
+      }).replace(/\//g, '');
+      
+      // Gerar hash único para o PDF unificado
+      const timestamp = Date.now().toString();
+      const hashUnificado = timestamp.slice(-8); // Últimos 8 dígitos do timestamp
+      
+      const nomeUnificado = `${baseComposicao.cdPessoaFisica}_${baseComposicao.numeroAtendimento}_${dataUnificacao}_UNIF${hashUnificado}.pdf`;
+      return nomeUnificado;
+    }
+    
+    // Fallback para o padrão anterior se não conseguir extrair informações
+    const fallbackName = customFileName || `PDFs_Unificados_${new Date().toISOString().slice(0, 19).replace(/[T:]/g, '_')}.pdf`;
+    return fallbackName;
+  }
+
+  /**
+   * Unifica múltiplos PDFs em um único arquivo
+   * POST /api/Pdfs/merge
+   * @param pdfIds Array com IDs dos PDFs na ordem de unificação
+   * @param outputFileName Nome do arquivo de saída (opcional)
+   * @param maintainOrder Se deve manter a ordem dos PDFs (default: true)
+   * @param overwrite Se deve sobrescrever arquivo existente (default: true)
+   * @returns Promise com informações do PDF unificado
+   */
+  static async mergePDFs(
+    pdfIds: string[],
+    outputFileName?: string,
+    maintainOrder: boolean = true,
+    overwrite: boolean = true
+  ): Promise<{
+    success: boolean
+    message?: string
+    mergedFileId?: string
+    mergedFileName?: string
+    webUrl?: string
+    errorMessage?: string
+    totalPages?: number
+    processedCount?: number
+    sourcePdfs?: Array<{
+      id: string
+      fileName: string
+      size: number
+      pageCount: number
+      order: number
+      success: boolean
+      errorMessage?: string
+    }>
+    processingTime?: {
+      clicks: number
+      days: number
+      hours: number
+      milliseconds: number
+      microseconds: number
+      nanoseconds: number
+      minutes: number
+    }
+  }> {
+    try {
+      // Validação mais detalhada
+      if (!pdfIds || !Array.isArray(pdfIds)) {
+        throw new Error('IDs dos PDFs devem ser fornecidos como um array')
+      }
+
+      if (pdfIds.length === 0) {
+        throw new Error('É necessário fornecer pelo menos um PDF para unificação')
+      }
+
+      if (pdfIds.length === 1) {
+        throw new Error('É necessário selecionar pelo menos 2 PDFs para unificação')
+      }
+
+      // Gerar nome do arquivo seguindo o mesmo padrão dos uploads
+      const nomeArquivoUnificado = this.generateUnifiedFileName(pdfIds, outputFileName);
+
+      const requestBody = {
+        pdfIds,
+        outputFileName: nomeArquivoUnificado,
+        maintainOrder,
+        overwrite
+      }
+
+      const response = await fetch('/pdf-api/Pdfs/merge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      })
+
+      if (!response.ok) {
+        let errorMessage = `Erro HTTP: ${response.status} ${response.statusText}`
+        
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.message || errorData.error || errorMessage
+        } catch (e) {
+          // Silently handle parse error
+        }
+        
+        throw new Error(errorMessage)
+      }
+
+      const result = await response.json()
+      
+      // Validar se a API conseguiu processar os PDFs corretamente
+      if (result.processedCount && result.processedCount < 2) {
+        const failedPdfs = result.sourcePdfs?.filter((pdf: any) => !pdf.success) || []
+        if (failedPdfs.length > 0) {
+          const errorMessages = failedPdfs.map((pdf: any) => `${pdf.id}: ${pdf.errorMessage}`).join('; ')
+          throw new Error(`Apenas ${result.processedCount} PDFs foram processados com sucesso. É necessário pelo menos 2 PDFs. Falhas: ${errorMessages}`)
+        } else {
+          throw new Error(`Apenas ${result.processedCount} PDFs foram processados com sucesso. É necessário pelo menos 2 PDFs`)
+        }
+      }
+      
+      return result
+
+    } catch (error) {
+      console.error('❌ [PDFManagerService] Erro ao unificar PDFs:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Lista PDFs unificados do SharePoint
+   * GET /api/Pdfs/unified
+   * @returns Promise com lista de PDFs unificados
+   */
+  static async listarPDFsUnificados(): Promise<SharePointPdfItem[]> {
+    try {
+      const response = await fetch('/pdf-api/Pdfs/unified', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        }
+      })
+
+      if (!response.ok) {
+        let errorMessage = `Erro HTTP: ${response.status} ${response.statusText}`
+        
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.message || errorData.error || errorMessage
+        } catch (e) {
+          // Silently handle parse error
+        }
+        
+        throw new Error(errorMessage)
+      }
+
+      const result = await response.json()
+      
+      // Verificar se é um array ou um objeto com propriedade de array
+      if (Array.isArray(result)) {
+        return result
+      } else if (result.items && Array.isArray(result.items)) {
+        return result.items
+      } else {
+        return []
+      }
+
+    } catch (error) {
+      console.error('❌ [PDFManagerService] Erro ao listar PDFs unificados:', error)
+      throw error
+    }
   }
 }
 

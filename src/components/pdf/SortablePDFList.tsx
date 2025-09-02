@@ -8,7 +8,8 @@ import {
     FileText,
     Eye,
     Check,
-    Edit3
+    Edit3,
+    Send
 } from 'lucide-react'
 
 interface SortablePDFListProps {
@@ -16,6 +17,7 @@ interface SortablePDFListProps {
     onSortEnd?: (items: PDFItem[]) => void
     onViewPDF?: (pdf: PDFItem) => void
     onEditPDF?: (pdf: PDFItem) => void
+    onSendToTasy?: (pdf: PDFItem) => void
     onSelectPDF?: (pdfId: string) => void
     className?: string
     isDark?: boolean
@@ -34,6 +36,7 @@ const SortablePDFList: React.FC<SortablePDFListProps> = ({
     onSortEnd,
     onViewPDF,
     onEditPDF,
+    onSendToTasy,
     onSelectPDF,
     className = '',
     isDark = false,
@@ -116,6 +119,10 @@ const SortablePDFList: React.FC<SortablePDFListProps> = ({
 
     const handleEditPDF = (pdf: PDFItem) => {
         onEditPDF?.(pdf)
+    }
+
+    const handleSendToTasy = (pdf: PDFItem) => {
+        onSendToTasy?.(pdf)
     }
 
     const handleSelectPDF = (pdfId: string) => {
@@ -263,6 +270,25 @@ const SortablePDFList: React.FC<SortablePDFListProps> = ({
                                         <Edit3 className="w-4 h-4 pdf-icon" />
                                         <span>Editar</span>
                                     </button>
+
+                                    {onSendToTasy && (
+                                        <button
+                                            className={twMerge(
+                                                'flex-1 flex items-center justify-center gap-2 text-sm h-10 font-semibold rounded-xl transition-all duration-200 shadow-sm border',
+                                                isDark
+                                                    ? 'bg-purple-600/90 text-white hover:bg-purple-600 border-purple-500/50 hover:shadow-purple-500/25 hover:shadow-lg'
+                                                    : 'bg-purple-600 text-white hover:bg-purple-700 border-purple-500 hover:shadow-purple-600/25 hover:shadow-lg hover:-translate-y-0.5'
+                                            )}
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                handleSendToTasy(pdf)
+                                            }}
+                                            title="Enviar para TASY"
+                                        >
+                                            <Send className="w-4 h-4 pdf-icon" />
+                                            <span>TASY</span>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         )}
