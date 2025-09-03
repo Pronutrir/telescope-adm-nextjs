@@ -105,6 +105,8 @@ const UnificadosGerenciadorPDFsPage = () => {
 
     // Ref para debounce da busca
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    // Ref para controlar o AbortController das requisições
+    const abortControllerRef = useRef<AbortController | null>(null)
 
     useEffect(() => {
         setMounted(true)
@@ -360,6 +362,12 @@ const UnificadosGerenciadorPDFsPage = () => {
             clearTimeout(searchTimeoutRef.current)
         }
 
+        // Abortar requisições pendentes
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort()
+            abortControllerRef.current = null
+        }
+
         setTasyModal(prev => ({
             ...prev,
             isOpen: false,
@@ -373,6 +381,42 @@ const UnificadosGerenciadorPDFsPage = () => {
         }))
     }
 
+    // Função para fazer download do PDF do SharePoint para o NAS via API proxy
+    const downloadPdfFromSharePoint = async (pdfFile: UnifiedPDFItem): Promise<string> => {
+        try {
+            console.log('📥 Transferindo PDF do SharePoint para o NAS via proxy:', pdfFile.url)
+
+            const response = await fetch('/api/nas-transfer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sharePointUrl: pdfFile.url
+                })
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(`Erro na transferência: ${errorData.message || 'Erro desconhecido do servidor proxy'}`)
+            }
+
+            const result = await response.json()
+
+            if (!result.sucesso) {
+                throw new Error(`A transferência para o NAS falhou: ${result.mensagem || 'A API NAS não retornou uma mensagem de sucesso.'}`)
+            }
+
+            console.log('✅ Transferência para o NAS concluída. Caminho do arquivo:', result.caminhoCompleto)
+            return result.caminhoCompleto
+
+        } catch (error) {
+            console.error('❌ Erro ao transferir PDF do SharePoint para o NAS:', error)
+            // Re-lança o erro para que a função que a chamou (sendPdfToTasy) possa tratá-lo e exibir o toast de erro.
+            throw error
+        }
+    }
+
     const searchContasPaciente = async (termo: string) => {
         if (!termo.trim()) {
             setTasyModal(prev => ({
@@ -382,6 +426,14 @@ const UnificadosGerenciadorPDFsPage = () => {
             }))
             return
         }
+
+        // Abortar requisição anterior se existir
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort()
+        }
+
+        // Criar novo AbortController
+        abortControllerRef.current = new AbortController()
 
         setTasyModal(prev => ({
             ...prev,
@@ -395,7 +447,9 @@ const UnificadosGerenciadorPDFsPage = () => {
 
             console.log('🔍 Buscando conta para atendimento:', numeroAtendimento)
 
-            const response = await fetch(`/api/tasy/conta-paciente?numeroAtendimento=${numeroAtendimento}`)
+            const response = await fetch(`/api/tasy/conta-paciente?numeroAtendimento=${numeroAtendimento}`, {
+                signal: abortControllerRef.current.signal
+            })
 
             if (response.ok) {
                 const data = await response.json()
@@ -452,6 +506,12 @@ const UnificadosGerenciadorPDFsPage = () => {
             }
 
         } catch (error) {
+            // Não mostrar erro se a requisição foi cancelada
+            if (error instanceof Error && error.name === 'AbortError') {
+                console.log('🔄 Busca cancelada (requisição mais nova iniciada)')
+                return
+            }
+
             console.error('❌ Erro na busca:', error)
             setTasyModal(prev => ({
                 ...prev,
@@ -471,35 +531,87 @@ const UnificadosGerenciadorPDFsPage = () => {
 
         setTasyModal(prev => ({ ...prev, isSending: true }))
 
+        let downloadToastId: any
+        let sendToastId: any
+
         try {
-            toast.loading(
-                `⏳ Enviando PDF "${tasyModal.selectedPdf?.fileName}" para a conta médica ${contaSelecionada.contaPaciente}... Aguarde, isso pode levar alguns segundos.`,
-                { duration: 3000 }
+            // Etapa 1: Download do PDF do SharePoint
+            downloadToastId = toast.loading(
+                `📥 Fazendo download do PDF "${tasyModal.selectedPdf.fileName}" do SharePoint...`
             )
 
-            // Simular delay realista da API TASY
-            await new Promise(resolve => setTimeout(resolve, 3000))
+            const caminhoArquivo = await downloadPdfFromSharePoint(tasyModal.selectedPdf)
 
-            // Aqui você implementaria a chamada real para a API do TASY
-            // const response = await fetch('/api/tasy/enviar-pdf', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({
-            //         pdfFileName: tasyModal.selectedPdf.fileName,
-            //         contaPaciente: contaSelecionada.contaPaciente,
-            //         numeroAtendimento: contaSelecionada.numeroAtendimento
-            //     })
-            // })
+            // Remover toast de download e mostrar sucesso
+            toast.dismiss(downloadToastId)
+            toast.success('✅ Download concluído com sucesso!')
 
-            toast.success(
-                `✅ PDF "${tasyModal.selectedPdf?.fileName}" enviado com sucesso para a conta médica ${contaSelecionada.contaPaciente} no TASY!`
+            // Etapa 2: Envio para TASY
+            sendToastId = toast.loading(
+                `📤 Enviando PDF para a conta médica ${contaSelecionada.contaPaciente} no TASY...`
             )
 
-            closeTasyModal()
+            // Chamada real para a API do TASY
+            const response = await fetch('/api/tasy/enviar-pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contaPaciente: contaSelecionada.contaPaciente,
+                    textoAnexo: tasyModal.selectedPdf.fileName,
+                    nomeArquivo: tasyModal.selectedPdf.fileName,
+                    numeroAtendimento: contaSelecionada.numeroAtendimento,
+                    caminhoArquivo: caminhoArquivo // Incluir o caminho do arquivo baixado
+                })
+            })
+
+            // Remover toast de envio
+            toast.dismiss(sendToastId)
+
+            if (response.ok) {
+                const result = await response.json()
+
+                toast.success(
+                    `🎉 PDF "${tasyModal.selectedPdf.fileName}" enviado com sucesso para a conta médica ${contaSelecionada.contaPaciente} no TASY!`,
+                    { duration: 6000 }
+                )
+
+                console.log('✅ Processo completo:', {
+                    download: caminhoArquivo,
+                    tasyResponse: result
+                })
+
+                closeTasyModal()
+            } else {
+                const errorData = await response.json()
+                console.error('❌ Erro da API TASY:', errorData)
+
+                toast.error(
+                    `❌ Erro ao enviar PDF para o TASY: ${errorData.error || 'Erro desconhecido'}`,
+                    { duration: 5000 }
+                )
+            }
 
         } catch (error) {
-            console.error('❌ Erro ao enviar PDF para TASY:', error)
-            toast.error('❌ Erro ao enviar PDF para o TASY. Tente novamente.')
+            console.error('❌ Erro no processo de envio:', error)
+
+            // Limpar toasts pendentes
+            if (downloadToastId) toast.dismiss(downloadToastId)
+            if (sendToastId) toast.dismiss(sendToastId)
+
+            // Determinar se o erro foi no download ou no envio
+            const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+
+            if (errorMessage.includes('download') || errorMessage.includes('SharePoint')) {
+                toast.error(
+                    `❌ Erro no download do SharePoint: ${errorMessage}`,
+                    { duration: 6000 }
+                )
+            } else {
+                toast.error(
+                    `❌ Erro ao processar envio: ${errorMessage}`,
+                    { duration: 6000 }
+                )
+            }
         } finally {
             setTasyModal(prev => ({ ...prev, isSending: false }))
         }
@@ -1348,8 +1460,21 @@ const UnificadosGerenciadorPDFsPage = () => {
                                 'text-xs',
                                 isDark ? 'text-gray-400' : 'text-gray-500'
                             )}>
-                                {tasyModal.contasPaciente.length} conta(s) encontrada(s)
+                                {tasyModal.contasPaciente.length === 1
+                                    ? `✅ Conta selecionada automaticamente: ${tasyModal.contasPaciente[ 0 ].contaPaciente}`
+                                    : `${tasyModal.contasPaciente.length} contas encontradas - selecione uma para continuar`
+                                }
                             </p>
+
+                            {/* Aviso quando não há conta selecionada para múltiplas opções */}
+                            {tasyModal.contasPaciente.length > 1 && !tasyModal.selectedConta && (
+                                <div className={twMerge(
+                                    'text-xs p-2 rounded border',
+                                    isDark ? 'bg-yellow-900/20 border-yellow-700 text-yellow-300' : 'bg-yellow-50 border-yellow-200 text-yellow-700'
+                                )}>
+                                    ⚠️ Selecione uma conta médica para habilitar o envio
+                                </div>
+                            )}
                         </div>
                     )}
 

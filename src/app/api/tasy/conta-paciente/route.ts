@@ -16,27 +16,35 @@ export async function GET(request: NextRequest) {
 
         console.log(`🔍 Buscando conta paciente para atendimento: ${numeroAtendimento}`)
 
-        const response = await fetch(
-            `${TASY_API_BASE}/ContaPaciente/GetContaPaciente?Numero_Atendimento=${numeroAtendimento}`,
-            {
-                method: 'GET',
-                headers: {
-                    'accept': '*/*',
-                    'Content-Type': 'application/json',
-                },
-                signal: AbortSignal.timeout(10000) // 10 segundos de timeout
-            }
-        )
+        // Criar AbortController para timeout manual
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 segundos
 
-        if (!response.ok) {
-            console.error('❌ Erro na API TASY:', response.status, response.statusText)
-            return NextResponse.json(
-                { error: 'Erro ao buscar conta do paciente' },
-                { status: response.status }
+        try {
+            const response = await fetch(
+                `${TASY_API_BASE}/ContaPaciente/GetContaPaciente?Numero_Atendimento=${numeroAtendimento}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'accept': '*/*',
+                        'Content-Type': 'application/json',
+                    },
+                    signal: controller.signal
+                }
             )
-        }
 
-        const contaPaciente = await response.text() // A API retorna apenas o número como string
+            // Limpar timeout se a requisição foi bem-sucedida
+            clearTimeout(timeoutId)
+
+            if (!response.ok) {
+                console.error('❌ Erro na API TASY:', response.status, response.statusText)
+                return NextResponse.json(
+                    { error: 'Erro ao buscar conta do paciente' },
+                    { status: response.status }
+                )
+            }
+
+            const contaPaciente = await response.text() // A API retorna apenas o número como string
         
         // Simular múltiplas contas para alguns números específicos (para teste)
         // Em produção, isso viria da API real
@@ -60,6 +68,21 @@ export async function GET(request: NextRequest) {
             numeroAtendimento,
             contaPaciente: contaPaciente.replace(/"/g, ''), // Remove aspas se houver
         })
+        
+        } catch (fetchError) {
+            // Limpar timeout em caso de erro
+            clearTimeout(timeoutId)
+            
+            if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+                console.error('❌ Timeout na API TASY')
+                return NextResponse.json(
+                    { error: 'Timeout ao buscar conta do paciente' },
+                    { status: 408 }
+                )
+            }
+            
+            throw fetchError // Re-throw para ser capturado pelo catch externo
+        }
 
     } catch (error) {
         console.error('❌ Erro ao buscar conta paciente:', error)
