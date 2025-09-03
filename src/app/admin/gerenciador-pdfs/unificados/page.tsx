@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { PageWrapper } from '@/components/layout'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
@@ -26,6 +26,7 @@ import { twMerge } from 'tailwind-merge'
 import { UnifiedPDFItem, ViewMode, PDFEditState, PDFItem } from '@/types/pdf'
 import PDFManagerService, { SharePointPdfItem } from '@/services/pdfManager/pdfManagerService'
 import PDFService from '@/services/pdf/pdfService'
+import { toast } from 'react-hot-toast'
 
 const UnificadosGerenciadorPDFsPage = () => {
     const { isDark } = useTheme()
@@ -79,21 +80,31 @@ const UnificadosGerenciadorPDFsPage = () => {
     })
 
     // Estados para modal de envio para TASY
-    const [ tasyModal, setTasyModal ] = useState({
+    const [ tasyModal, setTasyModal ] = useState<{
+        isOpen: boolean
+        selectedPdf?: UnifiedPDFItem
+        searchTerm: string
+        contasPaciente: Array<{
+            numeroAtendimento: string
+            contaPaciente: string
+            displayText: string
+        }>
+        selectedConta: string
+        isLoading: boolean
+        isSending: boolean
+        isSearching: boolean
+    }>({
         isOpen: false,
-        selectedPdf: null as UnifiedPDFItem | null,
         searchTerm: '',
-        availableNumbers: [] as string[],
-        selectedNumber: '',  // Mudança: apenas um número selecionado
+        contasPaciente: [],
+        selectedConta: '',
         isLoading: false,
-        isSearching: false,
         isSending: false,
-        feedback: {
-            show: false,
-            message: '',
-            type: 'info' as 'info' | 'success' | 'error'
-        }
+        isSearching: false
     })
+
+    // Ref para debounce da busca
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     useEffect(() => {
         setMounted(true)
@@ -292,135 +303,205 @@ const UnificadosGerenciadorPDFsPage = () => {
 
     // Funções para o modal TASY
     const openTasyModal = (pdf: UnifiedPDFItem) => {
+        console.log('🔓 Abrindo modal TASY para:', pdf.fileName)
+
         setTasyModal(prev => ({
             ...prev,
             isOpen: true,
             selectedPdf: pdf,
             searchTerm: '',
-            availableNumbers: [],
-            selectedNumber: '',  // Limpar número selecionado
+            contasPaciente: [],
+            selectedConta: '',
             isLoading: false,
             isSearching: false,
-            isSending: false,
-            feedback: { show: false, message: '', type: 'info' }
+            isSending: false
         }))
+
+        // Extrair número de atendimento do nome do arquivo
+        const numeroAtendimento = extractAtendimentoFromFileName(pdf.fileName)
+
+        if (numeroAtendimento) {
+            console.log('✅ Número de atendimento extraído:', numeroAtendimento)
+            toast.loading('🔍 Buscando conta do paciente...')
+            // Buscar automaticamente a conta do paciente
+            searchContasPaciente(numeroAtendimento)
+        } else {
+            console.warn('⚠️ Não foi possível extrair número de atendimento do nome do arquivo:', pdf.fileName)
+            toast.error('Número de atendimento não encontrado no nome do arquivo')
+        }
+    }
+
+    // Função para extrair número de atendimento do nome do arquivo
+    const extractAtendimentoFromFileName = (fileName: string): string | null => {
+        try {
+            // Remove extensão .pdf se existir
+            const nameWithoutExtension = fileName.replace(/\.pdf$/i, '')
+
+            // Divide por underscore e pega a terceira parte
+            const parts = nameWithoutExtension.split('_')
+
+            if (parts.length >= 3) {
+                const numeroAtendimento = parts[ 2 ]
+                console.log('📄 [TASY] Número de atendimento extraído:', numeroAtendimento, 'do arquivo:', fileName)
+                return numeroAtendimento
+            }
+
+            console.warn('⚠️ [TASY] Não foi possível extrair número de atendimento do arquivo:', fileName)
+            return null
+        } catch (error) {
+            console.error('❌ [TASY] Erro ao extrair número de atendimento:', error)
+            return null
+        }
     }
 
     const closeTasyModal = () => {
+        // Limpar timeout se existir
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current)
+        }
+
         setTasyModal(prev => ({
             ...prev,
             isOpen: false,
-            selectedPdf: null,
+            selectedPdf: undefined,
             searchTerm: '',
-            availableNumbers: [],
-            selectedNumber: '',  // Limpar número selecionado
+            contasPaciente: [],
+            selectedConta: '',
             isLoading: false,
             isSearching: false,
-            isSending: false,
-            feedback: { show: false, message: '', type: 'info' }
+            isSending: false
         }))
     }
 
-    const searchTasyNumbers = async (term: string) => {
-        if (!term.trim()) {
-            setTasyModal(prev => ({ ...prev, availableNumbers: [], searchTerm: term }))
+    const searchContasPaciente = async (termo: string) => {
+        if (!termo.trim()) {
+            setTasyModal(prev => ({
+                ...prev,
+                contasPaciente: [],
+                isSearching: false
+            }))
             return
         }
 
         setTasyModal(prev => ({
             ...prev,
             isSearching: true,
-            searchTerm: term,
-            feedback: { show: false, message: '', type: 'info' }
+            searchTerm: termo
         }))
 
         try {
-            // TODO: Implementar chamada real para API do TASY
-            // Simulação de busca por números de contas médicas no TASY
-            await new Promise(resolve => setTimeout(resolve, 800))
+            // Trabalhar com um único número de atendimento
+            const numeroAtendimento = termo.trim()
 
-            // Simular números de contas médicas baseados no termo de busca
-            const mockNumbers = [
-                '2549371', '2549887', '2539471', '2548901', '2547732',
-                '2550001', '2550002', '2550123', '2551234', '2552345'
-            ].filter(num => num.includes(term) || term.length < 3)
+            console.log('🔍 Buscando conta para atendimento:', numeroAtendimento)
 
+            const response = await fetch(`/api/tasy/conta-paciente?numeroAtendimento=${numeroAtendimento}`)
+
+            if (response.ok) {
+                const data = await response.json()
+
+                // Preparar estrutura para múltiplas contas
+                const contasEncontradas: Array<{
+                    numeroAtendimento: string
+                    contaPaciente: string
+                    displayText: string
+                }> = []
+
+                // Verificar se a API retorna múltiplas contas em um array
+                if (Array.isArray(data.contasPaciente)) {
+                    // Caso: array de contas [2549371, 2614471]
+                    data.contasPaciente.forEach((conta: string | number) => {
+                        contasEncontradas.push({
+                            numeroAtendimento: data.numeroAtendimento,
+                            contaPaciente: String(conta),
+                            displayText: `Atend: ${data.numeroAtendimento} → Conta: ${conta}`
+                        })
+                    })
+                } else if (data.contaPaciente) {
+                    // Caso: uma única conta direta
+                    contasEncontradas.push({
+                        numeroAtendimento: data.numeroAtendimento,
+                        contaPaciente: String(data.contaPaciente),
+                        displayText: `Atend: ${data.numeroAtendimento} → Conta: ${data.contaPaciente}`
+                    })
+                }
+
+                setTasyModal(prev => ({
+                    ...prev,
+                    contasPaciente: contasEncontradas,
+                    selectedConta: contasEncontradas.length === 1 ? contasEncontradas[ 0 ].contaPaciente : '', // Auto-selecionar apenas se for uma única conta
+                    isSearching: false
+                }))
+
+                if (contasEncontradas.length === 1) {
+                    toast.success(`✅ Conta encontrada: ${contasEncontradas[ 0 ].contaPaciente}`)
+                } else {
+                    toast.success(`✅ ${contasEncontradas.length} contas encontradas para seleção`)
+                }
+            } else {
+                console.warn(`⚠️ Conta não encontrada para atendimento: ${numeroAtendimento}`)
+
+                setTasyModal(prev => ({
+                    ...prev,
+                    contasPaciente: [],
+                    selectedConta: '',
+                    isSearching: false
+                }))
+
+                toast.error(`❌ Nenhuma conta encontrada para o atendimento: ${numeroAtendimento}`)
+            }
+
+        } catch (error) {
+            console.error('❌ Erro na busca:', error)
             setTasyModal(prev => ({
                 ...prev,
-                availableNumbers: mockNumbers,
+                contasPaciente: [],
+                selectedConta: '',
                 isSearching: false
             }))
-        } catch (error) {
-            setTasyModal(prev => ({
-                ...prev,
-                isSearching: false,
-                feedback: {
-                    show: true,
-                    message: 'Erro ao buscar números de contas médicas no TASY',
-                    type: 'error'
-                }
-            }))
+            toast.error('❌ Erro ao buscar conta do paciente')
         }
-    }
-
-    // Nova função para selecionar apenas um número
-    const selectTasyNumber = (number: string) => {
-        setTasyModal(prev => ({
-            ...prev,
-            selectedNumber: number,
-            feedback: { show: false, message: '', type: 'info' }
-        }))
     }
 
     const sendPdfToTasy = async () => {
-        if (!tasyModal.selectedNumber.trim()) {
-            setTasyModal(prev => ({
-                ...prev,
-                feedback: {
-                    show: true,
-                    message: 'Selecione um número de conta médica',
-                    type: 'error'
-                }
-            }))
-            return
-        }
+        if (!tasyModal.selectedConta || !tasyModal.selectedPdf) return
 
-        setTasyModal(prev => ({
-            ...prev,
-            isSending: true,
-            feedback: {
-                show: true,
-                message: `Enviando PDF para a conta médica ${prev.selectedNumber}... Aguarde, isso pode levar alguns segundos.`,
-                type: 'info'
-            }
-        }))
+        const contaSelecionada = tasyModal.contasPaciente.find(c => c.contaPaciente === tasyModal.selectedConta)
+        if (!contaSelecionada) return
+
+        setTasyModal(prev => ({ ...prev, isSending: true }))
 
         try {
-            // TODO: Implementar chamada real para envio ao TASY
-            await new Promise(resolve => setTimeout(resolve, 3000)) // Simular tempo de processamento
+            toast.loading(
+                `⏳ Enviando PDF "${tasyModal.selectedPdf?.fileName}" para a conta médica ${contaSelecionada.contaPaciente}... Aguarde, isso pode levar alguns segundos.`,
+                { duration: 3000 }
+            )
 
-            setTasyModal(prev => ({
-                ...prev,
-                isSending: false,
-                feedback: {
-                    show: true,
-                    message: `✅ PDF enviado com sucesso para a conta médica ${prev.selectedNumber} no TASY!`,
-                    type: 'success'
-                }
-            }))
+            // Simular delay realista da API TASY
+            await new Promise(resolve => setTimeout(resolve, 3000))
 
-            // Fechar modal após 3 segundos
-            setTimeout(() => closeTasyModal(), 3000)
+            // Aqui você implementaria a chamada real para a API do TASY
+            // const response = await fetch('/api/tasy/enviar-pdf', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({
+            //         pdfFileName: tasyModal.selectedPdf.fileName,
+            //         contaPaciente: contaSelecionada.contaPaciente,
+            //         numeroAtendimento: contaSelecionada.numeroAtendimento
+            //     })
+            // })
+
+            toast.success(
+                `✅ PDF "${tasyModal.selectedPdf?.fileName}" enviado com sucesso para a conta médica ${contaSelecionada.contaPaciente} no TASY!`
+            )
+
+            closeTasyModal()
+
         } catch (error) {
-            setTasyModal(prev => ({
-                ...prev,
-                isSending: false,
-                feedback: {
-                    show: true,
-                    message: 'Erro ao enviar PDF para o TASY. Tente novamente.',
-                    type: 'error'
-                }
-            }))
+            console.error('❌ Erro ao enviar PDF para TASY:', error)
+            toast.error('❌ Erro ao enviar PDF para o TASY. Tente novamente.')
+        } finally {
+            setTasyModal(prev => ({ ...prev, isSending: false }))
         }
     }
 
@@ -1179,54 +1260,87 @@ const UnificadosGerenciadorPDFsPage = () => {
                         </div>
                     )}
 
-                    {/* Campo de Busca */}
+                    {/* Campo de busca por número de atendimento */}
                     <div className="space-y-2">
                         <label className={twMerge(
                             'block text-sm font-medium',
                             isDark ? 'text-gray-300' : 'text-gray-700'
                         )}>
-                            Buscar Contas Médicas no TASY
+                            Número de Atendimento
                         </label>
-                        <div className="relative">
-                            <Input
-                                type="text"
-                                value={tasyModal.searchTerm}
-                                onChange={(e) => searchTasyNumbers(e.target.value)}
-                                placeholder="Digite para buscar números de contas médicas..."
-                                className={twMerge(
-                                    'pr-10',
-                                    isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
-                                )}
-                            />
-                            {tasyModal.isSearching && (
-                                <Loader2 className="absolute right-3 top-3 w-4 h-4 animate-spin text-blue-500" />
+
+                        {/* Mostrar se foi extraído do arquivo */}
+                        {tasyModal.selectedPdf && extractAtendimentoFromFileName(tasyModal.selectedPdf.fileName) && (
+                            <div className={twMerge(
+                                'text-xs p-2 rounded border',
+                                isDark ? 'bg-green-900/20 border-green-700 text-green-300' : 'bg-green-50 border-green-200 text-green-700'
+                            )}>
+                                ✅ Número extraído automaticamente do arquivo: <strong>{extractAtendimentoFromFileName(tasyModal.selectedPdf.fileName)}</strong>
+                            </div>
+                        )}
+
+                        <input
+                            type="text"
+                            value={tasyModal.searchTerm}
+                            onChange={(e) => {
+                                const value = e.target.value.trim()
+                                // Permitir apenas números
+                                if (value === '' || /^\d+$/.test(value)) {
+                                    setTasyModal(prev => ({ ...prev, searchTerm: value }))
+
+                                    // Debounce para evitar muitas requisições
+                                    if (searchTimeoutRef.current) {
+                                        clearTimeout(searchTimeoutRef.current)
+                                    }
+                                    searchTimeoutRef.current = setTimeout(() => {
+                                        searchContasPaciente(value)
+                                    }, 500)
+                                }
+                            }}
+                            placeholder="Digite o número de atendimento (apenas números, ex: 257898)"
+                            className={twMerge(
+                                'w-full px-3 py-2 border rounded-md text-sm',
+                                isDark ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
                             )}
-                        </div>
+                            disabled={tasyModal.isSending}
+                        />
+                        {tasyModal.isSearching && (
+                            <p className="text-sm text-blue-600 flex items-center gap-2">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Buscando contas...
+                            </p>
+                        )}
                     </div>
 
-                    {/* Select de Números Disponíveis */}
-                    {tasyModal.availableNumbers.length > 0 && (
+                    {/* Select de Conta Encontrada */}
+                    {tasyModal.contasPaciente.length > 0 && (
                         <div className="space-y-2">
                             <label className={twMerge(
                                 'block text-sm font-medium',
                                 isDark ? 'text-gray-300' : 'text-gray-700'
                             )}>
-                                Selecionar Conta Médica
+                                {tasyModal.contasPaciente.length === 1 ? 'Conta Médica Encontrada' : `Contas Médicas Encontradas (${tasyModal.contasPaciente.length})`}
                             </label>
                             <select
-                                value={tasyModal.selectedNumber}
-                                onChange={(e) => selectTasyNumber(e.target.value)}
+                                value={tasyModal.selectedConta}
+                                onChange={(e) => setTasyModal(prev => ({ ...prev, selectedConta: e.target.value }))}
                                 className={twMerge(
-                                    'w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-purple-500/20 font-mono text-sm',
+                                    'w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-purple-500/20 text-sm',
                                     isDark
                                         ? 'bg-gray-800 border-gray-600 text-white'
                                         : 'bg-white border-gray-300 text-gray-900'
                                 )}
+                                disabled={tasyModal.isSending}
                             >
-                                <option value="">Selecione uma conta médica...</option>
-                                {tasyModal.availableNumbers.map((number) => (
-                                    <option key={number} value={number}>
-                                        {number}
+                                <option value="">
+                                    {tasyModal.contasPaciente.length === 1
+                                        ? 'Conta médica selecionada automaticamente'
+                                        : 'Selecione uma conta médica...'
+                                    }
+                                </option>
+                                {tasyModal.contasPaciente.map((conta, index) => (
+                                    <option key={`${conta.contaPaciente}-${index}`} value={conta.contaPaciente}>
+                                        {conta.displayText}
                                     </option>
                                 ))}
                             </select>
@@ -1234,13 +1348,13 @@ const UnificadosGerenciadorPDFsPage = () => {
                                 'text-xs',
                                 isDark ? 'text-gray-400' : 'text-gray-500'
                             )}>
-                                {tasyModal.availableNumbers.length} conta(s) médica(s) encontrada(s)
+                                {tasyModal.contasPaciente.length} conta(s) encontrada(s)
                             </p>
                         </div>
                     )}
 
                     {/* Conta Selecionada */}
-                    {tasyModal.selectedNumber && (
+                    {tasyModal.selectedConta && (
                         <div className={twMerge(
                             'p-4 rounded-lg border',
                             isDark ? 'bg-purple-900/20 border-purple-600/50' : 'bg-purple-50 border-purple-200'
@@ -1257,23 +1371,9 @@ const UnificadosGerenciadorPDFsPage = () => {
                                     'font-mono text-sm',
                                     isDark ? 'text-purple-300' : 'text-purple-700'
                                 )}>
-                                    {tasyModal.selectedNumber}
+                                    {tasyModal.contasPaciente.find(c => c.contaPaciente === tasyModal.selectedConta)?.displayText}
                                 </span>
                             </div>
-                        </div>
-                    )}
-
-                    {/* Feedback */}
-                    {tasyModal.feedback.show && (
-                        <div className={twMerge(
-                            'p-3 rounded-lg text-sm',
-                            tasyModal.feedback.type === 'success'
-                                ? isDark ? 'bg-green-900/20 text-green-400 border border-green-600/50' : 'bg-green-50 text-green-700 border border-green-200'
-                                : tasyModal.feedback.type === 'error'
-                                    ? isDark ? 'bg-red-900/20 text-red-400 border border-red-600/50' : 'bg-red-50 text-red-700 border border-red-200'
-                                    : isDark ? 'bg-blue-900/20 text-blue-400 border border-blue-600/50' : 'bg-blue-50 text-blue-700 border border-blue-200'
-                        )}>
-                            {tasyModal.feedback.message}
                         </div>
                     )}
 
@@ -1288,7 +1388,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                         </Button>
                         <Button
                             onClick={sendPdfToTasy}
-                            disabled={!tasyModal.selectedNumber.trim() || tasyModal.isSending}
+                            disabled={!tasyModal.selectedConta || tasyModal.isSending}
                             className="bg-purple-600 hover:bg-purple-700 text-white"
                         >
                             {tasyModal.isSending ? (
