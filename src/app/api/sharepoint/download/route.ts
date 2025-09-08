@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const SHAREPOINT_API_BASE = 'http://localhost:5000/api/Pdfs'
+const SHAREPOINT_API_BASE = process.env.NEXT_PUBLIC_PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     console.log(`⬇️ [API] Baixando PDF ID: ${id}`)
 
-    const response = await fetch(`${SHAREPOINT_API_BASE}/${id}/download`, {
+        const response = await fetch(`${SHAREPOINT_API_BASE}/Pdfs/download-arquivo`, {
       method: 'GET',
       headers: {
         'Accept': 'application/pdf'

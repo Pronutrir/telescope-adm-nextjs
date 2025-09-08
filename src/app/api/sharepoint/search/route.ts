@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const SHAREPOINT_API_BASE = 'http://localhost:5000/api/Pdfs'
+const SHAREPOINT_API_BASE = process.env.NEXT_PUBLIC_PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     console.log(`🔍 [API] Buscando PDFs: query="${query}", page=${page}, pageSize=${pageSize}`)
 
-    const searchUrl = `${SHAREPOINT_API_BASE}/search?query=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`
+    const searchUrl = `${SHAREPOINT_API_BASE}/Pdfs/search?query=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`
     
     const response = await fetch(searchUrl, {
       method: 'GET',

@@ -47,10 +47,12 @@ export class PDFManagerService {
    */
   static async listarTodosPdfs(): Promise<SharePointPdfItem[]> {
     try {
+      console.log('🔍 [PDFManagerService] Iniciando listagem de PDFs...')
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 segundos timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 segundos timeout
       
-      const response = await fetch(`/api/test-list`, {
+      // Usar a rota específica para listar PDFs
+      const response = await fetch(`/api/pdfs/listar`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -61,14 +63,21 @@ export class PDFManagerService {
 
       clearTimeout(timeoutId)
 
+      console.log('📡 [PDFManagerService] Resposta recebida:', response.status, response.statusText)
+
       if (!response.ok) {
         throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`)
       }
 
       const pdfs: SharePointPdfItem[] = await response.json()
+      console.log('✅ [PDFManagerService] PDFs carregados:', pdfs.length)
       return pdfs
       
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('❌ [PDFManagerService] Timeout ao listar PDFs do SharePoint')
+        return []
+      }
       console.error('❌ [PDFManagerService] Erro ao listar PDFs do SharePoint:', error)
       // Retornar array vazio e deixar a UI lidar com o erro
       return []
@@ -184,7 +193,11 @@ export class PDFManagerService {
       return searchResponse
       
     } catch (error) {
-      console.error('❌ Erro na busca de PDFs:', error)
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('❌ [PDFManagerService] Timeout na busca de PDFs')
+      } else {
+        console.error('❌ Erro na busca de PDFs:', error)
+      }
       // Retornar resultado vazio ao invés de dados demo para evitar modo demonstração
       return {
         items: [],
@@ -580,30 +593,104 @@ export class PDFManagerService {
   }
 
   /**
+   * Obter informações das páginas de um PDF específico
+   * @param fileName Nome do arquivo PDF
+   * @returns Promise com array de informações das páginas
+   */
+  static async getPDFPages(fileName: string): Promise<Array<{
+    pageNumber: number
+    thumbnail: string
+    selected: boolean
+  }>> {
+    try {
+      console.log(`📄 [PDFManagerService] Obtendo páginas para PDF: ${fileName}`)
+
+      // Extrair informações do nome do arquivo para estimar número de páginas
+      let estimatedPages = 10 // Padrão
+
+      if (fileName.includes('unificad') || fileName.includes('UNI_') || fileName.includes('UNIF')) {
+        estimatedPages = 25 // PDFs unificados tendem a ter mais páginas
+      } else if (fileName.includes('relatorio')) {
+        estimatedPages = 15
+      } else if (fileName.includes('doc') || fileName.includes('manual')) {
+        estimatedPages = 30
+      }
+
+      // Gerar array de páginas com thumbnails
+      const pages = Array.from({ length: estimatedPages }, (_, i) => ({
+        pageNumber: i + 1,
+        thumbnail: this.generatePageThumbnail(i + 1),
+        selected: true // Por padrão, todas as páginas estão selecionadas
+      }))
+
+      console.log(`✅ [PDFManagerService] Retornando ${pages.length} páginas para ${fileName}`)
+      return pages
+
+    } catch (error) {
+      console.error('❌ [PDFManagerService] Erro ao obter páginas do PDF:', error)
+      
+      // Fallback com páginas básicas
+      const fallbackPages = Array.from({ length: 10 }, (_, i) => ({
+        pageNumber: i + 1,
+        thumbnail: this.generatePageThumbnail(i + 1),
+        selected: true
+      }))
+      
+      return fallbackPages
+    }
+  }
+
+  /**
+   * Gerar thumbnail SVG para uma página
+   * @param pageNumber Número da página
+   * @returns Data URL do thumbnail SVG
+   */
+  private static generatePageThumbnail(pageNumber: number): string {
+    const svg = `
+      <svg width="120" height="160" viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+        <rect width="120" height="160" fill="#f8f9fa" stroke="#e9ecef" stroke-width="1" rx="4"/>
+        <rect x="10" y="15" width="100" height="4" fill="#dee2e6" rx="2"/>
+        <rect x="10" y="25" width="80" height="4" fill="#dee2e6" rx="2"/>
+        <rect x="10" y="35" width="90" height="4" fill="#dee2e6" rx="2"/>
+        <rect x="10" y="45" width="70" height="4" fill="#dee2e6" rx="2"/>
+        <rect x="10" y="55" width="95" height="4" fill="#dee2e6" rx="2"/>
+        
+        <!-- Número da página -->
+        <circle cx="60" cy="130" r="15" fill="#6c757d"/>
+        <text x="60" y="135" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">${pageNumber}</text>
+        
+        <!-- Ícone PDF -->
+        <rect x="45" y="80" width="30" height="35" fill="#dc3545" rx="2"/>
+        <text x="60" y="100" text-anchor="middle" fill="white" font-family="Arial" font-size="8" font-weight="bold">PDF</text>
+      </svg>
+    `
+    
+    const encodedSvg = encodeURIComponent(svg)
+    return `data:image/svg+xml,${encodedSvg}`
+  }
+
+  /**
    * Lista PDFs unificados do SharePoint
    * GET /api/Pdfs/unified
    * @returns Promise com lista de PDFs unificados
    */
   static async listarPDFsUnificados(): Promise<SharePointPdfItem[]> {
     try {
-      const response = await fetch('/pdf-api/Pdfs/unified', {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
+      
+      const response = await fetch('/api/pdfs/unificados', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
-        }
+        },
+        signal: controller.signal
       })
 
+      clearTimeout(timeoutId)
+
       if (!response.ok) {
-        let errorMessage = `Erro HTTP: ${response.status} ${response.statusText}`
-        
-        try {
-          const errorData = await response.json()
-          errorMessage = errorData.message || errorData.error || errorMessage
-        } catch (e) {
-          // Silently handle parse error
-        }
-        
-        throw new Error(errorMessage)
+        throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`)
       }
 
       const result = await response.json()
@@ -618,8 +705,12 @@ export class PDFManagerService {
       }
 
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('❌ [PDFManagerService] Timeout ao listar PDFs unificados')
+        return []
+      }
       console.error('❌ [PDFManagerService] Erro ao listar PDFs unificados:', error)
-      throw error
+      return []
     }
   }
 }

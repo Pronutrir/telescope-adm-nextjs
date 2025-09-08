@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const PDF_API_BASE = process.env.PDF_API_URL || 'http://20.65.208.119:5000/api'
+const PDF_API_BASE = process.env.PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
 
 export async function GET(request: NextRequest) {
     try {
@@ -16,13 +16,18 @@ export async function GET(request: NextRequest) {
         apiUrl.searchParams.set('pagina', page)
         apiUrl.searchParams.set('itensPorPagina', limit)
 
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000)
+
         const response = await fetch(apiUrl.toString(), {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
             },
-            signal: AbortSignal.timeout(10000)
+            signal: controller.signal
         })
+
+        clearTimeout(timeoutId)
 
         if (!response.ok) {
             throw new Error(`API Error: ${response.status} ${response.statusText}`)

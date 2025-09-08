@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 
 /**
  * Proxy para API SharePoint - Resolve problemas de CORS
- * Todas as requisições para /api/sharepoint/* são redirecionadas para localhost:5000/api/*
+ * Todas as requisições para /api/sharepoint/* são redirecionadas para a API v1
  */
 
-const SHAREPOINT_API_BASE = 'http://localhost:5000/api'
+// Configuração da URL base com fallback
+const SHAREPOINT_API_BASE = process.env.NEXT_PUBLIC_PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
 
 export async function GET(
   request: NextRequest,

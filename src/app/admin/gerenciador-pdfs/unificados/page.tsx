@@ -398,7 +398,7 @@ const UnificadosGerenciadorPDFsPage = () => {
 
             if (!response.ok) {
                 const errorData = await response.json()
-                throw new Error(`Erro na transferência: ${errorData.message || 'Erro desconhecido do servidor proxy'}`)
+                throw new Error(`Erro na transferência: ${errorData.mensagem || errorData.message || 'Erro desconhecido do servidor proxy'}`)
             }
 
             const result = await response.json()

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const SHAREPOINT_API_BASE = 'http://localhost:5000/api/Pdfs'
+const SHAREPOINT_API_BASE = process.env.NEXT_PUBLIC_PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
 
 export async function GET() {
   try {
     console.log('📄 [API] Listando PDFs do SharePoint...')
     
-    const response = await fetch(`${SHAREPOINT_API_BASE}`, {
+        const response = await fetch(`${SHAREPOINT_API_BASE}/Pdfs/pesquisar-pasta-sharepoint`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const PDF_API_BASE = process.env.PDF_API_URL || 'http://20.65.208.119:5000/api'
+const PDF_API_BASE = process.env.PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
 
 export async function GET(request: NextRequest) {
     try {

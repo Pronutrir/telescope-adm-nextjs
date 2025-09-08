@@ -14,14 +14,14 @@ function requireEnv(key: string): string {
 
 // Configurações da API principal
 export const API_CONFIG = {
-  BASE_URL: process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br',
   TIMEOUT: parseInt(process.env.API_TIMEOUT || '10000'),
 } as const
 
 // Configurações da API de PDFs
 export const PDF_API_CONFIG = {
-  BASE_URL: process.env.PDF_API_URL || 'http://20.65.208.119:5000/api',
-  PUBLIC_URL: process.env.NEXT_PUBLIC_PDF_API_URL || 'http://20.65.208.119:5000/api',
+  BASE_URL: process.env.PDF_API_URL || 'http://20.65.208.119:5656/api/v1',
+  PUBLIC_URL: process.env.NEXT_PUBLIC_PDF_API_URL || 'http://20.65.208.119:5656/api/v1',
   TIMEOUT: parseInt(process.env.PDF_API_TIMEOUT || '30000'),
 } as const
 

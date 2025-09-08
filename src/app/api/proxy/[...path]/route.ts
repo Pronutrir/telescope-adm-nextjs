@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const API_BASE_URL = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br'
 
 export async function GET(
   request: NextRequest,
@@ -49,7 +49,7 @@ async function handleRequest(
     // Se for uma requisição para PDFs, usar a API específica de PDFs
     let url: string
     if (pathSegments[0] === 'Pdfs') {
-      const PDF_API_BASE = process.env.PDF_API_URL || 'http://localhost:5000/api'
+      const PDF_API_BASE = process.env.NEXT_PUBLIC_PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
       url = `${PDF_API_BASE}/${apiPath}`
     } else {
       // Para outras APIs, usar a API padrão

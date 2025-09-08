@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const NAS_API_BASE = process.env.NEXT_PUBLIC_PDF_API_URL || 'http://localhost:5000/api'
+const NAS_API_BASE = process.env.NEXT_PUBLIC_PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
 
 console.log('🚀 [API Route] Rota /api/nas-transfer carregada com sucesso!')
 
@@ -29,32 +29,37 @@ export async function POST(request: NextRequest) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'text/plain'
+          'Accept': 'text/plain, application/json'
         },
         body: JSON.stringify({
-          sharePointUrl: sharePointUrl
+          sharePointUrl: sharePointUrl,
+          nomeArquivo: null,
+          sobrescrever: true,
+          pastaDestino: null
         })
       })
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error(`[API Proxy] Erro da API NAS (${response.status}):`, errorText)
+      console.log(`[API Proxy] Resposta da API NAS (${response.status}):`, response.statusText)
+
+      // A API sempre retorna JSON, mesmo em caso de erro
+      const result = await response.json()
+      console.log('[API Proxy] Resposta da API NAS:', result)
+
+      if (!response.ok || !result.sucesso) {
+        console.error(`[API Proxy] Erro da API NAS:`, result)
         return NextResponse.json(
           {
             sucesso: false,
-            mensagem: `Erro ao transferir arquivo: ${errorText}`
+            mensagem: result.mensagem || `Erro ao transferir arquivo (${response.status})`
           },
-          { status: response.status }
+          { status: 400 } // Usar 400 em vez do status original para indicar erro de negócio
         )
       }
-
-      const result = await response.json()
-      console.log('[API Proxy] Resposta da API NAS:', result)
 
       return NextResponse.json({
         sucesso: true,
         mensagem: 'Arquivo transferido com sucesso',
-        caminhoCompleto: result.caminhoArquivo || result.path || result.caminhoCompleto
+        caminhoCompleto: result.caminhoCompleto || result.caminhoArquivo || result.path
       })
 
     } catch (fetchError) {

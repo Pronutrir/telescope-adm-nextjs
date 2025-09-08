@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const NAS_API_BASE = process.env.NEXT_PUBLIC_PDF_API_URL || 'http://localhost:5000/api'
+const NAS_API_BASE = process.env.NEXT_PUBLIC_PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
 
 console.log('🚀 [NEW API Route] Arquivo route.ts RECRIADO para /api/Nas/transferir-sharepoint-para-nas')
 

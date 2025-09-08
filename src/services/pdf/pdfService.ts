@@ -108,8 +108,17 @@ export class PDFService {
    * @deprecated Use getAllPDFs instead
    */
   static async listPDFs(): Promise<PDFItem[]> {
-    const response = await this.getAllPDFs();
-    return response.arquivos.map(mapPdfInfoToPDFItem);
+    try {
+      // Usar PDFManagerService para obter a lista de PDFs
+      const { default: PDFManagerService } = await import('../pdfManager/pdfManagerService');
+      const sharePointPdfs = await PDFManagerService.listarTodosPdfs();
+      
+      // Converter SharePointPdfItem para PDFItem
+      return sharePointPdfs.map(pdf => PDFManagerService.convertToPDFItem(pdf));
+    } catch (error) {
+      console.error('❌ Erro ao listar PDFs via PDFManagerService:', error);
+      return [];
+    }
   }
 
   /**
@@ -302,7 +311,7 @@ export class PDFService {
     try {
       // URL encode para caracteres especiais - usar endpoint correto da API
       const nomeEncoded = encodeURIComponent(fileName);
-      const url = `http://20.65.208.119:5000/api/Pdfs/download/${nomeEncoded}`;
+      const url = `http://20.65.208.119:5656/api/v1/Pdfs/download/${nomeEncoded}`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -392,7 +401,7 @@ export class PDFService {
       }
 
       // Fazer requisição para a API
-      const response = await fetch(`http://20.65.208.119:5000/api/Pdfs/editar/${encodeURIComponent(editData.fileName)}`, {
+      const response = await fetch(`http://20.65.208.119:5656/api/v1/Pdfs/editar/${encodeURIComponent(editData.fileName)}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -446,37 +455,38 @@ export class PDFService {
    */
   static async getPDFPages(fileName: string): Promise<PDFPageInfo[]> {
     try {
-      try {
-        const url = `http://20.65.208.119:5000/api/Pdfs/paginas/${encodeURIComponent(fileName)}`;
-        
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        return data;
-      } catch (fetchError) {
-        console.error(`Erro ao buscar páginas para ${fileName}:`, fetchError);
-        
-        // Fallback: retornar array com páginas numeradas
-        const fallbackPages: PDFPageInfo[] = Array.from({ length: 10 }, (_, i) => ({
-          pageNumber: i + 1,
-          thumbnail: '',
-          selected: false
-        }));
-        
-        return fallbackPages;
-      }
+      console.log(`📄 Delegando obtenção de páginas para PDFManagerService: ${fileName}`);
+      
+      // Usar o PDFManagerService que agora tem o método getPDFPages
+      const { default: PDFManagerService } = await import('../pdfManager/pdfManagerService');
+      const pages = await PDFManagerService.getPDFPages(fileName);
+      
+      console.log(`✅ Páginas obtidas via PDFManagerService: ${pages.length} páginas`);
+      
+      // Converter para o formato PDFPageInfo se necessário
+      return pages.map(page => ({
+        pageNumber: page.pageNumber,
+        thumbnail: page.thumbnail,
+        selected: page.selected
+      }));
     } catch (error) {
-      console.error('Erro ao obter páginas do PDF:', error);
-      return [];
+      console.error('❌ Erro ao obter páginas do PDF via PDFManagerService:', error);
+      
+      // Função local para gerar placeholder
+      const generatePlaceholder = (pageNum: number) => {
+        const svg = `<svg width="120" height="160" viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg"><rect width="120" height="160" fill="#f8f9fa" stroke="#e9ecef" stroke-width="1" rx="4"/><rect x="10" y="15" width="100" height="4" fill="#dee2e6" rx="2"/><rect x="10" y="25" width="80" height="4" fill="#dee2e6" rx="2"/><circle cx="60" cy="130" r="15" fill="#6c757d"/><text x="60" y="135" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">${pageNum}</text><rect x="45" y="80" width="30" height="35" fill="#dc3545" rx="2"/><text x="60" y="100" text-anchor="middle" fill="white" font-family="Arial" font-size="8" font-weight="bold">PDF</text></svg>`;
+        return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+      };
+      
+      // Fallback melhorado
+      const fallbackPages: PDFPageInfo[] = Array.from({ length: 10 }, (_, i) => ({
+        pageNumber: i + 1,
+        thumbnail: generatePlaceholder(i + 1),
+        selected: true
+      }));
+      
+      console.log(`🔄 Usando fallback com ${fallbackPages.length} páginas`);
+      return fallbackPages;
     }
   }
 
@@ -485,7 +495,7 @@ export class PDFService {
    */
   static async generatePageThumbnail(pageNumber: number, fileName: string): Promise<string> {
     try {
-      const response = await fetch(`http://20.65.208.119:5000/api/Pdfs/thumbnail`, {
+      const response = await fetch(`http://20.65.208.119:5656/api/v1/Pdfs/thumbnail`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -522,7 +532,7 @@ export class PDFService {
   static async viewUnifiedPDF(fileName: string): Promise<string> {
     try {
       const nomeEncoded = encodeURIComponent(fileName);
-      const url = `http://20.65.208.119:5000/api/Pdfs/download/${nomeEncoded}`;
+      const url = `http://20.65.208.119:5656/api/v1/Pdfs/download/${nomeEncoded}`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -581,7 +591,7 @@ export class PDFService {
       }
 
       const nomeEncoded = encodeURIComponent(fileName);
-      const url = `http://20.65.208.119:5000/api/Pdfs/editar/${nomeEncoded}`;
+      const url = `http://20.65.208.119:5656/api/v1/Pdfs/editar/${nomeEncoded}`;
 
       try {
         const response = await fetch(url, {
@@ -645,15 +655,41 @@ export class UnifiedPDFService extends PDFService {
    * Listar PDFs unificados (compatibility method)
    */
   static async listUnifiedPDFs(): Promise<UnifiedPDFItem[]> {
-    const response = await super.getAllPDFs();
-    return response.arquivos.map(mapPdfInfoToUnifiedPDFItem);
+    try {
+      // Usar PDFManagerService para obter PDFs unificados
+      const { default: PDFManagerService } = await import('../pdfManager/pdfManagerService');
+      const sharePointPdfs = await PDFManagerService.listarPDFsUnificados();
+      
+      // Converter SharePointPdfItem para UnifiedPDFItem
+      return sharePointPdfs.map(pdf => ({
+        id: pdf.id || 'unknown',
+        title: (pdf.name || 'Documento sem nome').replace('.pdf', ''),
+        description: `Documento ${pdf.name || 'sem nome'}`,
+        fileName: pdf.name || 'documento.pdf',
+        size: pdf.size ? `${(pdf.size / 1024 / 1024).toFixed(2)} MB` : '0 MB',
+        uploadDate: pdf.lastModified || new Date().toISOString(),
+        url: pdf.downloadUrl || '#',
+        sourceFiles: [], // Para PDFs unificados, não temos essa informação
+        pageCount: 10 // Estimativa padrão
+      }));
+    } catch (error) {
+      console.error('❌ Erro ao listar PDFs unificados:', error);
+      return [];
+    }
   }
 
   /**
    * Obter páginas de um PDF unificado
    */
   static async getUnifiedPDFPages(fileName: string): Promise<PDFPageInfo[]> {
-    return super.getPDFPages(fileName);
+    try {
+      // Usar PDFManagerService para obter páginas
+      const { default: PDFManagerService } = await import('../pdfManager/pdfManagerService');
+      return await PDFManagerService.getPDFPages(fileName);
+    } catch (error) {
+      console.error('❌ Erro ao obter páginas do PDF:', error);
+      return [];
+    }
   }
 
   /**

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const TASY_API_BASE = process.env.TASY_API_URL || 'https://localhost:44326/api/v2'
+const TASY_API_BASE = process.env.NEXT_PUBLIC_APITASY_URL || 'https://servicesapp.pronutrir.com.br/apitasy/api/'
 
 export async function POST(request: NextRequest) {
     try {
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
         try {
             const response = await fetch(
-                `${TASY_API_BASE}/ContaPaciente/UploadAnexoContaPaciente`,
+                `${TASY_API_BASE}v2/ContaPaciente/UploadAnexoContaPaciente`,
                 {
                     method: 'POST',
                     headers: {

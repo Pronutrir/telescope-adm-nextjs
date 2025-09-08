@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
         
         console.log('📡 Buscando detalhes do PDF:', pdfId)
         
-        const PDF_API_BASE = process.env.PDF_API_URL || 'http://localhost:5000/api'
+        const PDF_API_BASE = process.env.PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
         const apiUrl = `${PDF_API_BASE}/Pdfs/${pdfId}/details`
         
         console.log('🔗 URL da API:', apiUrl)
