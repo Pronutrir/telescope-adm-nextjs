@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const PDF_API_BASE = process.env.PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
+const PDF_API_BASE = process.env.NEXT_PUBLIC_PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
 
 export async function GET() {
     try {
@@ -11,7 +11,7 @@ export async function GET() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            signal: AbortSignal.timeout(30000) // 30 segundos
+            signal: AbortSignal.timeout(60000) // 60 segundos
         })
 
         console.log('📡 [API] Resposta da API externa:', response.status, response.statusText)

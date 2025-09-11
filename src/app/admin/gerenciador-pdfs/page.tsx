@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
-import { SortablePDFList } from '@/components/pdf/SortablePDFList'
+import { SortableTelescopePDFList } from '@/components/pdf/SortableTelescopePDFList'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useLayout } from '@/contexts/LayoutContext'
 import {
@@ -666,14 +666,14 @@ const GerenciadorPDFsPage = () => {
                                 onClick={handleUpload}
                                 className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
                             >
-                                <Upload className="w-5 h-5 pdf-icon" />
+                                <Upload className="w-5 h-5 navbar-settings-icon" />
                                 📤 Upload
                             </Button>
                             <Button
                                 onClick={handleUnifiedPDFs}
                                 className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-purple-600 hover:bg-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
                             >
-                                <Layers className="w-5 h-5 pdf-icon" />
+                                <Layers className="w-5 h-5 navbar-message-icon" />
                                 📚 PDFs Unificados
                             </Button>
                             <Button
@@ -685,7 +685,7 @@ const GerenciadorPDFsPage = () => {
                                 disabled={isLoading}
                             >
                                 <RefreshCw className={twMerge(
-                                    'w-5 h-5',
+                                    'w-5 h-5 navbar-settings-icon',
                                     isLoading && 'animate-spin'
                                 )} />
                                 🔄 Atualizar
@@ -701,7 +701,7 @@ const GerenciadorPDFsPage = () => {
                         isDark ? 'bg-red-900/20 text-red-400 border-red-500' : ''
                     )}>
                         <div className="flex items-center gap-2">
-                            <AlertCircle className="w-5 h-5" />
+                            <AlertCircle className="w-5 h-5 navbar-bell-icon" />
                             <span className="font-medium">❌ Erro de Conexão</span>
                         </div>
                         <p className="mt-1 text-sm">{error}</p>
@@ -760,7 +760,7 @@ const GerenciadorPDFsPage = () => {
                                 )}
                             />
                             {(isSearching || isLoading) && (
-                                <Loader2 className="absolute right-3 top-3 w-5 h-5 animate-spin text-blue-500" />
+                                <Loader2 className="absolute right-3 top-3 w-5 h-5 animate-spin text-blue-500 navbar-bell-icon" />
                             )}
                         </div>
 
@@ -774,7 +774,7 @@ const GerenciadorPDFsPage = () => {
                                         : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                                 )}
                             >
-                                <Grid className="w-5 h-5" />
+                                <Grid className="w-5 h-5 navbar-settings-icon" />
                             </Button>
                             <Button
                                 onClick={() => handleViewModeChange('list')}
@@ -785,7 +785,7 @@ const GerenciadorPDFsPage = () => {
                                         : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                                 )}
                             >
-                                <List className="w-5 h-5" />
+                                <List className="w-5 h-5 navbar-message-icon" />
                             </Button>
                             <Button
                                 onClick={toggleSelectionMode}
@@ -797,7 +797,7 @@ const GerenciadorPDFsPage = () => {
                                 )}
                                 title="Modo Seleção para Unificar PDFs"
                             >
-                                <Layers className="w-5 h-5" />
+                                <Layers className="w-5 h-5 navbar-settings-icon" />
                             </Button>
                         </div>
                     </div>
@@ -907,7 +907,7 @@ const GerenciadorPDFsPage = () => {
                     {isLoading && filteredPdfs.length === 0 ? (
                         <div className="flex items-center justify-center h-full">
                             <div className="text-center">
-                                <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-4" />
+                                <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-4 navbar-bell-icon" />
                                 <p className={twMerge(
                                     'text-sm',
                                     isDark ? 'text-gray-300' : 'text-gray-600'
@@ -948,7 +948,7 @@ const GerenciadorPDFsPage = () => {
                             )}
                         </div>
                     ) : (
-                        <SortablePDFList
+                        <SortableTelescopePDFList
                             items={filteredPdfs.filter((pdf, index, arr) => arr.findIndex(p => p.id === pdf.id) === index)}
                             onSortEnd={handlePDFSort}
                             onViewPDF={handleViewPDF}

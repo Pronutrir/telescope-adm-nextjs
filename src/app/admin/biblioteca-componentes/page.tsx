@@ -9,6 +9,8 @@ import { Select } from '@/components/ui/Select'
 import { ProgressStat } from '@/components/ui/ProgressStat'
 import { SortableProgressStats } from '@/components/ui/SortableProgressStats'
 import { Modal, useModal } from '@/components/ui/Modal'
+import { TelescopePDFCard } from '@/components/pdf/TelescopePDFCard'
+import { PDFItem } from '@/types/pdf'
 import { LucideIcon } from 'lucide-react'
 import {
     Users,
@@ -42,7 +44,9 @@ import {
     Eye,
     Info,
     X,
-    AlertTriangle as AlertTriangleIcon
+    AlertTriangle as AlertTriangleIcon,
+    FileText,
+    HardDrive
 } from 'lucide-react'
 
 // Interface para items sortable
@@ -115,36 +119,36 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                     {/* Modal de Confirmação */}
                     <button
                         onClick={confirmModal.openModal}
-                        className="group flex flex-col items-center gap-3 p-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                        className="btn-action-card btn-action-card-destructive"
                     >
-                        <Trash2 className="w-6 h-6" />
+                        <Trash2 className="btn-icon" />
                         <span className="font-medium text-sm">Confirmação</span>
                     </button>
 
                     {/* Modal com Formulário */}
                     <button
                         onClick={formModal.openModal}
-                        className="group flex flex-col items-center gap-3 p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                        className="btn-action-card btn-action-card-primary"
                     >
-                        <Plus className="w-6 h-6" />
+                        <Plus className="btn-icon" />
                         <span className="font-medium text-sm">Formulário</span>
                     </button>
 
                     {/* Modal de Detalhes */}
                     <button
                         onClick={detailModal.openModal}
-                        className="group flex flex-col items-center gap-3 p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                        className="btn-action-card btn-action-card-success"
                     >
-                        <Eye className="w-6 h-6" />
+                        <Eye className="btn-icon" />
                         <span className="font-medium text-sm">Detalhes</span>
                     </button>
 
                     {/* Modal Personalizado */}
                     <button
                         onClick={customModal.openModal}
-                        className="group flex flex-col items-center gap-3 p-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                        className="btn-action-card btn-action-card-secondary"
                     >
-                        <Edit className="w-6 h-6" />
+                        <Edit className="btn-icon" />
                         <span className="font-medium text-sm">Personalizado</span>
                     </button>
                 </div>
@@ -161,27 +165,27 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                     {/* Modal de Alerta */}
                     <button
                         onClick={alertModal.openModal}
-                        className="flex items-center gap-3 p-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+                        className="btn-action-inline btn-action-inline-warning"
                     >
-                        <AlertTriangleIcon className="w-5 h-5" />
+                        <AlertTriangleIcon className="btn-icon" />
                         <span className="text-sm">Modal de Alerta</span>
                     </button>
 
                     {/* Modal de Sucesso */}
                     <button
                         onClick={successModal.openModal}
-                        className="flex items-center gap-3 p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                        className="btn-action-inline btn-action-inline-success"
                     >
-                        <CheckCircle className="w-5 h-5" />
+                        <CheckCircle className="btn-icon" />
                         <span className="text-sm">Modal de Sucesso</span>
                     </button>
 
                     {/* Modal de Info */}
                     <button
                         onClick={infoModal.openModal}
-                        className="flex items-center gap-3 p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                        className="btn-action-inline btn-action-inline-primary"
                     >
-                        <Info className="w-5 h-5" />
+                        <Info className="btn-icon" />
                         <span className="text-sm">Modal Informativo</span>
                     </button>
                 </div>
@@ -196,7 +200,7 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <button
                         onClick={fullscreenModal.openModal}
-                        className="flex items-center gap-3 p-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
+                        className="btn-action-inline btn-action-inline-info"
                     >
                         <Layout className="w-5 h-5" />
                         <span className="text-sm">Modal Grande</span>
@@ -228,7 +232,7 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                         </button>
                         <button
                             onClick={handleConfirmDelete}
-                            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                            className="btn-modal btn-modal-destructive"
                         >
                             Excluir
                         </button>
@@ -236,7 +240,7 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                 }
             >
                 <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="icon-container-sm icon-container-light">
                         <Trash2 className="w-3 h-3 text-red-600" />
                     </div>
                     <div>
@@ -273,7 +277,7 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                         <button
                             type="submit"
                             form="contact-form"
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                            className="btn-modal btn-modal-primary"
                         >
                             Salvar
                         </button>
@@ -370,7 +374,7 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
             >
                 <div className="space-y-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <div className="icon-container-md icon-container-gradient">
                             <span className="text-white font-bold text-xl">JS</span>
                         </div>
                         <div>
@@ -426,7 +430,7 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                 className="border-4 border-purple-500"
             >
                 <div className="text-center p-6">
-                    <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="icon-container-lg icon-container-purple">
                         <Edit className="w-10 h-10 text-purple-600" />
                     </div>
 
@@ -442,13 +446,13 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                     <div className="flex gap-4 justify-center">
                         <button
                             onClick={customModal.closeModal}
-                            className="px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                            className="btn-modal btn-modal-secondary"
                         >
                             Fechar Modal
                         </button>
                         <button
                             onClick={() => alert('Ação executada!')}
-                            className="px-6 py-2 border border-purple-600 text-purple-600 rounded hover:bg-purple-50 transition-colors"
+                            className="btn-outline btn-outline-secondary"
                         >
                             Executar Ação
                         </button>
@@ -466,7 +470,7 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                 footer={
                     <button
                         onClick={alertModal.closeModal}
-                        className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
+                        className="btn-modal btn-modal-warning"
                     >
                         Entendi
                     </button>
@@ -765,6 +769,64 @@ const ComponentsExamples: React.FC = () => {
         { value: 'urgent', label: 'Urgent' }
     ]
 
+    // Dados de exemplo para TelescopePDFCard
+    const pdfExamples: PDFItem[] = [
+        {
+            id: 'pdf-1',
+            title: 'Relatório Financeiro Q1 2025',
+            fileName: 'relatorio-financeiro-q1-2025.pdf',
+            url: '/pdfs/relatorio-financeiro-q1-2025.pdf',
+            size: '2.4 MB',
+            uploadDate: '2025-01-15T10:30:00Z',
+            description: 'Relatório completo das atividades financeiras do primeiro trimestre de 2025, incluindo balanços, demonstrações de resultado e análises de performance.'
+        },
+        {
+            id: 'pdf-2',
+            title: 'Manual do Usuário - Sistema Telescope',
+            fileName: 'manual-usuario-telescope.pdf',
+            url: '/pdfs/manual-usuario-telescope.pdf',
+            size: '8.7 MB',
+            uploadDate: '2025-01-12T14:15:00Z',
+            description: 'Guia completo de utilização do sistema Telescope ADM, com instruções detalhadas sobre funcionalidades, configurações e boas práticas.'
+        },
+        {
+            id: 'pdf-3',
+            title: 'Política de Segurança da Informação',
+            fileName: 'politica-seguranca-info.pdf',
+            url: '/pdfs/politica-seguranca-info.pdf',
+            size: '1.2 MB',
+            uploadDate: '2025-01-08T09:00:00Z',
+            description: 'Documento oficial estabelecendo diretrizes e procedimentos para proteção de dados e informações confidenciais da organização.'
+        },
+        {
+            id: 'pdf-4',
+            title: 'Plano Estratégico 2025-2027',
+            fileName: 'plano-estrategico-2025-2027.pdf',
+            url: '/pdfs/plano-estrategico-2025-2027.pdf',
+            size: '5.8 MB',
+            uploadDate: '2025-01-05T16:45:00Z',
+            description: 'Planejamento estratégico da organização para o triênio 2025-2027, incluindo objetivos, metas, indicadores e cronograma de execução.'
+        },
+        {
+            id: 'pdf-5',
+            title: 'Contrato de Prestação de Serviços',
+            fileName: 'contrato-prestacao-servicos.pdf',
+            url: '/pdfs/contrato-prestacao-servicos.pdf',
+            size: '890 KB',
+            uploadDate: '2025-01-03T11:20:00Z',
+            description: 'Modelo padrão de contrato para prestação de serviços, com cláusulas específicas e termos de acordo estabelecidos pela assessoria jurídica.'
+        },
+        {
+            id: 'pdf-6',
+            title: 'Apresentação Resultados Anuais',
+            fileName: 'apresentacao-resultados-anuais.pdf',
+            url: '/pdfs/apresentacao-resultados-anuais.pdf',
+            size: '12.3 MB',
+            uploadDate: '2024-12-28T13:30:00Z',
+            description: 'Slides da apresentação dos resultados anuais para stakeholders, contendo gráficos, métricas e análises de desempenho organizacional.'
+        }
+    ]
+
     return (
         <div className="w-full">
             {/* Header da Página */}
@@ -1021,258 +1083,6 @@ const ComponentsExamples: React.FC = () => {
                             variant="telescope"
                             isDark={isDark}
                         />
-                    </div>
-                </div>
-            </div>
-
-            {/* Select Examples */}
-            <div className="mb-12">
-                <h2 className={`text-3xl font-semibold mb-6 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                    <ChevronDown className={`w-7 h-7 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
-                    Select Component
-                </h2>
-                <p className={`text-lg mb-8 ${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
-                    Componente de seleção dropdown com diferentes variantes, tamanhos e funcionalidades.
-                </p>
-
-                {/* Variantes de Select */}
-                <div className="mb-8">
-                    <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                        Variantes
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                                Default
-                            </label>
-                            <Select
-                                options={selectOptions}
-                                variant="default"
-                                placeholder="Select option..."
-                                isDark={isDark}
-                                onChange={(value) => console.log('Default:', value)}
-                            />
-                        </div>
-                        <div>
-                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                                Modern
-                            </label>
-                            <Select
-                                options={selectOptions}
-                                variant="modern"
-                                placeholder="Select option..."
-                                isDark={isDark}
-                                onChange={(value) => console.log('Modern:', value)}
-                            />
-                        </div>
-                        <div>
-                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                                Telescope
-                            </label>
-                            <Select
-                                options={selectOptions}
-                                variant="telescope"
-                                placeholder="Select option..."
-                                isDark={isDark}
-                                onChange={(value) => console.log('Telescope:', value)}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Tamanhos */}
-                <div className="mb-8">
-                    <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                        Tamanhos
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                                Small
-                            </label>
-                            <Select
-                                options={priorityOptions}
-                                variant="telescope"
-                                size="sm"
-                                placeholder="Small select..."
-                                isDark={isDark}
-                                onChange={(value) => console.log('Small:', value)}
-                            />
-                        </div>
-                        <div>
-                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                                Medium
-                            </label>
-                            <Select
-                                options={priorityOptions}
-                                variant="telescope"
-                                size="md"
-                                placeholder="Medium select..."
-                                isDark={isDark}
-                                onChange={(value) => console.log('Medium:', value)}
-                            />
-                        </div>
-                        <div>
-                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                                Large
-                            </label>
-                            <Select
-                                options={priorityOptions}
-                                variant="telescope"
-                                size="lg"
-                                placeholder="Large select..."
-                                isDark={isDark}
-                                onChange={(value) => console.log('Large:', value)}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Estados */}
-                <div className="mb-8">
-                    <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                        Estados
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                                Normal
-                            </label>
-                            <Select
-                                options={categoryOptions}
-                                variant="telescope"
-                                placeholder="Select category..."
-                                isDark={isDark}
-                                onChange={(value) => console.log('Normal:', value)}
-                            />
-                        </div>
-                        <div>
-                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                                Disabled
-                            </label>
-                            <Select
-                                options={categoryOptions}
-                                variant="telescope"
-                                placeholder="Disabled select..."
-                                disabled={true}
-                                isDark={isDark}
-                                onChange={(value) => console.log('Disabled:', value)}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Exemplo com Valor Controlado */}
-                <div className="mb-8">
-                    <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                        Valor Controlado
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                                Select com Estado
-                            </label>
-                            <Select
-                                options={selectOptions}
-                                variant="telescope"
-                                value={selectedValue}
-                                placeholder="Choose your option..."
-                                isDark={isDark}
-                                onChange={(value) => setSelectedValue(String(value))}
-                            />
-                        </div>
-                        <div className={`p-4 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-gray-50/50 border-gray-200/50'}`}>
-                            <h4 className={`text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                                Valor Selecionado:
-                            </h4>
-                            <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-slate-600'}`}>
-                                {selectedValue || 'Nenhum valor selecionado'}
-                            </p>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="mt-2"
-                                onClick={() => setSelectedValue('')}
-                            >
-                                Limpar Seleção
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Exemplo de Código */}
-                <div className="mb-8">
-                    <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                        Exemplo de Uso
-                    </h3>
-                    <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-900/50 border-gray-700/50' : 'bg-gray-50/50 border-gray-200/50'}`}>
-                        <pre className={`text-sm overflow-x-auto ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                            {`const options = [
-  { value: '', label: 'Choose an option' },
-  { value: 'name', label: 'Full Name' },
-  { value: 'email', label: 'Email Address' }
-]
-
-<Select
-  options={options}
-  variant="telescope"
-  size="md"
-  placeholder="Select option..."
-  value={selectedValue}
-  onChange={(value) => setSelectedValue(String(value))}
-  isDark={isDark}
-/>`}
-                        </pre>
-                    </div>
-                </div>
-
-                {/* Demonstração Interativa */}
-                <div className="mb-8">
-                    <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                        Demonstração Interativa
-                    </h3>
-                    <div className={`p-6 rounded-xl border ${isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-gray-50/50 border-gray-200/50'}`}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div>
-                                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                                    Campo de Formulário
-                                </label>
-                                <Select
-                                    options={selectOptions}
-                                    variant="telescope"
-                                    placeholder="Selecione um campo..."
-                                    isDark={isDark}
-                                    onChange={(value) => alert(`Campo selecionado: ${value}`)}
-                                />
-                            </div>
-                            <div>
-                                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                                    Categoria
-                                </label>
-                                <Select
-                                    options={categoryOptions}
-                                    variant="telescope"
-                                    placeholder="Escolha uma categoria..."
-                                    isDark={isDark}
-                                    onChange={(value) => alert(`Categoria: ${value}`)}
-                                />
-                            </div>
-                            <div>
-                                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                                    Prioridade
-                                </label>
-                                <Select
-                                    options={priorityOptions}
-                                    variant="telescope"
-                                    placeholder="Defina a prioridade..."
-                                    isDark={isDark}
-                                    onChange={(value) => alert(`Prioridade: ${value}`)}
-                                />
-                            </div>
-                        </div>
-                        <div className={`mt-4 text-sm ${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
-                            <p>💡 <strong>Dica:</strong> Selecione opções nos dropdowns acima para ver os alertas de interação.</p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1734,18 +1544,199 @@ const ComponentsExamples: React.FC = () => {
                 </div>
             </div>
 
-            {/* Modal Component Examples */}
+            {/* TelescopePDFCard Component */}
             <div className="mb-12">
                 <h2 className={`text-3xl font-semibold mb-6 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                    <Layout className={`w-7 h-7 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
-                    Modal Component
+                    <FileText className={`w-7 h-7 ${isDark ? 'text-red-400' : 'text-red-600'}`} />
+                    TelescopePDFCard Component (Premium)
                 </h2>
                 <p className={`text-lg mb-8 ${isDark ? 'text-gray-300' : 'text-muted-foreground'}`}>
-                    Componente Modal reutilizável com animações e suporte completo a temas.
+                    Componente PDFCard refatorado com características premium do StatsCard Telescope, mantendo todas as funcionalidades originais.
                 </p>
 
-                {/* Modal Examples Sections */}
-                <ModalExamplesSection isDark={isDark} />
+                {/* Demonstração em Grid com diferentes prioridades */}
+                <div className="mb-8">
+                    <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        Visualização em Grid - Diferentes Prioridades
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <TelescopePDFCard
+                            pdf={pdfExamples[ 0 ]}
+                            viewMode="grid"
+                            priority="high"
+                            showStats={true}
+                            onView={(pdf) => console.log('Visualizar:', pdf.title)}
+                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+                            onDelete={(pdf) => console.log('Excluir:', pdf.title)}
+                        />
+                        <TelescopePDFCard
+                            pdf={pdfExamples[ 1 ]}
+                            viewMode="grid"
+                            priority="medium"
+                            showStats={true}
+                            onView={(pdf) => console.log('Visualizar:', pdf.title)}
+                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+                            onDelete={(pdf) => console.log('Excluir:', pdf.title)}
+                        />
+                        <TelescopePDFCard
+                            pdf={pdfExamples[ 2 ]}
+                            viewMode="grid"
+                            priority="critical"
+                            showStats={true}
+                            onView={(pdf) => console.log('Visualizar:', pdf.title)}
+                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+                            onDelete={(pdf) => console.log('Excluir:', pdf.title)}
+                        />
+                    </div>
+                </div>
+
+                {/* Demonstração em Lista */}
+                <div className="mb-8">
+                    <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        Visualização em Lista - Com e Sem Estatísticas
+                    </h3>
+                    <div className="space-y-4">
+                        <TelescopePDFCard
+                            pdf={pdfExamples[ 3 ]}
+                            viewMode="list"
+                            priority="medium"
+                            showStats={true}
+                            onView={(pdf) => console.log('Visualizar:', pdf.title)}
+                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+                            onDelete={(pdf) => console.log('Excluir:', pdf.title)}
+                        />
+                        <TelescopePDFCard
+                            pdf={pdfExamples[ 4 ]}
+                            viewMode="list"
+                            priority="low"
+                            showStats={false}
+                            onView={(pdf) => console.log('Visualizar:', pdf.title)}
+                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+                            onDelete={(pdf) => console.log('Excluir:', pdf.title)}
+                        />
+                        <TelescopePDFCard
+                            pdf={pdfExamples[ 5 ]}
+                            viewMode="list"
+                            priority="high"
+                            showStats={true}
+                            onView={(pdf) => console.log('Visualizar:', pdf.title)}
+                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+                            onDelete={(pdf) => console.log('Excluir:', pdf.title)}
+                        />
+                    </div>
+                </div>
+
+                {/* Modo de Seleção */}
+                <div className="mb-8">
+                    <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        Modo de Seleção Múltipla
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <TelescopePDFCard
+                            pdf={pdfExamples[ 0 ]}
+                            viewMode="grid"
+                            priority="medium"
+                            showStats={true}
+                            isSelectionMode={true}
+                            isSelected={true}
+                            onSelect={(pdf) => console.log('Selecionado:', pdf.title)}
+                            onView={(pdf) => console.log('Visualizar:', pdf.title)}
+                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+                            onDelete={(pdf) => console.log('Excluir:', pdf.title)}
+                        />
+                        <TelescopePDFCard
+                            pdf={pdfExamples[ 1 ]}
+                            viewMode="grid"
+                            priority="low"
+                            showStats={true}
+                            isSelectionMode={true}
+                            isSelected={false}
+                            onSelect={(pdf) => console.log('Selecionado:', pdf.title)}
+                            onView={(pdf) => console.log('Visualizar:', pdf.title)}
+                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+                            onDelete={(pdf) => console.log('Excluir:', pdf.title)}
+                        />
+                    </div>
+                </div>
+
+                {/* Características Premium */}
+                <div className="mb-8">
+                    <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        Características Premium Telescope
+                    </h3>
+                    <div className={`p-6 rounded-lg border ${isDark ? 'border-blue-500/30 bg-blue-900/20' : 'border-blue-200 bg-blue-50'}`}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 className={`text-lg font-medium mb-3 ${isDark ? 'text-blue-200' : 'text-blue-800'}`}>
+                                    🎨 Design Premium
+                                </h4>
+                                <ul className={`space-y-2 text-sm ${isDark ? 'text-blue-200' : 'text-blue-700'}`}>
+                                    <li>• <strong>Backdrop blur:</strong> Efeito de desfoque premium</li>
+                                    <li>• <strong>Animações fluidas:</strong> Transições suaves com cubic-bezier</li>
+                                    <li>• <strong>Hover effects avançados:</strong> Elevação e escala 3D</li>
+                                    <li>• <strong>Shadows customizáveis:</strong> Sombras baseadas na prioridade</li>
+                                    <li>• <strong>Borders inteligentes:</strong> Cores dinâmicas por contexto</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className={`text-lg font-medium mb-3 ${isDark ? 'text-blue-200' : 'text-blue-800'}`}>
+                                    📊 Funcionalidades Avançadas
+                                </h4>
+                                <ul className={`space-y-2 text-sm ${isDark ? 'text-blue-200' : 'text-blue-700'}`}>
+                                    <li>• <strong>Sistema de prioridades:</strong> 4 níveis (low, medium, high, critical)</li>
+                                    <li>• <strong>Estatísticas dinâmicas:</strong> Performance, qualidade e acessibilidade</li>
+                                    <li>• <strong>Indicators de trend:</strong> Indicadores visuais de status</li>
+                                    <li>• <strong>Ações interativas:</strong> Botões com hover states premium</li>
+                                    <li>• <strong>Modo dual:</strong> Grid e Lista com layouts otimizados</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Comparação com versão original */}
+                <div className="mb-8">
+                    <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        💡 Melhorias em Relação ao PDFCard Original
+                    </h3>
+                    <div className={`p-6 rounded-lg border ${isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'}`}>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="text-center">
+                                <div className={`w-16 h-16 mx-auto mb-3 rounded-lg flex items-center justify-center ${isDark ? 'bg-green-900/20' : 'bg-green-50'}`}>
+                                    <TrendingUp className={`w-8 h-8 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
+                                </div>
+                                <h4 className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                                    Performance Visual
+                                </h4>
+                                <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Animações otimizadas, efeitos premium e responsividade aprimorada
+                                </p>
+                            </div>
+                            <div className="text-center">
+                                <div className={`w-16 h-16 mx-auto mb-3 rounded-lg flex items-center justify-center ${isDark ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
+                                    <Star className={`w-8 h-8 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                                </div>
+                                <h4 className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                                    Experiência do Usuário
+                                </h4>
+                                <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Interface mais intuitiva com feedback visual instantâneo
+                                </p>
+                            </div>
+                            <div className="text-center">
+                                <div className={`w-16 h-16 mx-auto mb-3 rounded-lg flex items-center justify-center ${isDark ? 'bg-purple-900/20' : 'bg-purple-50'}`}>
+                                    <Settings className={`w-8 h-8 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+                                </div>
+                                <h4 className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                                    Funcionalidades Extras
+                                </h4>
+                                <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Sistema de prioridades, estatísticas e indicadores avançados
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Futuras seções para outros componentes */}

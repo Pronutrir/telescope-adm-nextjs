@@ -261,7 +261,7 @@ const UploadPDFsPage = () => {
                             size="sm"
                             className="inline-flex items-center gap-2"
                         >
-                            <ArrowLeft className="w-4 h-4" />
+                            <ArrowLeft className="w-4 h-4 pdf-icon" />
                             Voltar
                         </Button>
                         <h1 className={twMerge(
@@ -302,7 +302,7 @@ const UploadPDFsPage = () => {
                             isDark ? 'bg-blue-900/20' : 'bg-blue-50'
                         )}>
                             <Upload className={twMerge(
-                                'w-8 h-8',
+                                'w-8 h-8 pdf-icon',
                                 isDark ? 'text-blue-400' : 'text-blue-500'
                             )} />
                         </div>
@@ -339,7 +339,7 @@ const UploadPDFsPage = () => {
                                             : 'bg-blue-500 hover:bg-blue-600 text-white'
                                     )}
                                 >
-                                    <FolderOpen className="w-4 h-4" />
+                                    <FolderOpen className="w-4 h-4 pdf-icon" />
                                     Selecionar Arquivos
                                 </div>
                             </label>
@@ -394,12 +394,12 @@ const UploadPDFsPage = () => {
                                 >
                                     {uploadState.isUploading ? (
                                         <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <Loader2 className="w-4 h-4 animate-spin pdf-icon" />
                                             Enviando...
                                         </>
                                     ) : (
                                         <>
-                                            <Upload className="w-4 h-4" />
+                                            <Upload className="w-4 h-4 pdf-icon" />
                                             Enviar Arquivos
                                         </>
                                     )}
@@ -463,7 +463,7 @@ const UploadPDFsPage = () => {
                                             isDark ? 'bg-red-900/20' : 'bg-red-50'
                                         )}>
                                             <FileText className={twMerge(
-                                                'w-5 h-5',
+                                                'w-5 h-5 pdf-icon',
                                                 isDark ? 'text-red-400' : 'text-red-500'
                                             )} />
                                         </div>
@@ -537,20 +537,20 @@ const UploadPDFsPage = () => {
                                                         isDark ? 'text-gray-400' : 'text-gray-500'
                                                     )}
                                                 >
-                                                    <X className="w-4 h-4" />
+                                                    <X className="w-4 h-4 pdf-icon" />
                                                 </button>
                                             )}
 
                                             {fileInfo.status === 'uploading' && (
-                                                <Loader2 className="w-5 h-5 animate-spin text-blue-600 dark:text-blue-400" />
+                                                <Loader2 className="w-5 h-5 animate-spin text-blue-600 dark:text-blue-400 pdf-icon" />
                                             )}
 
                                             {fileInfo.status === 'success' && (
-                                                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 pdf-icon" />
                                             )}
 
                                             {fileInfo.status === 'error' && (
-                                                <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                                                <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 pdf-icon" />
                                             )}
                                         </div>
                                     </div>
@@ -576,23 +576,23 @@ const UploadPDFsPage = () => {
                         isDark ? 'text-blue-200' : 'text-blue-700'
                     )}>
                         <li className="flex items-start gap-2">
-                            <Check className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <Check className="w-4 h-4 mt-0.5 flex-shrink-0 pdf-icon" />
                             <span>Apenas arquivos PDF são aceitos</span>
                         </li>
                         <li className="flex items-start gap-2">
-                            <Check className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <Check className="w-4 h-4 mt-0.5 flex-shrink-0 pdf-icon" />
                             <span>Tamanho máximo de 50MB por arquivo</span>
                         </li>
                         <li className="flex items-start gap-2">
-                            <Check className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <Check className="w-4 h-4 mt-0.5 flex-shrink-0 pdf-icon" />
                             <span>Você pode editar o nome do arquivo antes do upload</span>
                         </li>
                         <li className="flex items-start gap-2">
-                            <Check className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <Check className="w-4 h-4 mt-0.5 flex-shrink-0 pdf-icon" />
                             <span>Arraste múltiplos arquivos ou selecione vários de uma vez</span>
                         </li>
                         <li className="flex items-start gap-2">
-                            <Check className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <Check className="w-4 h-4 mt-0.5 flex-shrink-0 pdf-icon" />
                             <span>Arquivos duplicados serão automaticamente rejeitados</span>
                         </li>
                     </ul>

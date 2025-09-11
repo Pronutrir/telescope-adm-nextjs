@@ -291,7 +291,7 @@ const UploadGerenciadorPDFsPage = () => {
                             onClick={() => window.history.back()}
                             className="flex items-center gap-2"
                         >
-                            <ArrowLeft className="h-4 w-4" />
+                            <ArrowLeft className="h-4 w-4 pdf-icon" />
                             Voltar
                         </Button>
 
@@ -300,7 +300,7 @@ const UploadGerenciadorPDFsPage = () => {
                             isDark ? 'bg-gray-700' : 'bg-blue-50'
                         )}>
                             <Upload className={twMerge(
-                                'h-6 w-6',
+                                'h-6 w-6 pdf-icon',
                                 isDark ? 'text-blue-400' : 'text-blue-600'
                             )} />
                         </div>
@@ -322,14 +322,17 @@ const UploadGerenciadorPDFsPage = () => {
                     isDark ? 'border border-gray-700' : 'border border-gray-200'
                 )}>
                     <div className="flex items-center gap-2 mb-4">
-                        <FileText className="h-5 w-5 text-blue-500" />
+                        <FileText className="h-5 w-5 text-blue-500 pdf-icon" />
                         <h2 className="text-lg font-semibold">Parâmetros de Composição do Nome</h2>
                     </div>
                     <p className={twMerge(
                         'text-sm mb-4',
                         isDark ? 'text-gray-400' : 'text-gray-600'
                     )}>
-                        Os arquivos serão nomeados no formato: <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">cdPessoa_numAtendimento_DDMMAAAA_hash.pdf</code>
+                        Os arquivos serão nomeados no formato: <code className={twMerge(
+                            'px-1 py-0.5 rounded text-xs',
+                            isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
+                        )}>cdPessoa_numAtendimento_DDMMAAAA_hash.pdf</code>
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -445,7 +448,7 @@ const UploadGerenciadorPDFsPage = () => {
                             isDark ? 'bg-gray-700' : 'bg-white'
                         )}>
                             <FolderOpen className={twMerge(
-                                'h-6 w-6',
+                                'h-6 w-6 pdf-icon',
                                 isDark ? 'text-gray-400' : 'text-gray-600'
                             )} />
                         </div>
@@ -483,7 +486,7 @@ const UploadGerenciadorPDFsPage = () => {
                                     : 'bg-blue-600 hover:bg-blue-700 text-white'
                             )}
                         >
-                            <Upload className="h-4 w-4" />
+                            <Upload className="h-4 w-4 pdf-icon" />
                             Selecionar Arquivos
                         </label>
 
@@ -554,7 +557,7 @@ const UploadGerenciadorPDFsPage = () => {
                                     )}
                                 >
                                     <FileText className={twMerge(
-                                        'h-5 w-5 flex-shrink-0',
+                                        'h-5 w-5 flex-shrink-0 pdf-icon',
                                         isDark ? 'text-gray-400' : 'text-gray-600'
                                     )} />
 
@@ -570,13 +573,13 @@ const UploadGerenciadorPDFsPage = () => {
 
                                     <div className="flex items-center gap-2">
                                         {fileInfo.status === 'success' && (
-                                            <CheckCircle className="h-5 w-5 text-green-500" />
+                                            <CheckCircle className="h-5 w-5 text-green-500 pdf-icon" />
                                         )}
                                         {fileInfo.status === 'uploading' && (
-                                            <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+                                            <Loader2 className="h-5 w-5 text-blue-500 animate-spin pdf-icon" />
                                         )}
                                         {fileInfo.status === 'error' && (
-                                            <XCircle className="h-5 w-5 text-red-500" />
+                                            <XCircle className="h-5 w-5 text-red-500 pdf-icon" />
                                         )}
                                         {fileInfo.status === 'pending' && (
                                             <button
@@ -588,7 +591,7 @@ const UploadGerenciadorPDFsPage = () => {
                                                         : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'
                                                 )}
                                             >
-                                                <X className="h-4 w-4" />
+                                                <X className="h-4 w-4 pdf-icon" />
                                             </button>
                                         )}
                                     </div>
@@ -605,7 +608,7 @@ const UploadGerenciadorPDFsPage = () => {
                         isDark ? 'border-gray-600 bg-gray-800/50' : 'border-gray-200 bg-white'
                     )}>
                         <div className="flex items-center gap-3 mb-3">
-                            <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+                            <Loader2 className="h-5 w-5 animate-spin text-blue-500 pdf-icon" />
                             <span className="font-medium">Fazendo upload...</span>
                         </div>
 
@@ -638,7 +641,7 @@ const UploadGerenciadorPDFsPage = () => {
                     )}>
                         <div className="flex items-center gap-2 mb-2">
                             <CheckCircle className={twMerge(
-                                'h-5 w-5',
+                                'h-5 w-5 pdf-icon',
                                 isDark ? 'text-green-400' : 'text-green-600'
                             )} />
                             <span className={twMerge(
@@ -668,7 +671,7 @@ const UploadGerenciadorPDFsPage = () => {
                     )}>
                         <div className="flex items-center gap-2 mb-2">
                             <AlertCircle className={twMerge(
-                                'h-4 w-4',
+                                'h-4 w-4 pdf-icon',
                                 isDark ? 'text-red-400' : 'text-red-600'
                             )} />
                             <span className={twMerge(
@@ -699,12 +702,12 @@ const UploadGerenciadorPDFsPage = () => {
                             >
                                 {uploadState.isUploading ? (
                                     <>
-                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <Loader2 className="h-4 w-4 animate-spin pdf-icon" />
                                         Enviando...
                                     </>
                                 ) : (
                                     <>
-                                        <Upload className="h-4 w-4" />
+                                        <Upload className="h-4 w-4 pdf-icon" />
                                         Fazer Upload ({uploadState.files.length})
                                     </>
                                 )}
@@ -726,7 +729,7 @@ const UploadGerenciadorPDFsPage = () => {
                             onClick={resetUpload}
                             className="flex items-center gap-2"
                         >
-                            <Upload className="h-4 w-4" />
+                            <Upload className="h-4 w-4 pdf-icon" />
                             Fazer Novo Upload
                         </Button>
                     )}

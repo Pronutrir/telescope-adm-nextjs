@@ -27,6 +27,7 @@ import { UnifiedPDFItem, ViewMode, PDFEditState, PDFItem } from '@/types/pdf'
 import PDFManagerService, { SharePointPdfItem } from '@/services/pdfManager/pdfManagerService'
 import PDFService from '@/services/pdf/pdfService'
 import { toast } from 'react-hot-toast'
+import { TelescopePDFCard } from '@/components/pdf/TelescopePDFCard'
 
 const UnificadosGerenciadorPDFsPage = () => {
     const { isDark } = useTheme()
@@ -57,6 +58,17 @@ const UnificadosGerenciadorPDFsPage = () => {
             pageCount: 0 // API não retorna essa informação
         }
     }
+
+    // Função para converter UnifiedPDFItem para PDFItem (compatibilidade com TelescopePDFCard)
+    const convertToPDFItem = (unifiedPdf: UnifiedPDFItem): PDFItem => ({
+        id: unifiedPdf.id,
+        title: unifiedPdf.title,
+        fileName: unifiedPdf.fileName,
+        description: unifiedPdf.description,
+        size: unifiedPdf.size,
+        uploadDate: unifiedPdf.uploadDate,
+        url: unifiedPdf.url
+    })
 
     // Estados
     const [ mounted, setMounted ] = useState(false)
@@ -633,24 +645,26 @@ const UnificadosGerenciadorPDFsPage = () => {
     return (
         <PageWrapper maxWidth="full" spacing="xl">
             <div className="w-full space-y-8">
-                {/* Header centralizado */}
-                <div className="text-center space-y-4">
-                    <div className="flex items-center justify-center gap-3 mb-4">
+                {/* Header com botão à esquerda */}
+                <div className="space-y-4">
+                    <div className="flex items-center justify-start mb-4">
                         <Button
                             onClick={() => window.history.back()}
                             className="bg-purple-500 hover:bg-purple-600 text-white"
                         >
-                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            <ArrowLeft className="w-4 h-4 mr-2 pdf-icon" />
                             Voltar para Biblioteca
                         </Button>
                     </div>
 
-                    <h1 className={twMerge(
-                        'text-4xl font-bold',
-                        isDark ? 'text-white' : 'text-slate-800'
-                    )}>
-                        📚 PDFs Unificados
-                    </h1>
+                    <div className="text-center">
+                        <h1 className={twMerge(
+                            'text-4xl font-bold',
+                            isDark ? 'text-white' : 'text-slate-800'
+                        )}>
+                            📚 PDFs Unificados
+                        </h1>
+                    </div>
 
                     <p className={twMerge(
                         'text-lg',
@@ -659,386 +673,341 @@ const UnificadosGerenciadorPDFsPage = () => {
                         {isLoading ? 'Carregando...' : `${filteredPdfs.length} documento${filteredPdfs.length > 1 ? 's' : ''} unificado${filteredPdfs.length > 1 ? 's' : ''} disponív${filteredPdfs.length > 1 ? 'eis' : 'el'}`}
                     </p>
                 </div>
+            </div>
 
-                {/* Barra de ferramentas */}
-                <div className={twMerge(
-                    'p-6 rounded-lg border',
-                    isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'
-                )}>
-                    <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
-                        {/* Busca */}
-                        <div className="relative flex-1 max-w-md">
-                            <Search className={twMerge(
-                                'absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4',
-                                isDark ? 'text-gray-400' : 'text-gray-500'
-                            )} />
-                            <input
-                                type="text"
-                                placeholder="🔍 Buscar PDFs unificados..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className={twMerge(
-                                    'w-full pl-10 pr-10 py-2 rounded-lg border transition-all duration-200',
-                                    'focus:outline-none focus:ring-2 focus:ring-blue-500/20',
-                                    isDark
-                                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                                )}
-                            />
-                            {searchTerm && (
-                                <button
-                                    onClick={() => setSearchTerm('')}
-                                    className={twMerge(
-                                        'absolute right-3 top-1/2 transform -translate-y-1/2',
-                                        isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'
-                                    )}
-                                >
-                                    ×
-                                </button>
+            {/* Barra de ferramentas */}
+            <div className={twMerge(
+                'p-6 rounded-lg border',
+                isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'
+            )}>
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+                    {/* Busca */}
+                    <div className="relative flex-1 max-w-md">
+                        <input
+                            type="text"
+                            placeholder="🔍 Buscar PDFs unificados..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className={twMerge(
+                                'w-full pl-10 pr-10 py-2 rounded-lg border transition-all duration-200',
+                                'focus:outline-none focus:ring-2 focus:ring-blue-500/20',
+                                isDark
+                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                             )}
-                        </div>
+                        />
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm('')}
+                                className={twMerge(
+                                    'absolute right-3 top-1/2 transform -translate-y-1/2',
+                                    isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'
+                                )}
+                            >
+                                ×
+                            </button>
+                        )}
+                    </div>
 
-                        {/* Controles de visualização */}
-                        <div className="flex items-center gap-2">
-                            <div className={twMerge(
-                                'flex items-center rounded-lg',
-                                isDark ? 'border-gray-600' : 'border-gray-300'
-                            )}>
-                                <button
-                                    onClick={() => setViewMode('grid')}
-                                    className={twMerge(
-                                        'p-2 rounded-l-lg transition-all duration-200 mr-1',
-                                        viewMode === 'grid'
-                                            ? isDark
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-blue-500 text-white'
-                                            : isDark
-                                                ? 'text-gray-400 hover:text-gray-300'
-                                                : 'text-gray-500 hover:text-gray-700'
-                                    )}
-                                >
-                                    <Grid className="w-4 h-4" />
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('list')}
-                                    className={twMerge(
-                                        'p-2 rounded-r-lg transition-all duration-200 ml-1',
-                                        viewMode === 'list'
-                                            ? isDark
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-blue-500 text-white'
-                                            : isDark
-                                                ? 'text-gray-400 hover:text-gray-300'
-                                                : 'text-gray-500 hover:text-gray-700'
-                                    )}
-                                >
-                                    <List className="w-4 h-4" />
-                                </button>
-                            </div>
+                    {/* Controles de visualização */}
+                    <div className="flex items-center gap-2">
+                        <div className={twMerge(
+                            'flex items-center rounded-lg',
+                            isDark ? 'border-gray-600' : 'border-gray-300'
+                        )}>
+                            <button
+                                onClick={() => setViewMode('grid')}
+                                className={twMerge(
+                                    'p-2 rounded-l-lg transition-all duration-200 mr-1',
+                                    viewMode === 'grid'
+                                        ? isDark
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-blue-500 text-white'
+                                        : isDark
+                                            ? 'text-gray-400 hover:text-gray-300'
+                                            : 'text-gray-500 hover:text-gray-700'
+                                )}
+                            >
+                                <Grid className="w-4 h-4 pdf-icon" />
+                            </button>
+                            <button
+                                onClick={() => setViewMode('list')}
+                                className={twMerge(
+                                    'p-2 rounded-r-lg transition-all duration-200 ml-1',
+                                    viewMode === 'list'
+                                        ? isDark
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-blue-500 text-white'
+                                        : isDark
+                                            ? 'text-gray-400 hover:text-gray-300'
+                                            : 'text-gray-500 hover:text-gray-700'
+                                )}
+                            >
+                                <List className="w-4 h-4 pdf-icon" />
+                            </button>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Conteúdo principal */}
-                <div className="min-h-0">
-                    {isLoading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {Array(8).fill(0).map((_, i) => (
-                                <div key={i} className={twMerge(
-                                    'p-6 rounded-2xl animate-pulse',
-                                    isDark ? 'bg-gray-800/50' : 'bg-gray-100'
-                                )}>
-                                    <div className={twMerge(
-                                        'h-4 rounded mb-4',
-                                        isDark ? 'bg-gray-700' : 'bg-gray-300'
-                                    )} />
-                                    <div className={twMerge(
-                                        'h-3 rounded mb-2 w-2/3',
-                                        isDark ? 'bg-gray-700' : 'bg-gray-300'
-                                    )} />
-                                    <div className={twMerge(
-                                        'h-3 rounded w-1/2',
-                                        isDark ? 'bg-gray-700' : 'bg-gray-300'
-                                    )} />
-                                </div>
-                            ))}
-                        </div>
-                    ) : filteredPdfs.length === 0 ? (
-                        <div className={twMerge(
-                            'text-center py-20 px-6 rounded-2xl',
-                            isDark ? 'bg-gray-800/30 border-gray-700' : 'bg-gray-50 border-gray-200',
-                            'border'
-                        )}>
-                            <div className="max-w-md mx-auto space-y-6">
+            {/* Conteúdo principal */}
+            <div className="min-h-0">
+                {isLoading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {Array(8).fill(0).map((_, i) => (
+                            <div key={i} className={twMerge(
+                                'p-6 rounded-2xl animate-pulse',
+                                isDark ? 'bg-gray-800/50' : 'bg-gray-100'
+                            )}>
                                 <div className={twMerge(
-                                    'w-24 h-24 rounded-full mx-auto flex items-center justify-center text-6xl',
-                                    isDark ? 'bg-gray-700/50' : 'bg-gray-200/50'
-                                )}>
-                                    📄
-                                </div>
-                                <h3 className={twMerge(
-                                    'text-xl font-semibold',
-                                    isDark ? 'text-white' : 'text-gray-900'
-                                )}>
-                                    {searchTerm ? 'Nenhum PDF encontrado' : 'Nenhum PDF unificado'}
-                                </h3>
-                                <p className={twMerge(
-                                    'text-base leading-relaxed',
-                                    isDark ? 'text-gray-400' : 'text-gray-600'
-                                )}>
-                                    {searchTerm
-                                        ? `Não foi possível encontrar PDFs que correspondam à busca "${searchTerm}".`
-                                        : 'Ainda não há PDFs unificados disponíveis no sistema. Eles aparecerão aqui quando forem criados.'
-                                    }
-                                </p>
-                                {searchTerm ? (
-                                    <Button
-                                        onClick={() => setSearchTerm('')}
-                                        className="bg-purple-500 hover:bg-purple-600 text-white"
-                                    >
-                                        Limpar filtro
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        onClick={() => window.history.back()}
-                                        className="bg-purple-500 hover:bg-purple-600 text-white"
-                                    >
-                                        <ArrowLeft className="w-4 h-4 mr-2" />
-                                        Voltar para Biblioteca
-                                    </Button>
-                                )}
+                                    'h-4 rounded mb-4',
+                                    isDark ? 'bg-gray-700' : 'bg-gray-300'
+                                )} />
+                                <div className={twMerge(
+                                    'h-3 rounded mb-2 w-2/3',
+                                    isDark ? 'bg-gray-700' : 'bg-gray-300'
+                                )} />
+                                <div className={twMerge(
+                                    'h-3 rounded w-1/2',
+                                    isDark ? 'bg-gray-700' : 'bg-gray-300'
+                                )} />
                             </div>
-                        </div>
-                    ) : viewMode === 'grid' ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {filteredPdfs.map((pdf) => (
-                                <div
-                                    key={pdf.id}
-                                    className={twMerge(
-                                        'group relative rounded-2xl backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl',
-                                        'border-2 shadow-lg',
-                                        isDark
-                                            ? 'bg-gray-800/90 border-gray-700/50 hover:border-purple-400/60 hover:shadow-purple-500/20'
-                                            : 'bg-white/95 border-gray-200/50 hover:border-purple-300/60 hover:shadow-purple-400/20'
-                                    )}
+                        ))}
+                    </div>
+                ) : filteredPdfs.length === 0 ? (
+                    <div className={twMerge(
+                        'text-center py-20 px-6 rounded-2xl',
+                        isDark ? 'bg-gray-800/30 border-gray-700' : 'bg-gray-50 border-gray-200',
+                        'border'
+                    )}>
+                        <div className="max-w-md mx-auto space-y-6">
+                            <div className={twMerge(
+                                'w-24 h-24 rounded-full mx-auto flex items-center justify-center text-6xl',
+                                isDark ? 'bg-gray-700/50' : 'bg-gray-200/50'
+                            )}>
+                                📄
+                            </div>
+                            <h3 className={twMerge(
+                                'text-xl font-semibold',
+                                isDark ? 'text-white' : 'text-gray-900'
+                            )}>
+                                {searchTerm ? 'Nenhum PDF encontrado' : 'Nenhum PDF unificado'}
+                            </h3>
+                            <p className={twMerge(
+                                'text-base leading-relaxed',
+                                isDark ? 'text-gray-400' : 'text-gray-600'
+                            )}>
+                                {searchTerm
+                                    ? `Não foi possível encontrar PDFs que correspondam à busca "${searchTerm}".`
+                                    : 'Ainda não há PDFs unificados disponíveis no sistema. Eles aparecerão aqui quando forem criados.'
+                                }
+                            </p>
+                            {searchTerm ? (
+                                <Button
+                                    onClick={() => setSearchTerm('')}
+                                    className="bg-purple-500 hover:bg-purple-600 text-white"
                                 >
-                                    {/* Header do Card */}
-                                    <div className={twMerge(
-                                        'p-5 pb-3 border-b',
-                                        isDark ? 'border-gray-700/50' : 'border-gray-200/50'
+                                    Limpar filtro
+                                </Button>
+                            ) : (
+                                <Button
+                                    onClick={() => window.history.back()}
+                                    className="bg-purple-500 hover:bg-purple-600 text-white"
+                                >
+                                    <ArrowLeft className="w-4 h-4 mr-2 pdf-icon" />
+                                    Voltar para Biblioteca
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                ) : viewMode === 'grid' ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3" style={{ padding: '0 6px' }}>
+                        {filteredPdfs.map((pdf) => (
+                            <TelescopePDFCard
+                                key={pdf.id}
+                                pdf={convertToPDFItem(pdf)}
+                                viewMode="grid"
+                                onView={() => openViewer(pdf)}
+                                onEdit={() => handleEditPDF(pdf)}
+                                onSendToTasy={() => openTasyModal(pdf)}
+                                formatDate={PDFManagerService.formatDate}
+                                priority="medium"
+                                showStats={true}
+                                actionButtonStyle="full"
+                                className="transition-all duration-300"
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    /* Visualização em lista */
+                    <div className="space-y-3">
+                        {filteredPdfs.map((pdf) => (
+                            <div
+                                key={pdf.id}
+                                className={twMerge(
+                                    'group flex items-center gap-4 p-5 rounded-2xl border backdrop-blur-sm',
+                                    'transition-all duration-300 hover:scale-[1.005]',
+                                    isDark
+                                        ? 'bg-gray-800/90 border-gray-700/30 hover:border-purple-400/40 shadow-sm hover:shadow-md'
+                                        : 'bg-white/95 border-gray-200/30 hover:border-purple-300/40 shadow-sm hover:shadow-md'
+                                )}
+                            >
+                                {/* Ícone do PDF */}
+                                <div className={twMerge(
+                                    'flex-shrink-0 p-3 rounded-xl',
+                                    isDark ? 'bg-purple-500/20' : 'bg-purple-100'
+                                )}>
+                                    <FileText className="w-8 h-8 text-purple-500 pdf-icon" />
+                                </div>                                    {/* Informações principais */}
+                                <div className="flex-1 min-w-0">
+                                    <h3 className={twMerge(
+                                        'font-semibold text-lg mb-1 truncate',
+                                        isDark ? 'text-white' : 'text-gray-900'
                                     )}>
-                                        <div className="flex items-center justify-between mb-3">
-                                            {/* Ícone do PDF */}
-                                            <div className={twMerge(
-                                                'p-2.5 rounded-xl',
-                                                isDark ? 'bg-purple-500/20' : 'bg-purple-100'
-                                            )}>
-                                                <FileText className="w-6 h-6 text-purple-500" />
-                                            </div>
-
-                                            {/* Indicador de status/ação */}
-                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                                <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse" />
-                                            </div>
-                                        </div>
-
-                                        {/* Título e Descrição */}
-                                        <h3 className={twMerge(
-                                            'font-semibold text-base mb-2 line-clamp-2',
-                                            isDark ? 'text-white' : 'text-gray-900'
-                                        )}>
-                                            {pdf.title}
-                                        </h3>
-                                        <p className={twMerge(
-                                            'text-sm leading-relaxed line-clamp-2',
-                                            isDark ? 'text-gray-300' : 'text-gray-600'
-                                        )}>
-                                            {pdf.description || 'PDF unificado sem descrição'}
-                                        </p>
-                                    </div>
-
-                                    {/* Conteúdo do Card */}
-                                    <div className="p-5 pt-3">
-                                        {/* Metadados */}
-                                        <div className="space-y-2 mb-4">
-                                            <div className={twMerge(
-                                                'text-xs flex items-center gap-2',
-                                                isDark ? 'text-gray-400' : 'text-gray-500'
-                                            )}>
-                                                <FolderOpen className="w-3 h-3" />
-                                                <span className="truncate">{pdf.fileName}</span>
-                                            </div>
-                                            <div className={twMerge(
-                                                'text-xs flex items-center justify-between',
-                                                isDark ? 'text-gray-400' : 'text-gray-500'
-                                            )}>
-                                                <span className="flex items-center gap-1">
-                                                    📊 {pdf.size}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    📅 {PDFManagerService.formatDate(pdf.uploadDate)}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Ações do card */}
-                                        <div className={twMerge(
-                                            'pt-3 border-t',
-                                            isDark ? 'border-gray-700/50' : 'border-gray-200'
-                                        )}>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    className={twMerge(
-                                                        'flex-1 flex items-center justify-center gap-2 text-sm h-10 font-semibold rounded-xl transition-all duration-200 shadow-sm border',
-                                                        isDark
-                                                            ? 'bg-blue-600/90 text-white hover:bg-blue-600 border-blue-500/50 hover:shadow-blue-500/25 hover:shadow-lg'
-                                                            : 'bg-blue-600 text-white hover:bg-blue-700 border-blue-500 hover:shadow-blue-600/25 hover:shadow-lg hover:-translate-y-0.5'
-                                                    )}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        openViewer(pdf)
-                                                    }}
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                    <span>Ver</span>
-                                                </button>
-
-                                                <button
-                                                    className={twMerge(
-                                                        'flex-1 flex items-center justify-center gap-2 text-sm h-10 font-semibold rounded-xl transition-all duration-200 shadow-sm border',
-                                                        isDark
-                                                            ? 'bg-green-600/90 text-white hover:bg-green-600 border-green-500/50 hover:shadow-green-500/25 hover:shadow-lg'
-                                                            : 'bg-green-600 text-white hover:bg-green-700 border-green-500 hover:shadow-green-600/25 hover:shadow-lg hover:-translate-y-0.5'
-                                                    )}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        handleEditPDF(pdf)
-                                                    }}
-                                                >
-                                                    <Edit3 className="w-4 h-4" />
-                                                    <span>Editar</span>
-                                                </button>
-
-                                                <button
-                                                    className={twMerge(
-                                                        'flex-1 flex items-center justify-center gap-2 text-sm h-10 font-semibold rounded-xl transition-all duration-200 shadow-sm border',
-                                                        isDark
-                                                            ? 'bg-purple-600/90 text-white hover:bg-purple-600 border-purple-500/50 hover:shadow-purple-500/25 hover:shadow-lg'
-                                                            : 'bg-purple-600 text-white hover:bg-purple-700 border-purple-500 hover:shadow-purple-600/25 hover:shadow-lg hover:-translate-y-0.5'
-                                                    )}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        openTasyModal(pdf)
-                                                    }}
-                                                    title="Enviar para TASY"
-                                                >
-                                                    <Send className="w-4 h-4" />
-                                                    <span>TASY</span>
-                                                </button>
-                                            </div>
-                                        </div>
+                                        {pdf.title}
+                                    </h3>
+                                    <p className={twMerge(
+                                        'text-sm mb-2 line-clamp-1',
+                                        isDark ? 'text-gray-300' : 'text-gray-600'
+                                    )}>
+                                        {pdf.description || 'PDF unificado sem descrição'}
+                                    </p>
+                                    <div className={twMerge(
+                                        'text-xs flex items-center gap-4 flex-wrap',
+                                        isDark ? 'text-gray-400' : 'text-gray-500'
+                                    )}>
+                                        <span className="flex items-center gap-1">
+                                            <FolderOpen className="w-3 h-3 pdf-icon" />
+                                            {pdf.fileName}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            📊 {pdf.size}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            📅 {PDFManagerService.formatDate(pdf.uploadDate)}
+                                        </span>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        /* Visualização em lista */
-                        <div className="space-y-3">
-                            {filteredPdfs.map((pdf) => (
-                                <div
-                                    key={pdf.id}
-                                    className={twMerge(
-                                        'group flex items-center gap-4 p-5 rounded-2xl border-2 backdrop-blur-sm',
-                                        'transition-all duration-300 hover:scale-[1.01] hover:shadow-xl',
-                                        isDark
-                                            ? 'bg-gray-800/90 border-gray-700/50 hover:border-purple-400/60 hover:shadow-purple-500/20'
-                                            : 'bg-white/95 border-gray-200/50 hover:border-purple-300/60 hover:shadow-purple-400/20'
-                                    )}
-                                >
-                                    {/* Ícone do PDF */}
-                                    <div className={twMerge(
-                                        'flex-shrink-0 p-3 rounded-xl',
-                                        isDark ? 'bg-purple-500/20' : 'bg-purple-100'
-                                    )}>
-                                        <FileText className="w-8 h-8 text-purple-500" />
-                                    </div>
 
-                                    {/* Informações principais */}
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className={twMerge(
-                                            'font-semibold text-lg mb-1 truncate',
-                                            isDark ? 'text-white' : 'text-gray-900'
-                                        )}>
-                                            {pdf.title}
-                                        </h3>
-                                        <p className={twMerge(
-                                            'text-sm mb-2 line-clamp-1',
-                                            isDark ? 'text-gray-300' : 'text-gray-600'
-                                        )}>
-                                            {pdf.description || 'PDF unificado sem descrição'}
-                                        </p>
-                                        <div className={twMerge(
-                                            'text-xs flex items-center gap-4 flex-wrap',
-                                            isDark ? 'text-gray-400' : 'text-gray-500'
-                                        )}>
-                                            <span className="flex items-center gap-1">
-                                                <FolderOpen className="w-3 h-3" />
-                                                {pdf.fileName}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                📊 {pdf.size}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                📅 {PDFManagerService.formatDate(pdf.uploadDate)}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Ações */}
-                                    <div className="flex gap-2 ml-4">
-                                        <button
-                                            className={twMerge(
-                                                'flex items-center justify-center gap-2 text-sm h-10 px-4 font-semibold rounded-xl transition-all duration-200 shadow-sm border',
-                                                isDark
-                                                    ? 'bg-blue-600/90 text-white hover:bg-blue-600 border-blue-500/50 hover:shadow-blue-500/25 hover:shadow-lg'
-                                                    : 'bg-blue-600 text-white hover:bg-blue-700 border-blue-500 hover:shadow-blue-600/25 hover:shadow-lg hover:-translate-y-0.5'
-                                            )}
-                                            onClick={() => openViewer(pdf)}
-                                        >
-                                            <Eye className="w-4 h-4" />
-                                            <span>Ver</span>
-                                        </button>
-                                        <button
-                                            className={twMerge(
-                                                'flex items-center justify-center gap-2 text-sm h-10 px-4 font-semibold rounded-xl transition-all duration-200 shadow-sm border',
-                                                isDark
-                                                    ? 'bg-green-600/90 text-white hover:bg-green-600 border-green-500/50 hover:shadow-green-500/25 hover:shadow-lg'
-                                                    : 'bg-green-600 text-white hover:bg-green-700 border-green-500 hover:shadow-green-600/25 hover:shadow-lg hover:-translate-y-0.5'
-                                            )}
-                                            onClick={() => handleEditPDF(pdf)}
-                                        >
-                                            <Edit3 className="w-4 h-4" />
-                                            <span>Editar</span>
-                                        </button>
-                                        <button
-                                            className={twMerge(
-                                                'flex items-center justify-center gap-2 text-sm h-10 px-4 font-semibold rounded-xl transition-all duration-200 shadow-sm border',
-                                                isDark
-                                                    ? 'bg-purple-600/90 text-white hover:bg-purple-600 border-purple-500/50 hover:shadow-purple-500/25 hover:shadow-lg'
-                                                    : 'bg-purple-600 text-white hover:bg-purple-700 border-purple-500 hover:shadow-purple-600/25 hover:shadow-lg hover:-translate-y-0.5'
-                                            )}
-                                            onClick={() => openTasyModal(pdf)}
-                                            title="Enviar para TASY"
-                                        >
-                                            <Send className="w-4 h-4" />
-                                            <span>TASY</span>
-                                        </button>
-                                    </div>
+                                {/* Ações */}
+                                <div className="flex gap-2 ml-4">
+                                    <button
+                                        className="flex items-center justify-center gap-2 text-sm h-10 px-4 font-semibold rounded-xl transition-all duration-200 shadow-sm border cursor-pointer"
+                                        style={{
+                                            background: isDark
+                                                ? 'linear-gradient(135deg, rgba(148, 163, 184, 0.8), rgba(100, 116, 139, 0.9))'
+                                                : 'linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(226, 232, 240, 0.9))',
+                                            color: isDark ? 'rgba(248, 250, 252, 0.9)' : 'rgba(51, 65, 85, 0.9)',
+                                            border: isDark
+                                                ? '1px solid rgba(148, 163, 184, 0.3)'
+                                                : '1px solid rgba(226, 232, 240, 0.6)',
+                                            boxShadow: isDark
+                                                ? '0 2px 8px rgba(0, 0, 0, 0.2)'
+                                                : '0 2px 8px rgba(0, 0, 0, 0.1)'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(-1px)'
+                                            e.currentTarget.style.background = isDark
+                                                ? 'linear-gradient(135deg, rgba(148, 163, 184, 0.9), rgba(100, 116, 139, 1))'
+                                                : 'linear-gradient(135deg, rgba(241, 245, 249, 0.95), rgba(203, 213, 225, 0.9))'
+                                            e.currentTarget.style.boxShadow = isDark
+                                                ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+                                                : '0 4px 12px rgba(0, 0, 0, 0.15)'
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(0)'
+                                            e.currentTarget.style.background = isDark
+                                                ? 'linear-gradient(135deg, rgba(148, 163, 184, 0.8), rgba(100, 116, 139, 0.9))'
+                                                : 'linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(226, 232, 240, 0.9))'
+                                            e.currentTarget.style.boxShadow = isDark
+                                                ? '0 2px 8px rgba(0, 0, 0, 0.2)'
+                                                : '0 2px 8px rgba(0, 0, 0, 0.1)'
+                                        }}
+                                        onClick={() => openViewer(pdf)}
+                                    >
+                                        <Eye className="w-4 h-4 pdf-icon" />
+                                        <span>Ver</span>
+                                    </button>
+                                    <button
+                                        className="flex items-center justify-center gap-2 text-sm h-10 px-4 font-semibold rounded-xl transition-all duration-200 shadow-sm border cursor-pointer"
+                                        style={{
+                                            background: isDark
+                                                ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.9))'
+                                                : 'linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(219, 234, 254, 0.9))',
+                                            color: isDark ? 'rgba(147, 197, 253, 0.95)' : 'rgba(37, 99, 235, 0.9)',
+                                            border: isDark
+                                                ? '1px solid rgba(59, 130, 246, 0.3)'
+                                                : '1px solid rgba(219, 234, 254, 0.6)',
+                                            boxShadow: isDark
+                                                ? '0 2px 8px rgba(59, 130, 246, 0.15)'
+                                                : '0 2px 8px rgba(59, 130, 246, 0.1)'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(-1px)'
+                                            e.currentTarget.style.background = isDark
+                                                ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(37, 99, 235, 1))'
+                                                : 'linear-gradient(135deg, rgba(233, 243, 255, 0.95), rgba(191, 219, 254, 0.9))'
+                                            e.currentTarget.style.boxShadow = isDark
+                                                ? '0 4px 12px rgba(59, 130, 246, 0.25)'
+                                                : '0 4px 12px rgba(59, 130, 246, 0.15)'
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(0)'
+                                            e.currentTarget.style.background = isDark
+                                                ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.9))'
+                                                : 'linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(219, 234, 254, 0.9))'
+                                            e.currentTarget.style.boxShadow = isDark
+                                                ? '0 2px 8px rgba(59, 130, 246, 0.15)'
+                                                : '0 2px 8px rgba(59, 130, 246, 0.1)'
+                                        }}
+                                        onClick={() => handleEditPDF(pdf)}
+                                    >
+                                        <Edit3 className="w-4 h-4 pdf-icon" />
+                                        <span>Editar</span>
+                                    </button>
+                                    <button
+                                        className="flex items-center justify-center gap-2 text-sm h-10 px-4 font-semibold rounded-xl transition-all duration-200 shadow-sm border cursor-pointer"
+                                        style={{
+                                            background: isDark
+                                                ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(147, 51, 234, 0.9))'
+                                                : 'linear-gradient(135deg, rgba(250, 245, 255, 0.95), rgba(233, 213, 255, 0.9))',
+                                            color: isDark ? 'rgba(196, 181, 253, 0.95)' : 'rgba(147, 51, 234, 0.9)',
+                                            border: isDark
+                                                ? '1px solid rgba(168, 85, 247, 0.3)'
+                                                : '1px solid rgba(233, 213, 255, 0.6)',
+                                            boxShadow: isDark
+                                                ? '0 2px 8px rgba(168, 85, 247, 0.15)'
+                                                : '0 2px 8px rgba(168, 85, 247, 0.1)'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(-1px)'
+                                            e.currentTarget.style.background = isDark
+                                                ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(147, 51, 234, 1))'
+                                                : 'linear-gradient(135deg, rgba(245, 243, 255, 0.95), rgba(221, 214, 254, 0.9))'
+                                            e.currentTarget.style.boxShadow = isDark
+                                                ? '0 4px 12px rgba(168, 85, 247, 0.25)'
+                                                : '0 4px 12px rgba(168, 85, 247, 0.15)'
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(0)'
+                                            e.currentTarget.style.background = isDark
+                                                ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(147, 51, 234, 0.9))'
+                                                : 'linear-gradient(135deg, rgba(250, 245, 255, 0.95), rgba(233, 213, 255, 0.9))'
+                                            e.currentTarget.style.boxShadow = isDark
+                                                ? '0 2px 8px rgba(168, 85, 247, 0.15)'
+                                                : '0 2px 8px rgba(168, 85, 247, 0.1)'
+                                        }}
+                                        onClick={() => openTasyModal(pdf)}
+                                        title="Enviar para TASY"
+                                    >
+                                        <Send className="w-4 h-4 pdf-icon" />
+                                        <span>TASY</span>
+                                    </button>
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Modal de Edição de Páginas do PDF */}
@@ -1178,7 +1147,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                                                         if (parent) {
                                                             parent.innerHTML = `
                                                                 <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-700">
-                                                                    <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <svg class="w-8 h-8 text-gray-400 dark:text-gray-500 mb-1 pdf-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                                                     </svg>
                                                                     <span class="text-xs text-gray-400 dark:text-gray-500">PDF</span>
@@ -1189,7 +1158,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-700">
-                                                    <FileText className="w-8 h-8 text-gray-400 dark:text-gray-500 mb-1" />
+                                                    <FileText className="w-8 h-8 text-gray-400 dark:text-gray-500 mb-1 pdf-icon" />
                                                     <span className="text-xs text-gray-400 dark:text-gray-500">PDF</span>
                                                 </div>
                                             )}
@@ -1239,7 +1208,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                                     : 'bg-blue-50 border border-blue-200 text-blue-700'
                             )}>
                                 <div className="flex items-center gap-2">
-                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg className="w-4 h-4 pdf-icon" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                                     </svg>
                                     <span>
@@ -1329,7 +1298,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                                 </>
                             ) : (
                                 <>
-                                    <Edit3 className="w-4 h-4" />
+                                    <Edit3 className="w-4 h-4 pdf-icon" />
                                     Salvar Alterações
                                 </>
                             )}
@@ -1353,19 +1322,19 @@ const UnificadosGerenciadorPDFsPage = () => {
                             isDark ? 'bg-gray-800/50 border-gray-600' : 'bg-gray-50 border-gray-200'
                         )}>
                             <div className="flex items-center gap-3">
-                                <Database className="w-5 h-5 text-purple-500" />
+                                <Database className="w-5 h-5 text-purple-500 pdf-icon" />
                                 <div className="flex-1">
                                     <h4 className={twMerge(
                                         'font-medium text-sm',
                                         isDark ? 'text-white' : 'text-gray-900'
                                     )}>
-                                        {tasyModal.selectedPdf.title}
+                                        {tasyModal.selectedPdf?.title}
                                     </h4>
                                     <p className={twMerge(
                                         'text-xs mt-1',
                                         isDark ? 'text-gray-400' : 'text-gray-600'
                                     )}>
-                                        {tasyModal.selectedPdf.fileName}
+                                        {tasyModal.selectedPdf?.fileName}
                                     </p>
                                 </div>
                             </div>
@@ -1418,7 +1387,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                         />
                         {tasyModal.isSearching && (
                             <p className="text-sm text-blue-600 flex items-center gap-2">
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <Loader2 className="w-4 h-4 animate-spin pdf-icon" />
                                 Buscando contas...
                             </p>
                         )}
@@ -1491,7 +1460,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                                 Conta Médica Selecionada
                             </h4>
                             <div className="flex items-center gap-2">
-                                <Database className="w-4 h-4 text-purple-500" />
+                                <Database className="w-4 h-4 text-purple-500 pdf-icon" />
                                 <span className={twMerge(
                                     'font-mono text-sm',
                                     isDark ? 'text-purple-300' : 'text-purple-700'
@@ -1518,12 +1487,12 @@ const UnificadosGerenciadorPDFsPage = () => {
                         >
                             {tasyModal.isSending ? (
                                 <>
-                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    <Loader2 className="w-4 h-4 animate-spin mr-2 pdf-icon" />
                                     Enviando...
                                 </>
                             ) : (
                                 <>
-                                    <Send className="w-4 h-4 mr-2" />
+                                    <Send className="w-4 h-4 mr-2 pdf-icon" />
                                     Enviar para TASY
                                 </>
                             )}

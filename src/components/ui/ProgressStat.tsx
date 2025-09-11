@@ -30,35 +30,30 @@ const ProgressStat: React.FC<ProgressStatProps> = ({
     isDark = false,
     style
 }) => {
-    // Função para obter cores baseadas no tema
+    // Função para obter cores baseadas no tema (apenas para progresso e backgrounds)
     const getColors = () => {
         const colors = {
             success: {
-                icon: isDark ? 'rgb(34, 197, 94)' : 'rgb(22, 163, 74)',
                 iconBg: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)',
                 progress: isDark ? 'rgb(34, 197, 94)' : 'rgb(22, 163, 74)',
                 progressBg: isDark ? 'rgba(34, 197, 94, 0.1)' : 'rgba(34, 197, 94, 0.05)'
             },
             warning: {
-                icon: isDark ? 'rgb(251, 146, 60)' : 'rgb(234, 88, 12)',
                 iconBg: isDark ? 'rgba(251, 146, 60, 0.2)' : 'rgba(251, 146, 60, 0.1)',
                 progress: isDark ? 'rgb(251, 146, 60)' : 'rgb(234, 88, 12)',
                 progressBg: isDark ? 'rgba(251, 146, 60, 0.1)' : 'rgba(251, 146, 60, 0.05)'
             },
             error: {
-                icon: isDark ? 'rgb(239, 68, 68)' : 'rgb(220, 38, 38)',
                 iconBg: isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)',
                 progress: isDark ? 'rgb(239, 68, 68)' : 'rgb(220, 38, 38)',
                 progressBg: isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)'
             },
             info: {
-                icon: isDark ? 'rgb(14, 165, 233)' : 'rgb(2, 132, 199)',
                 iconBg: isDark ? 'rgba(14, 165, 233, 0.2)' : 'rgba(14, 165, 233, 0.1)',
                 progress: isDark ? 'rgb(14, 165, 233)' : 'rgb(2, 132, 199)',
                 progressBg: isDark ? 'rgba(14, 165, 233, 0.1)' : 'rgba(14, 165, 233, 0.05)'
             },
             primary: {
-                icon: isDark ? 'rgb(59, 130, 246)' : 'rgb(37, 99, 235)',
                 iconBg: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)',
                 progress: isDark ? 'rgb(59, 130, 246)' : 'rgb(37, 99, 235)',
                 progressBg: isDark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.05)'
@@ -207,7 +202,7 @@ const ProgressStat: React.FC<ProgressStatProps> = ({
                 >
                     <Icon
                         size={iconSize}
-                        style={{ color: currentColors.icon }}
+                        className={`progressstat-icon progressstat-${color}-icon`}
                     />
                 </div>
 
