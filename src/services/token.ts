@@ -105,20 +105,54 @@ export const tokenStorage = {
   }
 }
 
-// Função para refresh do token (placeholder - será implementada posteriormente)
+// Tipos para o refresh token
+interface TokenResponse {
+  jwtToken: string
+  refreshToken: string
+}
+
+// ✅ IMPLEMENTAÇÃO COMPLETA DO REFRESH TOKEN
 export async function refreshToken(): Promise<string | null> {
   try {
-    // TODO: Implementar lógica de refresh token
-    // const response = await ApiAuth.post('Auth/refresh', {
-    //   token: currentToken,
-    //   refreshToken: tokenStorage.getRefreshToken()
-    // })
-    // return response.data.token
+    const rfToken = getCookie('refreshToken')
     
-    return null
+    if (!rfToken) {
+      console.error('❌ Refresh token não encontrado')
+      tokenStorage.clearTokens()
+      return null
+    }
+
+    console.log('🔄 Renovando token de acesso...')
+    
+    // ✅ Chamada para API local que gerencia cookies seguros
+    const response = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      credentials: 'include', // ✅ Incluir cookies httpOnly
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data: TokenResponse = await response.json()
+    const { jwtToken, refreshToken: newRefreshToken } = data
+
+    // ✅ Salvar novos tokens nos cookies seguros
+    tokenStorage.saveTokens(jwtToken, newRefreshToken)
+    
+    console.log('✅ Token renovado com sucesso!')
+    return jwtToken
+    
   } catch (error) {
-    console.error('Error refreshing token:', error)
+    console.error('❌ Erro ao renovar token:', error)
     tokenStorage.clearTokens()
+    // Redirecionar para login se refresh falhar
+    if (typeof window !== 'undefined') {
+      window.location.href = '/auth/login'
+    }
     return null
   }
 }

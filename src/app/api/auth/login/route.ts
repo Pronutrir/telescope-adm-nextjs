@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
         httpOnly: true,  // ✅ Proteção contra XSS
         secure: process.env.NODE_ENV === 'production',  // ✅ HTTPS em produção
         sameSite: 'strict',  // ✅ Proteção CSRF mais forte (mudança de 'lax' para 'strict')
-        maxAge: 60 * 60 * 4, // ✅ 4 horas (reduzido de 7 dias para maior segurança)
+        maxAge: 60 * 60 * 1, // ✅ 1 hora apenas (access token curto para máxima segurança)
         path: '/',
       })
       

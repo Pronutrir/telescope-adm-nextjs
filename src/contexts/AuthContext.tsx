@@ -5,6 +5,7 @@ import { authService } from '@/services/auth'
 import { tokenStorage } from '@/services/token'
 import { axiosConfig } from '@/lib/axios-config'
 import { cleanupService } from '@/services/cleanup'
+import { tokenInterceptor } from '@/services/tokenInterceptor'
 import type { IAuthState, IUser, INotification } from '@/lib/auth-types'
 
 interface AuthContextType extends IAuthState {
@@ -132,6 +133,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     console.log('👤 Usuário obtido:', userResponse.result ? 'Sucesso' : 'Falhou')
 
                     dispatch({ type: 'SET_USER', payload: userResponse.result })
+
+                    // ✅ Iniciar monitoramento automático de renovação de token
+                    tokenInterceptor.scheduleTokenRefresh()
+
                 } catch (error) {
                     console.error('❌ Erro ao inicializar autenticação:', error)
                     tokenStorage.clearTokens()
@@ -222,6 +227,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const userResponse = await authService.getUser()
             console.log('✅ Dados do usuário obtidos, atualizando estado...')
             dispatch({ type: 'SET_USER', payload: userResponse.result })
+
+            // ✅ Iniciar monitoramento automático de renovação de token
+            tokenInterceptor.scheduleTokenRefresh()
 
             setNotification({
                 isOpen: true,
