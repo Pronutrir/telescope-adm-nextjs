@@ -213,9 +213,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 type: 'success'
             })
 
-            // Redirecionar para dashboard após login bem-sucedido
-            console.log('🔄 Redirecionando para /admin/dashboard...')
-            window.location.href = '/admin/dashboard'
+            // Redirecionar para gerenciador de PDFs após login bem-sucedido
+            console.log('🔄 Redirecionando para /admin/gerenciador-pdfs...')
+            window.location.href = '/admin/gerenciador-pdfs'
 
         } catch (error: unknown) {
             let errorMessage = 'Erro inesperado, tente novamente!'

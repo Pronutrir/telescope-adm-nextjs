@@ -65,6 +65,7 @@ const GerenciadorPDFsPage = () => {
     const [ isSelectionMode, setIsSelectionMode ] = useState(false)
     const [ selectedForMerge, setSelectedForMerge ] = useState<Set<string>>(new Set())
     const [ isToggling, setIsToggling ] = useState(false) // Prevent double clicks
+    const [ customPDFOrder, setCustomPDFOrder ] = useState<string[]>([]) // Nova ordem personalizada
 
     // Estados para processo de unificação
     const [ isMerging, setIsMerging ] = useState(false)
@@ -162,6 +163,21 @@ const GerenciadorPDFsPage = () => {
 
         return () => clearTimeout(delayedSearch)
     }, [ searchTerm ])
+
+    // Effect para resetar ordem personalizada quando PDFs mudam significativamente
+    useEffect(() => {
+        // Se a quantidade de PDFs mudou muito ou se é uma nova busca, resetar ordem
+        if (filteredPdfs.length > 0 && customPDFOrder.length > 0) {
+            const currentIds = new Set(filteredPdfs.map(pdf => pdf.id))
+
+            // Se menos de 70% dos IDs personalizados ainda existem, resetar
+            const intersection = customPDFOrder.filter(id => currentIds.has(id))
+            if (intersection.length < customPDFOrder.length * 0.7) {
+                console.log('🔄 Resetando ordem personalizada devido a mudança significativa nos PDFs')
+                setCustomPDFOrder([])
+            }
+        }
+    }, [ filteredPdfs, customPDFOrder ])
 
     const handleSearch = async (term: string) => {
         console.log('🔍 [GerenciadorPDFsPage] Executando busca:', term)
@@ -381,6 +397,12 @@ const GerenciadorPDFsPage = () => {
         setSelectionOrder([])
     }
 
+    // Função para resetar ordem personalizada
+    const resetCustomOrder = () => {
+        console.log('🔄 Resetando ordem personalizada manualmente')
+        setCustomPDFOrder([])
+    }
+
     // Toggle seleção de PDF para merge
     const togglePDFSelection = (pdfId: string) => {
         if (!isSelectionMode || isToggling) return
@@ -422,9 +444,51 @@ const GerenciadorPDFsPage = () => {
         })
     }
 
+    // Função para aplicar ordem personalizada aos PDFs
+    const getOrderedPDFs = (pdfs: PDFItem[]): PDFItem[] => {
+        if (customPDFOrder.length === 0) return pdfs
+
+        // Criar mapa para acesso rápido
+        const pdfMap = new Map(pdfs.map(pdf => [ pdf.id, pdf ]))
+        const orderedPDFs: PDFItem[] = []
+        const usedIds = new Set<string>()
+
+        // Primeiro, adicionar PDFs na ordem personalizada
+        customPDFOrder.forEach(id => {
+            const pdf = pdfMap.get(id)
+            if (pdf) {
+                orderedPDFs.push(pdf)
+                usedIds.add(id)
+            }
+        })
+
+        // Depois, adicionar PDFs que não estão na ordem personalizada (novos PDFs)
+        pdfs.forEach(pdf => {
+            if (!usedIds.has(pdf.id)) {
+                orderedPDFs.push(pdf)
+            }
+        })
+
+        return orderedPDFs
+    }
+
     // Função para reorganizar PDFs
     const handlePDFSort = (sortedPDFs: PDFItem[]) => {
         console.log('🔄 Reordenando PDFs:', sortedPDFs.map(pdf => ({ id: pdf.id, fileName: pdf.fileName })))
+
+        // Salvar a nova ordem personalizada
+        const newCustomOrder = sortedPDFs.map(pdf => pdf.id)
+        setCustomPDFOrder(newCustomOrder)
+        console.log('💾 Nova ordem personalizada salva:', newCustomOrder)
+
+        // Atualizar a ordem de seleção com base na nova ordem dos PDFs
+        const newSelectionOrder = sortedPDFs
+            .filter(pdf => selectedForMerge.has(pdf.id))
+            .map(pdf => pdf.id)
+
+        console.log('🔄 Nova ordem de seleção:', newSelectionOrder)
+        setSelectionOrder(newSelectionOrder)
+
         // Aqui você pode implementar a lógica para salvar a nova ordem no backend
         // Por enquanto, apenas logamos a nova ordem
     }
@@ -799,6 +863,18 @@ const GerenciadorPDFsPage = () => {
                             >
                                 <Layers className="w-5 h-5 navbar-settings-icon" />
                             </Button>
+                            {customPDFOrder.length > 0 && (
+                                <Button
+                                    onClick={resetCustomOrder}
+                                    className={twMerge(
+                                        'p-3',
+                                        isDark ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-red-500 text-white hover:bg-red-600'
+                                    )}
+                                    title="Resetar Ordem Personalizada"
+                                >
+                                    <RefreshCw className="w-5 h-5 navbar-settings-icon" />
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -949,7 +1025,7 @@ const GerenciadorPDFsPage = () => {
                         </div>
                     ) : (
                         <SortableTelescopePDFList
-                            items={filteredPdfs.filter((pdf, index, arr) => arr.findIndex(p => p.id === pdf.id) === index)}
+                            items={getOrderedPDFs(filteredPdfs.filter((pdf, index, arr) => arr.findIndex(p => p.id === pdf.id) === index))}
                             onSortEnd={handlePDFSort}
                             onViewPDF={handleViewPDF}
                             onEditPDF={handleEditPDF}

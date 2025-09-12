@@ -91,7 +91,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
     const renderIcon = (route: Route, size: string = 'size-5') => {
         if (!route.icon) return null
         const IconComponent = route.icon
-        return <IconComponent className={`${size} flex-shrink-0 sidebar-icon`} />
+        return <IconComponent className={`${size} flex-shrink-0 sidebar-icon pdf-icon transition-all duration-300 hover:scale-110 hover:rotate-3`} />
     }
 
     // Background dinâmico baseado no tema
@@ -140,7 +140,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
                         aria-label="Toggle sidebar"
                         title={sidebarCollapsed ? "Expandir menu" : "Recolher menu"}
                     >
-                        <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                        <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300 pdf-icon transition-all duration-300 hover:scale-110 hover:rotate-3" />
                     </button>
                 )}
 
@@ -196,7 +196,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
                                             {!sidebarCollapsed && <span>{route.name}</span>}
                                         </div>
                                         {!sidebarCollapsed && (
-                                            <ChevronDown className={`size-4 transition-transform duration-300 ${isMenuOpen ? 'rotate-180' : ''}`} />
+                                            <ChevronDown className={`size-4 pdf-icon transition-all duration-300 hover:scale-110 ${isMenuOpen ? 'rotate-180' : ''}`} />
                                         )}
                                     </button>
 
@@ -261,15 +261,17 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
             {/* Footer */}
             {!sidebarCollapsed && (
                 <div className="drawer-footer p-4 flex-shrink-0 space-y-3">
-                    {/* Botão de Configuração de Menu */}
-                    <button
-                        onClick={() => setConfigModalOpen(true)}
-                        className="w-full flex items-center justify-center space-x-2 px-3 py-2 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-                        title="Configurar visibilidade do menu"
-                    >
-                        <Settings className="w-4 h-4" />
-                        <span>Configurar Menu</span>
-                    </button>
+                    {/* Botão de Configuração de Menu - Apenas em desenvolvimento */}
+                    {process.env.NODE_ENV === 'development' && (
+                        <button
+                            onClick={() => setConfigModalOpen(true)}
+                            className="w-full flex items-center justify-center space-x-2 px-3 py-2 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-300 hover:scale-[1.02] group"
+                            title="Configurar visibilidade do menu"
+                        >
+                            <Settings className="w-4 h-4 pdf-icon sidebar-icon transition-all duration-300 group-hover:scale-110 group-hover:rotate-12" />
+                            <span className="transition-all duration-300">Configurar Menu</span>
+                        </button>
+                    )}
 
                     {/* Informações do App */}
                     <div className="text-xs text-gray-500 dark:text-gray-400 text-center">

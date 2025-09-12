@@ -10,10 +10,10 @@ export function middleware(request: NextRequest) {
   
   // Verificar se é uma rota pública primeiro
   if (publicRoutes.includes(pathname)) {
-    // Se estiver logado e tentando acessar login/recovery, redirecionar para dashboard
+    // Se estiver logado e tentando acessar login/recovery, redirecionar para gerenciador de PDFs
     // Mas permitir acesso à página de teste
     if (token && pathname !== '/test-pdf') {
-      return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+      return NextResponse.redirect(new URL('/admin/gerenciador-pdfs', request.url))
     }
     return NextResponse.next()
   }
@@ -28,10 +28,10 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Redirecionar raiz para login se não estiver logado, ou dashboard se estiver
+  // Redirecionar raiz para login se não estiver logado, ou gerenciador de PDFs se estiver
   if (pathname === '/') {
     if (token) {
-      return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+      return NextResponse.redirect(new URL('/admin/gerenciador-pdfs', request.url))
     } else {
       return NextResponse.redirect(new URL('/auth/login', request.url))
     }

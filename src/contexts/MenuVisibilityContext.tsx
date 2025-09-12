@@ -23,26 +23,28 @@ interface MenuVisibilityProviderProps {
 }
 
 // Configuração padrão de visibilidade baseada nas rotas
+// Por padrão, apenas "Gerenciador de PDFs" estará habilitado
 const DEFAULT_VISIBILITY = {
-    'Dashboard': true,
-    'Biblioteca de Componentes': true,
-    'Biblioteca de PDFs': true,
-    'Bloqueios': false, // Exemplo de item oculto por padrão
-    'Regra Médica': true,
-    'Usuários': true,
-    'Configurações': true,
-    'Planos de Saúde': true,
-    'Tipos Sanguíneos': true,
-    'Grupos de Usuários': true,
-    'Médicos': true,
-    'Agendamentos': true,
-    'Convênios': true,
-    'Emergências': true,
-    'Chat': true,
-    'Especialidades': true,
-    'Perfil de Usuário': true,
-    'Cadastro de Usuário': true,
-    'FlyonUI Cards': false // Exemplo de item oculto
+    'Dashboard': false,
+    'Biblioteca de Componentes': false,
+    'Biblioteca de PDFs': false,
+    'Gerenciador de PDFs': true, // 🎯 Único item habilitado por padrão
+    'Bloqueios': false,
+    'Regra Médica': false,
+    'Usuários': false,
+    'Configurações': false,
+    'Planos de Saúde': false,
+    'Tipos Sanguíneos': false,
+    'Grupos de Usuários': false,
+    'Médicos': false,
+    'Agendamentos': false,
+    'Convênios': false,
+    'Emergências': false,
+    'Chat': false,
+    'Especialidades': false,
+    'Perfil de Usuário': false,
+    'Cadastro de Usuário': false,
+    'FlyonUI Cards': false
 }
 
 export function MenuVisibilityProvider({ children }: MenuVisibilityProviderProps) {

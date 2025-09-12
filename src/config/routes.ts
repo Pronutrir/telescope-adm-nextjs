@@ -52,7 +52,7 @@ export const routes: Route[] = [
     iconColor: 'Primary',
     layout: '/admin',
     private: false,
-    defaultRoute: true,
+    defaultRoute: false, // 🎯 Removido como rota padrão
     search: true,
     component: 'Dashboard',
     visible: true
@@ -92,6 +92,7 @@ export const routes: Route[] = [
     iconColor: 'Warning',
     layout: '/admin',
     private: false,
+    defaultRoute: true, // 🎯 Definido como nova rota padrão
     search: true,
     component: 'GerenciadorPDFs',
     visible: true
