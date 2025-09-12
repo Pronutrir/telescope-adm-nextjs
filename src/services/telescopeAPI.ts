@@ -12,18 +12,16 @@ class TelescopeAPIService {
         this.timeout = config.timeout
     }
 
-    // Configurar token de autenticação
+    // Configurar token de autenticação (APENAS em memória - segurança)
     setAuthToken(token: string) {
         this.token = token
-        localStorage.setItem('telescope_token', token)
+        // ❌ localStorage REMOVIDO por questões de segurança XSS
+        // localStorage.setItem('telescope_token', token)
     }
 
-    // Obter token armazenado
+    // Obter token armazenado (APENAS da memória - segurança)
     getAuthToken(): string | null {
-        if (this.token) return this.token
-        if (typeof window !== 'undefined') {
-            this.token = localStorage.getItem('telescope_token')
-        }
+        // ✅ Retorna apenas token da memória (não persiste entre sessões)
         return this.token
     }
 
@@ -108,9 +106,10 @@ class TelescopeAPIService {
             console.error('Erro no logout:', error)
         } finally {
             this.token = null
-            if (typeof window !== 'undefined') {
-                localStorage.removeItem('telescope_token')
-            }
+            // ❌ Não precisa limpar localStorage - token não fica mais lá
+            // if (typeof window !== 'undefined') {
+            //     localStorage.removeItem('telescope_token')
+            // }
         }
     }
 

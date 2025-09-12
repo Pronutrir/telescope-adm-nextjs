@@ -90,6 +90,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const initializeAuth = async () => {
             console.log('🚀 Iniciando verificação de autenticação...')
 
+            // ✅ LIMPEZA FORÇADA DE TOKENS RESIDUAIS DO LOCALSTORAGE (SEGURANÇA)
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem('token')
+                localStorage.removeItem('refreshToken')
+                localStorage.removeItem('telescope_token')
+                console.log('🧹 Tokens removidos do localStorage por segurança')
+            }
+
             // Verificar se há dados de sessão inconsistentes e limpar se necessário
             const hasInconsistentData = cleanupService.checkForRemainingData()
             if (hasInconsistentData) {
@@ -103,15 +111,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const token = tokenStorage.getToken()
             const refreshToken = tokenStorage.getRefreshToken()
 
-            console.log('🔍 Tokens encontrados:', {
-                token: token ? `${token.substring(0, 20)}...` : 'null',
-                refreshToken: refreshToken ? `${refreshToken.substring(0, 20)}...` : 'null',
-                isValid: token ? tokenStorage.isTokenValid(token) : false
-            })
+            // ❌ Log sensível removido (segurança)
+            // console.log('🔍 Tokens encontrados:', {
+            //     token: token ? `${token.substring(0, 20)}...` : 'null',
+            //     refreshToken: refreshToken ? `${refreshToken.substring(0, 20)}...` : 'null',
+            //     isValid: token ? tokenStorage.isTokenValid(token) : false
+            // })
 
             if (token && tokenStorage.isTokenValid(token)) {
                 try {
-                    console.log('✅ Token válido, aplicando aos headers e buscando usuário...')
+                    // ❌ Log sensível removido (segurança - produção)
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log('✅ Token válido, aplicando aos headers e buscando usuário...')
+                    }
 
                     // APLICA O TOKEN AOS HEADERS DE TODAS AS INSTÂNCIAS DO AXIOS
                     axiosConfig.setAuthToken(token)
@@ -190,15 +202,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
 
             // Login bem-sucedido
-            console.log('💾 Salvando tokens...', {
-                jwtToken: response.jwtToken ? `${response.jwtToken.substring(0, 20)}...` : 'null',
-                refreshToken: response.refreshToken ? `${response.refreshToken.substring(0, 20)}...` : 'null'
-            })
+            // ❌ Log sensível removido (segurança)
+            // console.log('💾 Salvando tokens...', {
+            //     jwtToken: response.jwtToken ? `${response.jwtToken.substring(0, 20)}...` : 'null',
+            //     refreshToken: response.refreshToken ? `${response.refreshToken.substring(0, 20)}...` : 'null'
+            // })
 
             tokenStorage.saveTokens(response.jwtToken, response.refreshToken)
 
             // APLICA O TOKEN AOS HEADERS DE TODAS AS INSTÂNCIAS DO AXIOS
-            console.log('🔗 Aplicando token aos headers do Axios...')
+            // ❌ Log sensível removido (segurança - produção)
+            if (process.env.NODE_ENV === 'development') {
+                console.log('🔗 Aplicando token aos headers do Axios...')
+            }
             axiosConfig.setAuthToken(response.jwtToken)
 
             // Obter dados completos do usuário

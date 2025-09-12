@@ -60,7 +60,15 @@ ApiAuth.interceptors.response.use(
     
     if (error.response?.status === 401) {
       sessionStorage.clear()
-      localStorage.clear()
+      // ❌ localStorage.clear() removido - não limpar dados não-sensíveis automaticamente
+      // localStorage.clear()
+      
+      // ✅ Limpar apenas cookies de autenticação
+      const cookiesToClear = ['token', 'refreshToken', 'sessionId', 'authState']
+      cookiesToClear.forEach(cookieName => {
+        document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+      })
+      
       window.location.href = '/auth/login'
       return Promise.reject({
         ...error,
@@ -96,13 +104,15 @@ export const authService = {
       console.error('Erro ao fazer logout na API:', error)
     }
     
-    // Limpar tokens do localStorage e sessionStorage
-    localStorage.removeItem('token')
-    localStorage.removeItem('refreshToken')
+    // ❌ Tokens não ficam mais em localStorage (segurança)
+    // localStorage.removeItem('token')
+    // localStorage.removeItem('refreshToken')
+    
+    // ✅ Limpar apenas sessionStorage (dados temporários)
     sessionStorage.clear()
     
-    // Limpar dados específicos da aplicação
-    const appKeys = ['user', 'userPreferences', 'appSettings', 'lastActivity', 'navigationState']
+    // ✅ Limpar apenas dados não-sensíveis da aplicação
+    const appKeys = ['userPreferences', 'appSettings', 'lastActivity', 'navigationState']
     appKeys.forEach(key => {
       localStorage.removeItem(key)
     })

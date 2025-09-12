@@ -69,15 +69,26 @@ export async function POST(request: NextRequest) {
     // Criar resposta com cookie
     const nextResponse = NextResponse.json(data)
     
-    // Se o login foi bem-sucedido e temos um token, definir o cookie
+    // Se o login foi bem-sucedido e temos um token, definir o cookie SEGURO
     if (data?.jwtToken) {
       nextResponse.cookies.set('token', data.jwtToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7, // 7 dias
+        httpOnly: true,  // ✅ Proteção contra XSS
+        secure: process.env.NODE_ENV === 'production',  // ✅ HTTPS em produção
+        sameSite: 'strict',  // ✅ Proteção CSRF mais forte (mudança de 'lax' para 'strict')
+        maxAge: 60 * 60 * 4, // ✅ 4 horas (reduzido de 7 dias para maior segurança)
         path: '/',
       })
+      
+      // Também definir refresh token se disponível
+      if (data?.refreshToken) {
+        nextResponse.cookies.set('refreshToken', data.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 60 * 60 * 24 * 7, // 7 dias para refresh token
+          path: '/',
+        })
+      }
     }
 
     return nextResponse

@@ -8,44 +8,68 @@ interface DecodedToken {
   [key: string]: unknown
 }
 
+// Função utilitária para ler cookies do lado do cliente
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null
+  
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) {
+    const cookieValue = parts.pop()?.split(';').shift()
+    return cookieValue || null
+  }
+  return null
+}
+
 export const tokenStorage = {
-  // Salvar tokens
+  // Salvar tokens (APENAS em cookies seguros - localStorage removido por segurança)
   saveTokens(token: string, refreshToken: string): void {
-    // Salvar no localStorage
-    localStorage.setItem('token', token)
-    localStorage.setItem('refreshToken', refreshToken)
+    // ❌ localStorage REMOVIDO por questões de segurança XSS
+    // localStorage.setItem('token', token)
+    // localStorage.setItem('refreshToken', refreshToken)
     
-    // Salvar também nos cookies para o middleware
-    document.cookie = `token=${token}; path=/; secure; samesite=strict`
-    document.cookie = `refreshToken=${refreshToken}; path=/; secure; samesite=strict`
+    // ✅ Salvar APENAS nos cookies seguros
+    const isProduction = process.env.NODE_ENV === 'production'
+    const cookieOptions = `path=/; ${isProduction ? 'secure; ' : ''}samesite=strict; max-age=${4 * 60 * 60}` // 4 horas
+    
+    document.cookie = `token=${token}; ${cookieOptions}`
+    document.cookie = `refreshToken=${refreshToken}; ${cookieOptions}`
   },
 
-  // Obter tokens
+  // Obter tokens (APENAS dos cookies seguros)
   getToken(): string | null {
-    return localStorage.getItem('token')
+    // ❌ localStorage REMOVIDO por questões de segurança
+    // return localStorage.getItem('token')
+    
+    // ✅ Ler APENAS dos cookies seguros
+    return getCookie('token')
   },
 
   getRefreshToken(): string | null {
-    return localStorage.getItem('refreshToken')
+    // ❌ localStorage REMOVIDO por questões de segurança  
+    // return localStorage.getItem('refreshToken')
+    
+    // ✅ Ler APENAS dos cookies seguros
+    return getCookie('refreshToken')
   },
 
   // Limpar tokens
   clearTokens(): void {
-    // Remover do localStorage
-    localStorage.removeItem('token')
-    localStorage.removeItem('refreshToken')
+    // ❌ localStorage REMOVIDO - não armazenar mais tokens sensíveis aqui
+    // localStorage.removeItem('token')
+    // localStorage.removeItem('refreshToken')
     
-    // Limpar todo o sessionStorage
+    // ✅ Manter limpeza do sessionStorage (dados temporários OK)
     sessionStorage.clear()
     
-    // Limpar todo o localStorage relacionado à aplicação
-    const keysToRemove = ['user', 'userPreferences', 'appSettings', 'lastActivity']
+    // ✅ Limpar apenas dados não-sensíveis do localStorage
+    const keysToRemove = ['userPreferences', 'appSettings', 'lastActivity']
     keysToRemove.forEach(key => localStorage.removeItem(key))
     
-    // Remover também dos cookies com diferentes configurações para garantir limpeza
+    // ✅ Limpar cookies de autenticação com todas as combinações para garantir remoção
     const cookiesToClear = ['token', 'refreshToken', 'sessionId', 'authState']
     cookiesToClear.forEach(cookieName => {
-      // Limpar com diferentes combinações de path e domain
+      // Limpar com diferentes combinações de path e domain para garantir remoção completa
       document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
       document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure`
       document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; samesite=strict`

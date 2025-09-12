@@ -5,9 +5,15 @@ export const cleanupService = {
   async performCompleteCleanup(): Promise<void> {
 
     try {
-      // 1. Limpar localStorage completamente
-      const localStorageKeys = Object.keys(localStorage)
-      localStorageKeys.forEach(key => {
+      // ❌ Não limpar localStorage completamente - preservar dados não-sensíveis
+      // const localStorageKeys = Object.keys(localStorage)
+      // localStorageKeys.forEach(key => {
+      //   localStorage.removeItem(key)
+      // })
+      
+      // ✅ Limpar dados específicos e FORÇAR remoção de tokens residuais
+      const sensitiveKeys = ['user', 'authState', 'sessionData', 'token', 'refreshToken', 'telescope_token']
+      sensitiveKeys.forEach(key => {
         localStorage.removeItem(key)
       })
       
@@ -73,21 +79,29 @@ export const cleanupService = {
   // Limpeza específica apenas dos dados de autenticação
   clearAuthData(): void {
     
-    // Tokens e dados de auth
+    // ❌ Tokens não ficam mais em localStorage (segurança)
+    // ✅ Dados de auth específicos (sem tokens sensíveis)
     const authKeys = [
-      'token',
-      'refreshToken',
       'user',
-      'userSession',
+      'userSession', 
       'authState',
       'lastLogin',
       'sessionExpiry'
     ]
     
+    // Limpar dados específicos e FORÇAR remoção de tokens (incluindo residuais)
     authKeys.forEach(key => {
       localStorage.removeItem(key)
-      sessionStorage.removeItem(key)
     })
+    
+    // ✅ LIMPEZA FORÇADA de tokens que possam ter sido criados por código antigo
+    const tokenKeys = ['token', 'refreshToken', 'telescope_token', 'TOKEN_AUTH', 'REFRESH_TOKEN_AUTH']
+    tokenKeys.forEach(key => {
+      localStorage.removeItem(key)
+    })
+    
+    // Limpar sessionStorage (dados temporários OK)
+    sessionStorage.clear()
     
     // Cookies de autenticação
     const authCookies = ['token', 'refreshToken', 'sessionId', 'authState', 'userSession']
@@ -100,9 +114,8 @@ export const cleanupService = {
 
   // Verificar se ainda existem dados de sessão
   checkForRemainingData(): boolean {
+    // ❌ Não verificar mais tokens em localStorage (segurança)
     const hasLocalStorageAuth = !!(
-      localStorage.getItem('token') ||
-      localStorage.getItem('refreshToken') ||
       localStorage.getItem('user')
     )
     
