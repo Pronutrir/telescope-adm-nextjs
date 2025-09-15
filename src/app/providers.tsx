@@ -5,6 +5,8 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { LayoutProvider } from '@/contexts/LayoutContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
+import { NotificationProvider } from '@/contexts/NotificationContext'
+import NotificationContainer from '@/components/ui/NotificationContainer'
 
 export function Providers({ children }: { children: React.ReactNode }) {
     const [ queryClient ] = useState(() => new QueryClient({
@@ -22,17 +24,32 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <ThemeProvider>
                 <AuthProvider>
                     <LayoutProvider>
-                        {children}
-                        <Toaster
-                            position="top-right"
-                            toastOptions={{
-                                duration: 4000,
-                                style: {
-                                    background: '#363636',
-                                    color: '#fff',
-                                },
+                        <NotificationProvider
+                            initialConfig={{
+                                position: 'top-right',
+                                maxNotifications: 5,
+                                defaultDuration: 5000,
+                                defaultDismissible: true,
+                                enableAnimations: true
                             }}
-                        />
+                        >
+                            {children}
+
+                            {/* Sistema de Notificações Global */}
+                            <NotificationContainer />
+
+                            {/* Manter Toaster para compatibilidade (pode ser removido futuramente) */}
+                            <Toaster
+                                position="bottom-right"
+                                toastOptions={{
+                                    duration: 4000,
+                                    style: {
+                                        background: '#363636',
+                                        color: '#fff',
+                                    },
+                                }}
+                            />
+                        </NotificationProvider>
                     </LayoutProvider>
                 </AuthProvider>
             </ThemeProvider>

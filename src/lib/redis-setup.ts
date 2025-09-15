@@ -4,10 +4,10 @@
  * Script para inicializar e configurar Redis para sessões
  */
 
-const Redis = require('ioredis')
+import Redis, { Redis as RedisType } from 'ioredis'
 
 class RedisSetup {
-  private redis: Redis
+  private redis: RedisType
 
   constructor() {
     this.redis = new Redis({
@@ -101,37 +101,36 @@ class RedisSetup {
 }
 
 // 🚀 Script de linha de comando
-if (require.main === module) {
+async function main() {
   const setup = new RedisSetup()
+  const args = process.argv.slice(2)
+  const command = args[0]
   
-  async function main() {
-    const args = process.argv.slice(2)
-    const command = args[0]
-    
-    switch (command) {
-      case 'test':
-        await setup.testConnection()
-        break
-      case 'clear':
-        await setup.clearAllSessions()
-        break
-      case 'stats':
-        await setup.getStats()
-        break
-      case 'setup-prod':
-        await setup.setupProduction()
-        break
-      default:
-        console.log('📋 Comandos disponíveis:')
-        console.log('   npm run redis:test     - Testar conexão')
-        console.log('   npm run redis:clear    - Limpar sessões')  
-        console.log('   npm run redis:stats    - Ver estatísticas')
-        console.log('   npm run redis:setup    - Configurar produção')
-    }
-    
-    await setup.disconnect()
+  switch (command) {
+    case 'test':
+      await setup.testConnection()
+      break
+    case 'clear':
+      await setup.clearAllSessions()
+      break
+    case 'stats':
+      await setup.getStats()
+      break
+    case 'setup-prod':
+      await setup.setupProduction()
+      break
+    default:
+      console.log('📋 Comandos disponíveis:')
+      console.log('   npm run redis:test     - Testar conexão')
+      console.log('   npm run redis:clear    - Limpar sessões')  
+      console.log('   npm run redis:stats    - Ver estatísticas')
+      console.log('   npm run redis:setup    - Configurar produção')
   }
   
+  await setup.disconnect()
+}
+
+if (require.main === module) {
   main().catch(console.error)
 }
 

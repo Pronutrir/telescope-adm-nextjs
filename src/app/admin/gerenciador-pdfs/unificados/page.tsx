@@ -26,12 +26,13 @@ import { twMerge } from 'tailwind-merge'
 import { UnifiedPDFItem, ViewMode, PDFEditState, PDFItem } from '@/types/pdf'
 import PDFManagerService, { SharePointPdfItem } from '@/services/pdfManager/pdfManagerService'
 import PDFService from '@/services/pdf/pdfService'
-import { toast } from 'react-hot-toast'
+import { useNotify } from '@/contexts/NotificationContext'
 import { TelescopePDFCard } from '@/components/pdf/TelescopePDFCard'
 
 const UnificadosGerenciadorPDFsPage = () => {
     const { isDark } = useTheme()
     const { isMobile } = useLayout()
+    const notify = useNotify()
 
     // Função para converter SharePointPdfItem para UnifiedPDFItem
     const mapToUnifiedPDFItem = (item: SharePointPdfItem): UnifiedPDFItem => {
@@ -177,7 +178,15 @@ const UnificadosGerenciadorPDFsPage = () => {
             window.open(pdf.url, '_blank')
         } else {
             console.warn('URL do PDF não disponível:', pdf)
-            alert('URL do PDF não está disponível para visualização.')
+            notify.warning('URL do PDF não está disponível para visualização.', {
+                title: 'PDF Indisponível',
+                duration: 5000,
+                actions: [ {
+                    label: 'Entendi',
+                    onClick: () => { },
+                    variant: 'ghost'
+                } ]
+            })
         }
     }
 
@@ -271,7 +280,15 @@ const UnificadosGerenciadorPDFsPage = () => {
         const selectedPages = editState.pages.filter(page => page.selected)
 
         if (selectedPages.length === 0) {
-            alert('Selecione pelo menos uma página para manter no PDF')
+            notify.warning('Selecione pelo menos uma página para manter no PDF', {
+                title: 'Seleção Obrigatória',
+                duration: 5000,
+                actions: [ {
+                    label: 'OK',
+                    onClick: () => { },
+                    variant: 'primary'
+                } ]
+            })
             return
         }
 
@@ -289,7 +306,15 @@ const UnificadosGerenciadorPDFsPage = () => {
             const response = await PDFService.editPDF(editData)
 
             if (response.success) {
-                alert(response.message || `PDF editado com sucesso! ${selectedPages.length} páginas mantidas.`)
+                notify.success(response.message || `PDF editado com sucesso! ${selectedPages.length} páginas mantidas.`, {
+                    title: 'Edição Concluída',
+                    duration: 6000,
+                    actions: [ {
+                        label: 'Ver Lista',
+                        onClick: () => { },
+                        variant: 'ghost'
+                    } ]
+                })
                 closeEditModal()
 
                 // Recarregar a lista de PDFs unificados
@@ -297,11 +322,27 @@ const UnificadosGerenciadorPDFsPage = () => {
                 await loadUnifiedPdfs()
 
             } else {
-                alert(response.message || 'Erro ao editar PDF')
+                notify.error(response.message || 'Erro ao editar PDF', {
+                    title: 'Falha na Edição',
+                    duration: 6000,
+                    actions: [ {
+                        label: 'Tentar novamente',
+                        onClick: () => handleSaveEdit(),
+                        variant: 'primary'
+                    } ]
+                })
             }
         } catch (error) {
             console.error('Erro ao editar PDF:', error)
-            alert(error instanceof Error ? error.message : 'Erro ao editar PDF')
+            notify.error(error instanceof Error ? error.message : 'Erro ao editar PDF', {
+                title: 'Erro Inesperado',
+                duration: 6000,
+                actions: [ {
+                    label: 'Tentar novamente',
+                    onClick: () => handleSaveEdit(),
+                    variant: 'primary'
+                } ]
+            })
 
             // Mesmo em caso de erro, recarregar a lista para garantir consistência
             try {
@@ -336,12 +377,23 @@ const UnificadosGerenciadorPDFsPage = () => {
 
         if (numeroAtendimento) {
             console.log('✅ Número de atendimento extraído:', numeroAtendimento)
-            toast.loading('🔍 Buscando conta do paciente...')
+            notify.info('🔍 Buscando conta do paciente...', {
+                title: 'Processando',
+                duration: 3000
+            })
             // Buscar automaticamente a conta do paciente
             searchContasPaciente(numeroAtendimento)
         } else {
             console.warn('⚠️ Não foi possível extrair número de atendimento do nome do arquivo:', pdf.fileName)
-            toast.error('Número de atendimento não encontrado no nome do arquivo')
+            notify.error('Número de atendimento não encontrado no nome do arquivo', {
+                title: 'Erro de Processamento',
+                duration: 5000,
+                actions: [ {
+                    label: 'Entendi',
+                    onClick: () => { },
+                    variant: 'ghost'
+                } ]
+            })
         }
     }
 
@@ -500,9 +552,15 @@ const UnificadosGerenciadorPDFsPage = () => {
                 }))
 
                 if (contasEncontradas.length === 1) {
-                    toast.success(`✅ Conta encontrada: ${contasEncontradas[ 0 ].contaPaciente}`)
+                    notify.success(`Conta encontrada: ${contasEncontradas[ 0 ].contaPaciente}`, {
+                        title: 'Busca Concluída',
+                        duration: 4000
+                    })
                 } else {
-                    toast.success(`✅ ${contasEncontradas.length} contas encontradas para seleção`)
+                    notify.success(`${contasEncontradas.length} contas encontradas para seleção`, {
+                        title: 'Múltiplas Contas',
+                        duration: 4000
+                    })
                 }
             } else {
                 console.warn(`⚠️ Conta não encontrada para atendimento: ${numeroAtendimento}`)
@@ -514,7 +572,15 @@ const UnificadosGerenciadorPDFsPage = () => {
                     isSearching: false
                 }))
 
-                toast.error(`❌ Nenhuma conta encontrada para o atendimento: ${numeroAtendimento}`)
+                notify.error(`Nenhuma conta encontrada para o atendimento: ${numeroAtendimento}`, {
+                    title: 'Conta Não Encontrada',
+                    duration: 6000,
+                    actions: [ {
+                        label: 'Tentar novamente',
+                        onClick: () => searchContasPaciente(numeroAtendimento),
+                        variant: 'primary'
+                    } ]
+                })
             }
 
         } catch (error) {
@@ -531,7 +597,15 @@ const UnificadosGerenciadorPDFsPage = () => {
                 selectedConta: '',
                 isSearching: false
             }))
-            toast.error('❌ Erro ao buscar conta do paciente')
+            notify.error('Erro ao buscar conta do paciente', {
+                title: 'Erro de Conexão',
+                duration: 6000,
+                actions: [ {
+                    label: 'Tentar novamente',
+                    onClick: () => tasyModal.selectedPdf && openTasyModal(tasyModal.selectedPdf),
+                    variant: 'primary'
+                } ]
+            })
         }
     }
 
@@ -548,19 +622,29 @@ const UnificadosGerenciadorPDFsPage = () => {
 
         try {
             // Etapa 1: Download do PDF do SharePoint
-            downloadToastId = toast.loading(
-                `📥 Fazendo download do PDF "${tasyModal.selectedPdf.fileName}" do SharePoint...`
+            notify.info(
+                `Fazendo download do PDF "${tasyModal.selectedPdf.fileName}" do SharePoint...`,
+                {
+                    title: 'Download em Andamento',
+                    duration: 0 // Não auto-hide durante o processo
+                }
             )
 
             const caminhoArquivo = await downloadPdfFromSharePoint(tasyModal.selectedPdf)
 
-            // Remover toast de download e mostrar sucesso
-            toast.dismiss(downloadToastId)
-            toast.success('✅ Download concluído com sucesso!')
+            // Mostrar sucesso do download
+            notify.success('Download concluído com sucesso!', {
+                title: 'Download Completo',
+                duration: 3000
+            })
 
             // Etapa 2: Envio para TASY
-            sendToastId = toast.loading(
-                `📤 Enviando PDF para a conta médica ${contaSelecionada.contaPaciente} no TASY...`
+            notify.info(
+                `Enviando PDF para a conta médica ${contaSelecionada.contaPaciente} no TASY...`,
+                {
+                    title: 'Enviando para TASY',
+                    duration: 0 // Não auto-hide durante o processo
+                }
             )
 
             // Chamada real para a API do TASY
@@ -576,15 +660,20 @@ const UnificadosGerenciadorPDFsPage = () => {
                 })
             })
 
-            // Remover toast de envio
-            toast.dismiss(sendToastId)
-
             if (response.ok) {
                 const result = await response.json()
 
-                toast.success(
-                    `🎉 PDF "${tasyModal.selectedPdf.fileName}" enviado com sucesso para a conta médica ${contaSelecionada.contaPaciente} no TASY!`,
-                    { duration: 6000 }
+                notify.success(
+                    `PDF "${tasyModal.selectedPdf.fileName}" enviado com sucesso para a conta médica ${contaSelecionada.contaPaciente} no TASY!`,
+                    {
+                        title: 'Envio Concluído',
+                        duration: 8000,
+                        actions: [ {
+                            label: 'Ver Detalhes',
+                            onClick: () => console.log('Detalhes:', result),
+                            variant: 'ghost'
+                        } ]
+                    }
                 )
 
                 console.log('✅ Processo completo:', {
@@ -597,31 +686,51 @@ const UnificadosGerenciadorPDFsPage = () => {
                 const errorData = await response.json()
                 console.error('❌ Erro da API TASY:', errorData)
 
-                toast.error(
-                    `❌ Erro ao enviar PDF para o TASY: ${errorData.error || 'Erro desconhecido'}`,
-                    { duration: 5000 }
+                notify.error(
+                    `Erro ao enviar PDF para o TASY: ${errorData.error || 'Erro desconhecido'}`,
+                    {
+                        title: 'Falha no Envio',
+                        duration: 8000,
+                        actions: [ {
+                            label: 'Tentar novamente',
+                            onClick: () => sendPdfToTasy(),
+                            variant: 'primary'
+                        } ]
+                    }
                 )
             }
 
         } catch (error) {
             console.error('❌ Erro no processo de envio:', error)
 
-            // Limpar toasts pendentes
-            if (downloadToastId) toast.dismiss(downloadToastId)
-            if (sendToastId) toast.dismiss(sendToastId)
-
             // Determinar se o erro foi no download ou no envio
             const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
 
             if (errorMessage.includes('download') || errorMessage.includes('SharePoint')) {
-                toast.error(
-                    `❌ Erro no download do SharePoint: ${errorMessage}`,
-                    { duration: 6000 }
+                notify.error(
+                    `Erro no download do SharePoint: ${errorMessage}`,
+                    {
+                        title: 'Falha no Download',
+                        duration: 8000,
+                        actions: [ {
+                            label: 'Tentar novamente',
+                            onClick: () => sendPdfToTasy(),
+                            variant: 'primary'
+                        } ]
+                    }
                 )
             } else {
-                toast.error(
-                    `❌ Erro ao processar envio: ${errorMessage}`,
-                    { duration: 6000 }
+                notify.error(
+                    `Erro ao processar envio: ${errorMessage}`,
+                    {
+                        title: 'Erro no Processamento',
+                        duration: 8000,
+                        actions: [ {
+                            label: 'Tentar novamente',
+                            onClick: () => sendPdfToTasy(),
+                            variant: 'primary'
+                        } ]
+                    }
                 )
             }
         } finally {
