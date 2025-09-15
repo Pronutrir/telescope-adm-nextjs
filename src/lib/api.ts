@@ -60,7 +60,7 @@ Api.interceptors.response.use(
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
-        window.location.href = '/auth/login'
+        window.location.href = '/auth/server-login'
       }
     }
     
@@ -78,7 +78,7 @@ ApiNotify.interceptors.response.use(
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
-        window.location.href = '/auth/login'
+        window.location.href = '/auth/server-login'
       }
     }
     

@@ -69,7 +69,7 @@ ApiAuth.interceptors.response.use(
         document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
       })
       
-      window.location.href = '/auth/login'
+      window.location.href = '/auth/server-login'
       return Promise.reject({
         ...error,
         message: 'Sessão expirada, faça login novamente'

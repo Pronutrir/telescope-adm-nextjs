@@ -49,12 +49,35 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
 
         setIsLoggingOut(true)
         try {
-            console.log('🚪 Iniciando logout do usuário...')
-            await logout()
+            console.log('🚪 Iniciando logout server-side...')
+
+            // Chama a API server-side para destruir a sessão Redis
+            const response = await fetch('/api/auth/session', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+
+            if (response.ok) {
+                console.log('✅ Sessão server-side destruída com sucesso!')
+
+                // Limpar dados do contexto de autenticação se existir
+                if (logout) {
+                    await logout()
+                }
+            } else {
+                console.warn('⚠️ Erro ao destruir sessão server-side, mas continuando logout...')
+            }
+
+            // Redirecionar para tela de login server-side
+            console.log('🔄 Redirecionando para login server-side...')
+            window.location.replace('/auth/server-login')
+
         } catch (error) {
-            console.error('Erro ao fazer logout:', error)
-            // Em caso de erro, ainda assim limpar dados locais
-            window.location.replace('/auth/login')
+            console.error('❌ Erro no logout server-side:', error)
+            // Em caso de erro, ainda assim redirecionar para login
+            window.location.replace('/auth/server-login')
         } finally {
             setIsLoggingOut(false)
         }

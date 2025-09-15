@@ -151,7 +151,7 @@ export async function refreshToken(): Promise<string | null> {
     tokenStorage.clearTokens()
     // Redirecionar para login se refresh falhar
     if (typeof window !== 'undefined') {
-      window.location.href = '/auth/login'
+      window.location.href = '/auth/server-login'
     }
     return null
   }

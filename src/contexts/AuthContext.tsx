@@ -296,7 +296,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Aguardar um momento para garantir que tudo foi limpo
         setTimeout(() => {
             // Redirecionar com replace para não manter histórico
-            window.location.replace('/auth/login')
+            window.location.replace('/auth/server-login')
         }, 100)
     }
 
