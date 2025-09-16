@@ -1,5 +1,5 @@
 // Serviço para gerenciar chamadas da API interna do Telescope
-import { API_CONFIG, getApiConfig } from '@/config/env'
+import { getApiConfig } from '@/config/env'
 
 class TelescopeAPIService {
     private baseURL: string
