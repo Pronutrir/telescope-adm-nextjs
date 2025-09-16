@@ -1,9 +1,11 @@
 /**
  * Serviço para integração com UserShield API
  * Baseado no telescopeContext.tsx da aplicação anterior
+ * Agora com cache seguro de tokens via Redis
  */
 import { SERVICES_CONFIG } from '@/config/env'
 import { tokenStorage } from './token'
+import { tokenCacheService } from './tokenCacheService'
 
 export interface UserShieldUser {
   id: string
@@ -62,8 +64,11 @@ class UserShieldService {
       ? `/api/test/usershield`
       : `/api/usershield/${endpoint}`
     
-    // Obter token de acesso armazenado
-    const accessToken = tokenStorage.getToken()
+    // Obter token do cache seguro (Redis) primeiro, depois fallback para localStorage
+    let accessToken = await tokenCacheService.getToken('usershield')
+    if (!accessToken) {
+      accessToken = tokenStorage.getToken()
+    }
     
     const headers: HeadersInit = {
       'Content-Type': 'application/json',

@@ -51,15 +51,33 @@ export function useUserShield(): UseUserShieldReturn {
   const [errorRoles, setErrorRoles] = useState<string | null>(null)
 
   /**
-   * Listar usuários do UserShield
+   * Listar usuários do UserShield (com cache otimizado)
    */
   const listarUsuarios = useCallback(async () => {
     setLoadingUsuarios(true)
     setErrorUsuarios(null)
     
     try {
-      const data = await userShieldService.listarUsuarios()
-      setUsuarios(data)
+      // Usar API com cache de tokens para melhor performance
+      const response = await fetch('/api/usershield/usuarios-cached', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      if (data.success) {
+        setUsuarios(data.result || [])
+        console.log('✅ Usuários carregados com cache:', data.result?.length || 0)
+      } else {
+        throw new Error(data.error || 'Erro desconhecido')
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro ao carregar usuários'
       setErrorUsuarios(errorMessage)
