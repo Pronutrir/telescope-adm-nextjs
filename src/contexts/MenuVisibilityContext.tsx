@@ -43,8 +43,7 @@ const DEFAULT_VISIBILITY = {
     'Chat': false,
     'Especialidades': false,
     'Perfil de Usuário': false,
-    'Cadastro de Usuário': false,
-    'FlyonUI Cards': false
+    'Cadastro de Usuário': false
 }
 
 export function MenuVisibilityProvider({ children }: MenuVisibilityProviderProps) {

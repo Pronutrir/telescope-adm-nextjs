@@ -1,22 +1,16 @@
 import {
   BarChart3,
   Shield,
-  Gavel,
   Users,
-  Settings,
   Hospital,
-  Droplets,
-  UsersRound,
   AlarmClock,
   MessageSquare,
   Star,
   UserPlus,
   User,
-  Siren,
   MessageCircle,
   Stethoscope,
   Layout,
-  TrendingUp,
   FileText
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -71,19 +65,6 @@ export const routes: Route[] = [
     visible: true
   },
 
-  // Biblioteca de PDFs - Gerenciamento de documentos
-  {
-    path: '/biblioteca-pdfs',
-    name: 'Biblioteca de PDFs',
-    icon: FileText,
-    iconColor: 'Success',
-    layout: '/admin',
-    private: false,
-    search: true,
-    component: 'BibliotecaPDFs',
-    visible: true
-  },
-
   // Gerenciador de PDFs - Sistema duplicado para gerenciamento avançado
   {
     path: '/gerenciador-pdfs',
@@ -112,20 +93,6 @@ export const routes: Route[] = [
     visible: false // Exemplo: opção oculta por padrão
   },
 
-  // Regra Médica (Primeira Consulta)
-  {
-    path: '/firstDoctorConsultationRule',
-    name: 'Regra Médica',
-    icon: Gavel,
-    iconColor: 'Primary',
-    layout: '/admin',
-    private: false,
-    search: true,
-    component: 'firstDoctorConsultationRule',
-    roles: ['default_fullstackdev', 'Gerencial', 'Administrador'],
-    visible: true
-  },
-
   // Médicos Exclusivos
   {
     path: '/medicosExclusivos',
@@ -139,45 +106,6 @@ export const routes: Route[] = [
     roles: ['default_fullstackdev', 'Gerencial', 'Administrador']
   },
 
-  // Gerenciador
-  {
-    path: '/gerenciador',
-    name: 'Gerenciador',
-    icon: Settings,
-    iconColor: 'Primary',
-    layout: '/admin',
-    private: false,
-    search: true,
-    component: 'Gerenciador',
-    roles: ['default_fullstackdev', 'Administrador']
-  },
-
-  // Notify Dashboards (Power BI)
-  {
-    path: '/notifydashboard',
-    name: 'Notify Dashboards',
-    icon: BarChart3,
-    iconColor: 'Primary',
-    layout: '/admin',
-    private: false,
-    search: true,
-    component: 'NotifyDashboards',
-    roles: ['default_fullstackdev', 'Administrador', 'Diretor', 'Gerencial']
-  },
-
-  // Alertas Escala NEWS
-  {
-    path: '/escalaNews',
-    name: 'Alertas Escala NEWS',
-    icon: Siren,
-    iconColor: 'Primary',
-    layout: '/admin',
-    private: false,
-    search: true,
-    component: 'EscalaNews',
-    roles: ['default_fullstackdev', 'Doctors', 'Nursing', 'Triagem']
-  },
-
   // Evolução Médica
   {
     path: '/evolucaoMedica',
@@ -189,32 +117,6 @@ export const routes: Route[] = [
     search: true,
     component: 'EvolucaoMedica',
     roles: ['default_fullstackdev', 'Doctors', 'Nursing', 'Triagem']
-  },
-
-  // Agendas de Quimio
-  {
-    path: '/agendaQuimioterapia',
-    name: 'Agendas de Quimio',
-    icon: Droplets,
-    iconColor: 'Primary',
-    layout: '/admin',
-    private: false,
-    search: true,
-    component: 'AgendaQuimioterapia',
-    roles: ['Doctors', 'Nursing', 'default_fullstackdev']
-  },
-
-  // Acompanhantes
-  {
-    path: '/acompanhantes',
-    name: 'Acompanhantes',
-    icon: UsersRound,
-    iconColor: 'Primary',
-    layout: '/admin',
-    private: false,
-    search: true,
-    component: 'AcompanhantesPacientes',
-    roles: ['Gerencial', 'Administrador', 'Diretor', 'default_fullstackdev']
   },
 
   // Stopwatch H
