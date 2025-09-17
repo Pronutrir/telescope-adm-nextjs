@@ -1,59 +1,56 @@
 /**
- * API Route para UserShield com dados reais
+ * API Route UNIFICADA para UserShield com Redis Cache
  * GET /api/usershield/usuarios
+ * 
+ * Features:
+ * - Cache de tokens via Redis (55 minutos TTL)
+ * - Login automático apenas quando necessário
+ * - Renovação proativa de tokens próximos ao vencimento
+ * - Fallback robusto para cache em memória
  */
 import { NextRequest, NextResponse } from 'next/server'
+import { tokenCacheService } from '@/services/tokenCacheService'
 
 export async function GET(request: NextRequest) {
   // URLs da UserShield API a partir de variáveis de ambiente
   const USERSHIELD_BASE_URL = process.env.NEXT_PUBLIC_USERSHIELD_URL || 'https://servicesapp.pronutrir.com.br/usershield/api/'
   const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}v1/Auth/login`
   const USERSHIELD_USERS_URL = `${USERSHIELD_BASE_URL}v1/Usuarios`
+  
   try {
-    console.log('🚀 API Route UserShield: Iniciada')
+    console.log('🚀 API Route UserShield UNIFICADA: Iniciada')
     
     // Validar se as variáveis de ambiente estão definidas
     if (!process.env.USERSHIELD_USERNAME || !process.env.USERSHIELD_PASSWORD) {
       throw new Error('Credenciais UserShield não configuradas nas variáveis de ambiente')
     }
     
-    // Obter token do header Authorization ou cookie
-    const authHeader = request.headers.get('authorization')
-    let jwtToken = authHeader?.replace('Bearer ', '') || request.cookies.get('access_token')?.value
+    // Verificar se há token válido no cache Redis primeiro
+    let jwtToken = await tokenCacheService.getToken('usershield')
     
-    // Se não há token ou se falhar, fazer login na UserShield
     if (!jwtToken) {
-      console.log('🔐 Token não encontrado, fazendo login na UserShield...')
+      console.log('🔐 Nenhum token no cache, fazendo login...')
+      jwtToken = await performLogin(USERSHIELD_LOGIN_URL)
       
-      const loginResponse = await fetch(USERSHIELD_LOGIN_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          Username: process.env.USERSHIELD_USERNAME,
-          Password: process.env.USERSHIELD_PASSWORD
-        })
-      })
-
-      if (!loginResponse.ok) {
-        throw new Error(`Login falhou: ${loginResponse.status}`)
-      }
-
-      const loginData = await loginResponse.json()
-      jwtToken = loginData.jwtToken
-
       if (!jwtToken) {
-        throw new Error('Token não encontrado na resposta de login')
+        throw new Error('Falha na autenticação')
       }
-      
-      console.log('✅ Login realizado, token obtido')
     } else {
-      console.log('✅ Token encontrado nos headers/cookies')
+      console.log('✅ Token encontrado no cache Redis')
+      
+      // Verificar se o token está próximo do vencimento (renovação proativa)
+      const isNearExpiry = await tokenCacheService.isTokenNearExpiry('usershield')
+      if (isNearExpiry) {
+        console.log('⏰ Token próximo do vencimento, renovando...')
+        const newToken = await performLogin(USERSHIELD_LOGIN_URL)
+        if (newToken) {
+          jwtToken = newToken
+        }
+      }
     }
 
-    // Buscar usuários
+    // Buscar usuários com o token
+    console.log('👥 Buscando usuários...')
     let usuariosResponse = await fetch(USERSHIELD_USERS_URL, {
       method: 'GET',
       headers: {
@@ -62,48 +59,32 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Se o token for inválido (401), fazer login novamente
+    // Se token inválido (401), remover do cache e tentar novo login
     if (usuariosResponse.status === 401) {
-      console.log('🔄 Token inválido, fazendo novo login...')
+      console.log('🔄 Token inválido (401), removendo do cache e fazendo novo login...')
+      await tokenCacheService.removeToken('usershield')
       
-      const loginResponse = await fetch(USERSHIELD_LOGIN_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          Username: process.env.USERSHIELD_USERNAME,
-          Password: process.env.USERSHIELD_PASSWORD
-        })
-      })
-
-      if (!loginResponse.ok) {
-        throw new Error(`Re-login falhou: ${loginResponse.status}`)
+      const newToken = await performLogin(USERSHIELD_LOGIN_URL)
+      if (!newToken) {
+        throw new Error('Falha na reautenticação')
       }
 
-      const loginData = await loginResponse.json()
-      jwtToken = loginData.jwtToken
-
-      if (!jwtToken) {
-        throw new Error('Token não encontrado no re-login')
-      }
-
-      // Tentar novamente com o novo token
+      // Nova tentativa com token fresco
       usuariosResponse = await fetch(USERSHIELD_USERS_URL, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${jwtToken}`,
+          'Authorization': `Bearer ${newToken}`,
           'Content-Type': 'application/json'
         }
       })
-      
-      console.log('✅ Novo token obtido e usado')
+
+      if (!usuariosResponse.ok) {
+        throw new Error(`Falha na busca de usuários após reautenticação: ${usuariosResponse.status}`)
+      }
     }
 
     if (!usuariosResponse.ok) {
-      console.error('❌ Busca de usuários falhou:', usuariosResponse.status)
-      throw new Error(`Busca de usuários falhou: ${usuariosResponse.status}`)
+      throw new Error(`Falha na busca de usuários: ${usuariosResponse.status}`)
     }
 
     const usuariosData = await usuariosResponse.json()
@@ -128,7 +109,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       result: usuarios,
-      message: `${usuarios.length} usuários reais encontrados via UserShield API`
+      message: `${usuarios.length} usuários reais encontrados via UserShield API`,
+      cached: true, // Indica que usa cache Redis
+      timestamp: new Date().toISOString()
     })
 
   } catch (error) {
@@ -137,9 +120,73 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor'
+        error: error instanceof Error ? error.message : 'Erro interno do servidor',
+        details: process.env.NODE_ENV === 'development' ? error : undefined
       },
       { status: 500 }
     )
+  }
+}
+
+/**
+ * Realiza login na UserShield API e armazena token no cache Redis
+ */
+async function performLogin(loginUrl: string): Promise<string | null> {
+  try {
+    console.log('🔐 Fazendo login na UserShield API...')
+    
+    const loginResponse = await fetch(loginUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        Username: process.env.USERSHIELD_USERNAME,
+        Password: process.env.USERSHIELD_PASSWORD
+      })
+    })
+
+    if (!loginResponse.ok) {
+      console.error('❌ Login falhou:', loginResponse.status)
+      return null
+    }
+
+    const loginData = await loginResponse.json()
+    const token = loginData.jwtToken
+
+    if (!token) {
+      console.error('❌ Token não encontrado na resposta do login')
+      return null
+    }
+
+    // Armazenar token no cache Redis por 55 minutos
+    await tokenCacheService.setToken(token, 'usershield', process.env.USERSHIELD_USERNAME!)
+    console.log('✅ Login realizado e token armazenado no cache Redis')
+    
+    return token
+  } catch (error) {
+    console.error('❌ Erro no login:', error)
+    return null
+  }
+}
+
+/**
+ * Endpoint para estatísticas do cache Redis (útil para debugging)
+ */
+export async function HEAD(request: NextRequest) {
+  try {
+    const stats = await tokenCacheService.getCacheStats()
+    
+    return new NextResponse(null, {
+      status: 200,
+      headers: {
+        'X-Cache-Stats': JSON.stringify(stats),
+        'X-Cache-Redis-Available': stats.isRedisAvailable.toString(),
+        'X-Cache-Tokens-Count': stats.cachedTokensCount.toString()
+      }
+    })
+  } catch (error) {
+    return new NextResponse(null, { status: 500 })
   }
 }
