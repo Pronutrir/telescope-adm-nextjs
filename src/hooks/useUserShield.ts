@@ -58,8 +58,8 @@ export function useUserShield(): UseUserShieldReturn {
     setErrorUsuarios(null)
     
     try {
-      // Usar API com cache de tokens para melhor performance
-      const response = await fetch('/api/usershield/usuarios-cached', {
+      // Usar API com dados reais da UserShield
+      const response = await fetch('/api/usershield/usuarios', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'

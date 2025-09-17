@@ -5,8 +5,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
+  // URLs da UserShield API a partir de variáveis de ambiente
+  const USERSHIELD_BASE_URL = process.env.NEXT_PUBLIC_USERSHIELD_URL || 'https://servicesapp.pronutrir.com.br/usershield/api/'
+  const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}v1/Auth/login`
+  const USERSHIELD_USERS_URL = `${USERSHIELD_BASE_URL}v1/Usuarios`
   try {
     console.log('🚀 API Route UserShield: Iniciada')
+    
+    // Validar se as variáveis de ambiente estão definidas
+    if (!process.env.USERSHIELD_USERNAME || !process.env.USERSHIELD_PASSWORD) {
+      throw new Error('Credenciais UserShield não configuradas nas variáveis de ambiente')
+    }
     
     // Obter token do header Authorization ou cookie
     const authHeader = request.headers.get('authorization')
@@ -16,15 +25,15 @@ export async function GET(request: NextRequest) {
     if (!jwtToken) {
       console.log('🔐 Token não encontrado, fazendo login na UserShield...')
       
-      const loginResponse = await fetch('https://servicesapp.pronutrir.com.br/usershield/api/v1/Auth/login', {
+      const loginResponse = await fetch(USERSHIELD_LOGIN_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          Username: 'williame',
-          Password: 'P.*R)CbU%csjy{4]-b'
+          Username: process.env.USERSHIELD_USERNAME,
+          Password: process.env.USERSHIELD_PASSWORD
         })
       })
 
@@ -45,7 +54,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar usuários
-    let usuariosResponse = await fetch('https://servicesapp.pronutrir.com.br/usershield/api/v1/Usuarios', {
+    let usuariosResponse = await fetch(USERSHIELD_USERS_URL, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${jwtToken}`,
@@ -57,15 +66,15 @@ export async function GET(request: NextRequest) {
     if (usuariosResponse.status === 401) {
       console.log('🔄 Token inválido, fazendo novo login...')
       
-      const loginResponse = await fetch('https://servicesapp.pronutrir.com.br/usershield/api/v1/Auth/login', {
+      const loginResponse = await fetch(USERSHIELD_LOGIN_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          Username: 'williame',
-          Password: 'P.*R)CbU%csjy{4]-b'
+          Username: process.env.USERSHIELD_USERNAME,
+          Password: process.env.USERSHIELD_PASSWORD
         })
       })
 
@@ -81,7 +90,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Tentar novamente com o novo token
-      usuariosResponse = await fetch('https://servicesapp.pronutrir.com.br/usershield/api/v1/Usuarios', {
+      usuariosResponse = await fetch(USERSHIELD_USERS_URL, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${jwtToken}`,

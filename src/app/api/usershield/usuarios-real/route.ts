@@ -6,6 +6,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { UserShieldUser } from '@/services/userShieldService'
 
 export async function GET(request: NextRequest) {
+  // URLs da UserShield API a partir de variáveis de ambiente
+  const USERSHIELD_BASE_URL = process.env.NEXT_PUBLIC_USERSHIELD_URL || 'https://servicesapp.pronutrir.com.br/usershield/api/'
+  const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}v1/Auth/login`
+  const USERSHIELD_USERS_URL = `${USERSHIELD_BASE_URL}v1/Usuarios`
   try {
     console.log('🚀 API Route UserShield REAL: Iniciada')
     
@@ -21,15 +25,15 @@ export async function GET(request: NextRequest) {
     console.log('🔄 Fazendo login na UserShield API')
     
     // Login na UserShield
-    const loginResponse = await fetch('https://servicesapp.pronutrir.com.br/usershield/api/v1/Auth/login', {
+    const loginResponse = await fetch(USERSHIELD_LOGIN_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
       body: JSON.stringify({
-        Username: 'williame',
-        Password: 'P.*R)CbU%csjy{4]-b'
+        Username: process.env.USERSHIELD_USERNAME,
+        Password: process.env.USERSHIELD_PASSWORD
       })
     })
 
@@ -47,7 +51,7 @@ export async function GET(request: NextRequest) {
     console.log('🔄 Buscando usuários da UserShield API')
 
     // Buscar usuários
-    const usuariosResponse = await fetch('https://servicesapp.pronutrir.com.br/usershield/api/v1/Usuarios', {
+    const usuariosResponse = await fetch(USERSHIELD_USERS_URL, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
