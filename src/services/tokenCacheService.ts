@@ -205,7 +205,7 @@ class TokenCacheService {
   }> {
     try {
       let cachedTokensCount = 0
-      let memoryTokensCount = this.memoryCache.size
+      const memoryTokensCount = this.memoryCache.size
 
       if (this.isRedisAvailable && this.redis) {
         const keys = await this.redis.keys('token:usershield:*')

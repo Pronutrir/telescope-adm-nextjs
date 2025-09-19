@@ -27,14 +27,37 @@ const nextConfig = {
         source: '/notify/:path*',
         destination: `${apiBaseUrl}/notify/:path*`,
       },
+      // Rota específica para SignalR Hub
+      {
+        source: '/signalr/:path*',
+        destination: `${apiBaseUrl}/apitasy/:path*`,
+      },
     ]
   },
-  webpack(config) {
+  webpack(config, { isServer }) {
     // Configuração para importar SVG como componentes React
     config.module.rules.push({
       test: /\.svg$/,
       use: ['@svgr/webpack']
     })
+
+    // Configuração específica para SignalR no servidor
+    if (isServer) {
+      // Resolver problemas de importação dinâmica do SignalR
+      config.externals = config.externals || []
+      config.externals.push({
+        '@microsoft/signalr': 'commonjs @microsoft/signalr'
+      })
+
+      // Configurações adicionais para Node.js
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        "fs": false,
+        "net": false,
+        "tls": false,
+        "crypto": false,
+      }
+    }
 
     return config
   },

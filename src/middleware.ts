@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // ✅ Rotas públicas que não precisam de autenticação
-  const publicRoutes = ['/auth/login', '/auth/server-login', '/auth/recovery', '/test-pdf']
+  const publicRoutes = ['/auth/login', '/auth/server-login', '/auth/recovery', '/test-pdf', '/webhook-monitor']
   
   // ✅ Rotas de API que não precisam de middleware
   const apiRoutes = ['/api/auth/session', '/api/health']
@@ -31,8 +31,8 @@ export async function middleware(request: NextRequest) {
   // ✅ Verificar se é uma rota pública primeiro
   if (publicRoutes.includes(pathname)) {
     // Se tem sessão ativa e está tentando acessar login/recovery, redirecionar para dashboard
-    // Mas permitir acesso à página de teste
-    if (sessionId && pathname !== '/test-pdf') {
+    // Mas permitir acesso às páginas de teste e webhook-monitor
+    if (sessionId && pathname !== '/test-pdf' && pathname !== '/webhook-monitor') {
       // TODO: Verificar se sessão é válida (requer async, implementar quando Redis estiver disponível)
       return NextResponse.redirect(new URL('/admin/gerenciador-pdfs', request.url))
     }

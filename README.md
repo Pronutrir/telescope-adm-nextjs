@@ -82,9 +82,41 @@ src/
 ## 🔧 Configuração de Ambiente
 
 ```bash
-# .env.local
+# .env.local - Configurações básicas
 NODE_TLS_REJECT_UNAUTHORIZED=0
+
+# Token de autenticação para API Pronutrir (necessário para webhook monitor)
+PRONUTRIR_API_TOKEN=seu_token_aqui
 ```
+
+### 🔐 API Pronutrir - Autenticação Automática
+
+O **Webhook Monitor** utiliza as APIs da Pronutrir que requerem autenticação. O sistema **obtém o token automaticamente** usando as credenciais já configuradas do UserShield:
+
+1. **Credenciais utilizadas** (já configuradas):
+   ```bash
+   # .env.local - Credenciais existentes do UserShield
+   USERSHIELD_USERNAME="User@ADM#0110"
+   USERSHIELD_PASSWORD="5sdt85f215600k008sdfbn$#sd4"
+   ```
+
+2. **Sem configuração adicional necessária**:
+   - ✅ O sistema usa automaticamente as credenciais do UserShield
+   - ✅ Não há duplicação de variáveis de ambiente
+   - ✅ Mantém consistência com o resto da aplicação
+
+4. **APIs utilizadas**:
+   - **Login**: `https://servicesapp.pronutrir.com.br/usershield/api/v1/Auth/login`
+   - **Dados iniciais**: `https://servicesapp.pronutrir.com.br/apitasy/api/v1/SinaisVitaisMonitoracaoGeral/GetAlertaSinaisVitaisPaciente`
+   - **SignalR Hub**: `https://servicesapp.pronutrir.com.br/apitasy/notify-hub`
+
+**Funcionamento**:
+- ✅ O sistema faz login automaticamente usando username/password
+- ✅ Tokens são armazenados em cache por 50 minutos
+- ✅ Renovação automática quando necessário
+- ✅ Fallback para token manual se preferir
+
+**Nota**: As credenciais do UserShield já configuradas são automaticamente utilizadas.
 
 ## 🌍 APIs e Proxy
 
