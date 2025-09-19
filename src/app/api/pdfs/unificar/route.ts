@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getPdfApiConfig } from '@/config/env'
 
-const PDF_API_BASE = process.env.PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
+const { baseUrl: PDF_API_BASE } = getPdfApiConfig()
 
 export async function POST(request: NextRequest) {
     try {
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Fazer proxy para a API real
-        // Baseado no app_pdfs: 'http://20.65.208.119:5000/api/Pdfs/unificar-especificos'
+    // Baseado no app_pdfs: '/api/Pdfs/unificar-especificos'
         const response = await fetch(`${PDF_API_BASE}/Pdfs/unificar-especificos`, {
             method: 'POST',
             headers: {

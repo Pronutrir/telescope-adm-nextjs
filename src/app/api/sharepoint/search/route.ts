@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getPdfApiConfig } from '@/config/env'
 
-const SHAREPOINT_API_BASE = process.env.NEXT_PUBLIC_PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
+const { publicUrl: SHAREPOINT_API_BASE } = getPdfApiConfig()
 
 export async function GET(request: NextRequest) {
   try {

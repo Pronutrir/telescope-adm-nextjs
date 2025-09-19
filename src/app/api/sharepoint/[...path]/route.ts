@@ -5,8 +5,9 @@ import { NextRequest, NextResponse } from 'next/server'
  * Todas as requisições para /api/sharepoint/* são redirecionadas para a API v1
  */
 
-// Configuração da URL base com fallback
-const SHAREPOINT_API_BASE = process.env.NEXT_PUBLIC_PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
+import { getPdfApiConfig } from '@/config/env'
+
+const { publicUrl: SHAREPOINT_API_BASE } = getPdfApiConfig()
 
 export async function GET(
   request: NextRequest,

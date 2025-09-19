@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getPdfApiConfig } from '@/config/env'
 
 export async function GET(request: NextRequest) {
     try {
@@ -8,7 +9,7 @@ export async function GET(request: NextRequest) {
         
         console.log('📡 Buscando detalhes do PDF:', pdfId)
         
-        const PDF_API_BASE = process.env.PDF_API_URL || 'http://20.65.208.119:5656/api/v1'
+    const { baseUrl: PDF_API_BASE } = getPdfApiConfig()
         const apiUrl = `${PDF_API_BASE}/Pdfs/${pdfId}/details`
         
         console.log('🔗 URL da API:', apiUrl)

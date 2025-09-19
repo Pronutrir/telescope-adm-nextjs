@@ -311,7 +311,7 @@ export class PDFService {
     try {
       // URL encode para caracteres especiais - usar endpoint correto da API
       const nomeEncoded = encodeURIComponent(fileName);
-      const url = `http://20.65.208.119:5656/api/v1/Pdfs/download/${nomeEncoded}`;
+      const url = `${API_BASE_URL}/Pdfs/download/${nomeEncoded}`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -401,7 +401,7 @@ export class PDFService {
       }
 
       // Fazer requisição para a API
-      const response = await fetch(`http://20.65.208.119:5656/api/v1/Pdfs/editar/${encodeURIComponent(editData.fileName)}`, {
+      const response = await fetch(`${API_BASE_URL}/Pdfs/editar/${encodeURIComponent(editData.fileName)}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -495,7 +495,7 @@ export class PDFService {
    */
   static async generatePageThumbnail(pageNumber: number, fileName: string): Promise<string> {
     try {
-      const response = await fetch(`http://20.65.208.119:5656/api/v1/Pdfs/thumbnail`, {
+      const response = await fetch(`${API_BASE_URL}/Pdfs/thumbnail`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -532,7 +532,7 @@ export class PDFService {
   static async viewUnifiedPDF(fileName: string): Promise<string> {
     try {
       const nomeEncoded = encodeURIComponent(fileName);
-      const url = `http://20.65.208.119:5656/api/v1/Pdfs/download/${nomeEncoded}`;
+      const url = `${API_BASE_URL}/Pdfs/download/${nomeEncoded}`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -591,7 +591,7 @@ export class PDFService {
       }
 
       const nomeEncoded = encodeURIComponent(fileName);
-      const url = `http://20.65.208.119:5656/api/v1/Pdfs/editar/${nomeEncoded}`;
+  const url = `${API_BASE_URL}/Pdfs/editar/${nomeEncoded}`;
 
       try {
         const response = await fetch(url, {
