@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br'
+import { requireApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,15 +8,16 @@ export async function GET(request: NextRequest) {
     const token = request.cookies.get('token')?.value
 
     if (!token) {
-      console.log('❌ Token não encontrado nos cookies')
+      logger.warn('❌ [Auth] Token não encontrado nos cookies')
       return NextResponse.json(
         { message: 'Token não encontrado' },
         { status: 401 }
       )
     }
 
-    console.log('🔑 Token encontrado, fazendo requisição para:', `${API_BASE_URL}/usershield/api/v1/Usuarios/getUser`)
-    console.log('🔑 Token (primeiros 20 chars):', token.substring(0, 20) + '...')
+    const API_BASE_URL = requireApiBaseUrl()
+    logger.info('🔑 [Auth] Buscando usuário em:', `${API_BASE_URL}/usershield/api/v1/Usuarios/getUser`)
+    logger.debug('🔑 [Auth] Token (prefixo):', token.substring(0, 20) + '...')
 
     const response = await fetch(`${API_BASE_URL}/usershield/api/v1/Usuarios/getUser`, {
       method: 'GET',
@@ -37,8 +38,8 @@ export async function GET(request: NextRequest) {
         try {
           data = JSON.parse(text)
         } catch (error) {
-          console.error('Erro ao fazer parse do JSON:', error)
-          console.error('Resposta recebida:', text)
+          logger.error('❌ [Auth] Parse JSON falhou', error)
+          logger.debug('Resposta recebida:', text)
           return NextResponse.json(
             { message: 'Resposta inválida do servidor' },
             { status: 502 }
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!response.ok) {
-      console.error('Erro na resposta da API:', {
+      logger.error('❌ [Auth] Erro na resposta da API:', {
         status: response.status,
         statusText: response.statusText,
         data
@@ -65,14 +66,14 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log('✅ Resposta bem-sucedida da API:', {
+    logger.info('✅ [Auth] Resposta bem-sucedida:', {
       status: response.status,
       hasData: !!data
     })
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('❌ Erro na API de usuário:', error)
+    logger.error('❌ [Auth] Erro na API de usuário:', error)
     return NextResponse.json(
       { message: 'Erro interno do servidor' },
       { status: 500 }

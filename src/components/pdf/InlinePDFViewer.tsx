@@ -1,10 +1,11 @@
+/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useIsClient } from '@/hooks/useIsClient'
 import { twMerge } from 'tailwind-merge'
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import { PDFDocument } from 'pdf-lib'
 
 interface InlinePDFViewerProps {
     pdfBase64: string
@@ -17,26 +18,7 @@ interface InlinePDFViewerProps {
     onSave?: (signedPdfBase64: string) => void // Callback para salvar PDF assinado
 }
 
-// Função utilitária para codificar string para base64 seguro para Unicode
-const safeBase64Encode = (str: string): string => {
-    // Primeiro, codifica para UTF-8 e depois para base64
-    try {
-        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) =>
-            String.fromCharCode(parseInt(p1, 16))
-        ));
-    } catch (e) {
-        console.error('Erro ao codificar para base64:', e);
-
-        try {
-            // Fallback para btoa simples, que pode falhar com caracteres não-ASCII
-            return btoa(str);
-        } catch (e2) {
-            console.error('Erro no método fallback de codificação:', e2);
-            // Se até o fallback falhar, retorna uma string vazia para não quebrar o fluxo
-            return '';
-        }
-    }
-};
+// Removido safeBase64Encode não utilizado
 
 // Função para converter base64 para Uint8Array (para trabalhar com pdf-lib)
 const base64ToUint8Array = (base64String: string): Uint8Array => {
@@ -80,9 +62,8 @@ export default function InlinePDFViewer({
     const [ isLoading, setIsLoading ] = useState(true)
     const [ isFullScreen, setIsFullScreen ] = useState(fullScreen)
     const [ pdfPageCount, setPdfPageCount ] = useState(1)
-    const [ currentPdfPage, setCurrentPdfPage ] = useState(1)
-    const [ pdfDimensions, setPdfDimensions ] = useState({ width: 0, height: 0 })
     const [ pdfContentRect, setPdfContentRect ] = useState<DOMRect | null>(null)
+    // pdfDimensions not currently used in UI; keep local when needed
 
     // Estados para modo de assinatura
     const [ isSignatureMode, setIsSignatureMode ] = useState(false)
@@ -91,8 +72,10 @@ export default function InlinePDFViewer({
     const [ signatureSize, setSignatureSize ] = useState({ width: 150, height: 70 })
     const [ isDraggingSignature, setIsDraggingSignature ] = useState(false)
     const [ isResizingSignature, setIsResizingSignature ] = useState(false)
-    const [ resizeDirection, setResizeDirection ] = useState("")
     const [ dragOffset, setDragOffset ] = useState({ x: 0, y: 0 })
+    const [ resizeDirection, setResizeDirection ] = useState<string>("")
+    const [ overlayResizeDirection, setOverlayResizeDirection ] = useState<string>("")
+    const [ currentPdfPage ] = useState<number>(1)
     const [ signedPdfBase64, setSignedPdfBase64 ] = useState<string | null>(null)
     const [ signatureError, setSignatureError ] = useState<string | null>(null)
 
@@ -101,7 +84,6 @@ export default function InlinePDFViewer({
         left: 0, top: 0, width: 0, height: 0
     })
     const [ isResizingOverlay, setIsResizingOverlay ] = useState(false)
-    const [ overlayResizeDirection, setOverlayResizeDirection ] = useState("")
 
     // Referência para o iframe do PDF
     const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -179,8 +161,8 @@ export default function InlinePDFViewer({
                 // Atualizar as dimensões do PDF quando a janela for redimensionada
                 setTimeout(() => {
                     try {
-                        const { clientWidth, clientHeight } = iframeRef.current!
-                        setPdfDimensions({ width: clientWidth, height: clientHeight })
+                        // Accessing iframeRef for layout updates if needed
+                        // dimensions captured but not stored currently
 
                         // Tentar detectar o conteúdo real do PDF novamente
                         const iframeDocument = iframeRef.current!.contentDocument || iframeRef.current!.contentWindow?.document
@@ -224,8 +206,8 @@ export default function InlinePDFViewer({
         // Timeout para permitir que o PDF seja renderizado completamente
         setTimeout(() => {
             if (iframeRef.current) {
-                const { clientWidth, clientHeight } = iframeRef.current
-                setPdfDimensions({ width: clientWidth, height: clientHeight })
+                const { clientWidth: _w2, clientHeight: _h2 } = iframeRef.current
+                // dimensions captured but not stored currently
 
                 try {
                     // Tentar obter o elemento real do PDF dentro do iframe
@@ -258,7 +240,7 @@ export default function InlinePDFViewer({
                     setPdfContentRect(iframeRect);
                 }
 
-                console.log(`Dimensões do iframe PDF capturadas: ${clientWidth}x${clientHeight}`);
+                console.log(`Dimensões do iframe PDF capturadas: ${_w2}x${_h2}`);
             }
         }, 500); // Aguardar meio segundo para o PDF renderizar
     }
@@ -476,10 +458,11 @@ export default function InlinePDFViewer({
         }
     }
 
-    const stopResizing = () => {
-        setIsResizingSignature(false)
-        setResizeDirection("")
-    }
+    // stopResizing kept for future use; currently unused
+    // const _stopResizing = () => {
+    //     setIsResizingSignature(false)
+    //     setResizeDirection("")
+    // }
 
     // Funções para redimensionamento do overlay
     const startOverlayResize = (e: React.MouseEvent, direction: string) => {
@@ -489,10 +472,10 @@ export default function InlinePDFViewer({
         setOverlayResizeDirection(direction)
     }
 
-    const stopOverlayResize = () => {
-        setIsResizingOverlay(false)
-        setOverlayResizeDirection("")
-    }
+    // const _stopOverlayResize = () => {
+    //     setIsResizingOverlay(false)
+    //     setOverlayResizeDirection("")
+    // }
 
     const handleOverlayResize = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!isResizingOverlay || !overlayResizeDirection) return
@@ -915,9 +898,9 @@ export default function InlinePDFViewer({
         ? '95vh' // 95% da viewport height para modal full - deixa espaço para visualizar melhor
         : `calc(${height} + 20px)` // Adiciona 20px extra para garantir visualização completa
 
-    const toggleFullScreen = () => {
-        setIsFullScreen(!isFullScreen)
-    }
+    // const _toggleFullScreen = () => {
+    //     setIsFullScreen(!isFullScreen)
+    // }
 
     // Determinar qual PDF exibir (original ou assinado)
     const pdfToDisplay = signedPdfBase64 || pdfBase64

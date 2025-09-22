@@ -66,7 +66,9 @@ export class PDFManagerService {
       console.log('📡 [PDFManagerService] Resposta recebida:', response.status, response.statusText)
 
       if (!response.ok) {
-        throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`)
+        console.error(`❌ [PDFManagerService] Falha ao listar PDFs: ${response.status} ${response.statusText}`)
+        // Não lançar erro; retornar lista vazia para UI lidar com estado de indisponibilidade
+        return []
       }
 
       const pdfs: SharePointPdfItem[] = await response.json()
@@ -76,9 +78,9 @@ export class PDFManagerService {
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         console.error('❌ [PDFManagerService] Timeout ao listar PDFs do SharePoint')
-        return []
+      } else {
+        console.error('❌ [PDFManagerService] Erro ao listar PDFs do SharePoint:', error)
       }
-      console.error('❌ [PDFManagerService] Erro ao listar PDFs do SharePoint:', error)
       // Retornar array vazio e deixar a UI lidar com o erro
       return []
     }
@@ -136,11 +138,11 @@ export class PDFManagerService {
             try {
               errorData = JSON.parse(responseText)
               errorMessage = errorData.message || errorData.error || errorData.title || errorMessage
-            } catch (parseError) {
+            } catch {
               errorMessage = responseText || errorMessage
             }
           }
-        } catch (readError) {
+        } catch {
           // Silently handle read error
         }
         
@@ -185,7 +187,7 @@ export class PDFManagerService {
       clearTimeout(timeoutId)
 
       if (!response.ok) {
-        const errorText = await response.text()
+        await response.text()
         throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`)
       }
 
@@ -281,8 +283,6 @@ export class PDFManagerService {
    */
   static async uploadPdf(file: File, fileName?: string): Promise<SharePointPdfItem> {
     try {
-      const finalFileName = fileName || file.name
-      
       const formData = new FormData()
       formData.append('file', file)
       if (fileName) {
@@ -331,8 +331,8 @@ export class PDFManagerService {
       }
       
       return date.toLocaleDateString('pt-BR')
-    } catch (error) {
-      console.error('🗓️ [PDFManagerService.formatDate] Error:', error, 'Input:', dateString)
+    } catch (e) {
+      console.error('🗓️ [PDFManagerService.formatDate] Error:', e, 'Input:', dateString)
       return 'Data inválida'
     }
   }
@@ -442,7 +442,7 @@ export class PDFManagerService {
       }
       
       return null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -564,7 +564,7 @@ export class PDFManagerService {
         try {
           const errorData = await response.json()
           errorMessage = errorData.message || errorData.error || errorMessage
-        } catch (e) {
+        } catch {
           // Silently handle parse error
         }
         
@@ -586,9 +586,9 @@ export class PDFManagerService {
       
       return result
 
-    } catch (error) {
-      console.error('❌ [PDFManagerService] Erro ao unificar PDFs:', error)
-      throw error
+    } catch (e) {
+      console.error('❌ [PDFManagerService] Erro ao unificar PDFs:', e)
+      throw e
     }
   }
 
@@ -704,12 +704,12 @@ export class PDFManagerService {
         return []
       }
 
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
+    } catch (_error) {
+      if (_error instanceof Error && _error.name === 'AbortError') {
         console.error('❌ [PDFManagerService] Timeout ao listar PDFs unificados')
         return []
       }
-      console.error('❌ [PDFManagerService] Erro ao listar PDFs unificados:', error)
+      console.error('❌ [PDFManagerService] Erro ao listar PDFs unificados:', _error)
       return []
     }
   }

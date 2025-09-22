@@ -3,21 +3,7 @@
 import React from 'react'
 import { PDFItem } from '@/types/pdf'
 import { useTheme } from '@/contexts/ThemeContext'
-import {
-    FileText,
-    Eye,
-    Download,
-    Trash2,
-    Calendar,
-    HardDrive,
-    MoreVertical,
-    Star,
-    Clock,
-    User,
-    TrendingUp,
-    Edit3,
-    Send
-} from 'lucide-react'
+import { FileText, Eye, Trash2, Calendar, HardDrive, Edit3, Send } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 
 interface TelescopePDFCardProps {
@@ -27,7 +13,6 @@ interface TelescopePDFCardProps {
     viewMode?: 'grid' | 'list'
     onView?: (pdf: PDFItem) => void
     onEdit?: (pdf: PDFItem) => void
-    onDownload?: (pdf: PDFItem) => void
     onDelete?: (pdf: PDFItem) => void
     onSelect?: (pdf: PDFItem) => void
     onSendToTasy?: (pdf: PDFItem) => void
@@ -55,7 +40,6 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
     viewMode = 'grid',
     onView,
     onEdit,
-    onDownload,
     onDelete,
     onSelect,
     onSendToTasy,
@@ -139,7 +123,6 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
     const renderActionButtons = (isGridView: boolean = false) => {
         if (actionButtonStyle === 'full') {
             // Botões completos com texto (estilo sophisticado e proporcional)
-            const buttonCount = onSendToTasy ? 3 : 2
             const buttonStyle = {
                 flex: '1',
                 padding: isGridView ? '8px 12px' : '6px 10px',
@@ -289,7 +272,7 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
         // Botões apenas com ícones (estilo premium)
         const padding = isGridView ? '10px' : '8px'
         const gap = isGridView ? '2' : '1'
-        const iconClass = isGridView ? 'icon-lg' : 'icon-md'
+        //
 
         return (
             <div className={`flex items-center ${isGridView ? 'justify-center' : ''} gap-${gap} opacity-0 group-hover:opacity-100 transition-opacity ${isGridView ? '' : 'flex-shrink-0'}`}>
@@ -419,10 +402,7 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
         if (onEdit) onEdit(pdf)
     }
 
-    const handleDownloadClick = (e: React.MouseEvent) => {
-        e.stopPropagation()
-        if (onDownload) onDownload(pdf)
-    }
+    // Download é tratado externamente onde aplicável
 
     const handleDeleteClick = (e: React.MouseEvent) => {
         e.stopPropagation()

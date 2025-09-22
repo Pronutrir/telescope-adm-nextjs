@@ -11,7 +11,7 @@ import {
 import { useLayout } from '@/contexts/LayoutContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { useMenuVisibility } from '@/contexts/MenuVisibilityContext'
-import { routes, getMainMenus, getSubmenus, hasSubmenus, filterRoutesByRoles, filterVisibleRoutes, filterRoutesByRolesAndVisibility, type Route } from '@/config/routes'
+import { routes, getMainMenus, getSubmenus, hasSubmenus, filterRoutesByRoles, type Route } from '@/config/routes'
 
 import type { SidebarProps } from '@/types/layout'
 

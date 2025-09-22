@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
-
-const { baseUrl: PDF_API_BASE } = getPdfApiConfig()
+import { requirePdfApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
     try {
@@ -16,11 +15,12 @@ export async function GET(request: NextRequest) {
             }, { status: 400 })
         }
 
-        console.log(`🔍 Preview solicitado para: ${filename}`)
+    logger.info(`🔍 [PDFs] Preview solicitado: ${filename}`)
 
         // Fazer proxy para a API real - usar download/{nomePdf}
-        const apiUrl = `${PDF_API_BASE}/Pdfs/download/${filename}`
-        console.log(`📡 Fazendo requisição para: ${apiUrl}`)
+    const baseUrl = requirePdfApiBaseUrl('internal')
+    const apiUrl = `${baseUrl}/Pdfs/download/${filename}`
+    logger.debug(`📡 [PDFs] Requisitando: ${apiUrl}`)
         
         const response = await fetch(apiUrl, {
             method: 'GET',
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
             })
         }
     } catch (error) {
-        console.error('Erro ao carregar PDF:', error)
+        logger.error('❌ [PDFs] Erro no preview:', error)
         
         return NextResponse.json({
             sucesso: false,

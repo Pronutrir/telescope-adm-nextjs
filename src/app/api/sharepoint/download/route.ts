@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
-
-const { publicUrl: SHAREPOINT_API_BASE } = getPdfApiConfig()
+import { requirePdfApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,9 +14,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log(`⬇️ [API] Baixando PDF ID: ${id}`)
+  logger.info(`⬇️ [SharePoint] Baixando PDF ID: ${id}`)
+  const baseUrl = requirePdfApiBaseUrl()
 
-        const response = await fetch(`${SHAREPOINT_API_BASE}/Pdfs/download-arquivo`, {
+        const response = await fetch(`${baseUrl}/Pdfs/download-arquivo`, {
       method: 'GET',
       headers: {
         'Accept': 'application/pdf'
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log(`✅ [API] PDF ${id} baixado com sucesso: ${filename}`)
+  logger.info(`✅ [SharePoint] PDF ${id} baixado: ${filename}`)
 
     // Retornar o PDF como resposta
     return new NextResponse(pdfBuffer, {
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('❌ [API] Erro ao baixar PDF:', error)
+    logger.error('❌ [SharePoint] Erro ao baixar PDF:', error)
     return NextResponse.json(
       { error: 'Falha ao baixar PDF', message: error instanceof Error ? error.message : 'Erro desconhecido' },
       { status: 500 }

@@ -105,14 +105,24 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
         return `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     }, [])
 
-    // 🔧 Auto-hide timer
+    // �️ Esconder notificação específica
+    const hide = useCallback((id: string) => {
+        setNotifications(prev => prev.filter(notification => notification.id !== id))
+    }, [])
+
+    // 🗑️ Esconder todas as notificações
+    const hideAll = useCallback(() => {
+        setNotifications([])
+    }, [])
+
+    // �🔧 Auto-hide timer (usa hide, que agora já está declarado)
     const setupAutoHide = useCallback((id: string, duration: number) => {
         if (duration > 0) {
             setTimeout(() => {
                 hide(id)
             }, duration)
         }
-    }, [])
+    }, [ hide ])
 
     // 📝 Mostrar notificação genérica
     const show = useCallback((notificationData: Omit<Notification, 'id'>): string => {
@@ -179,16 +189,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
             ...options
         })
     }, [ show ])
-
-    // 🗑️ Esconder notificação específica
-    const hide = useCallback((id: string) => {
-        setNotifications(prev => prev.filter(notification => notification.id !== id))
-    }, [])
-
-    // 🗑️ Esconder todas as notificações
-    const hideAll = useCallback(() => {
-        setNotifications([])
-    }, [])
 
     // ⚙️ Atualizar configurações
     const updateConfig = useCallback((newConfig: Partial<NotificationConfig>) => {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 import { PDFPageInfo } from '@/types/pdf'
 
 /**
@@ -16,7 +17,7 @@ export async function GET(
         const { fileName: rawFileName } = await params
         const fileName = decodeURIComponent(rawFileName)
         
-        console.log(`📄 [API] Obtendo páginas para PDF: ${fileName}`)
+    logger.info(`📄 [PDFs] Obtendo páginas para: ${fileName}`)
 
         // Extrair informações do nome do arquivo para determinar número de páginas
         let estimatedPages = 10 // Padrão
@@ -38,12 +39,12 @@ export async function GET(
             selected: true // Por padrão, todas as páginas estão selecionadas
         }))
 
-        console.log(`✅ [API] Retornando ${pages.length} páginas para ${fileName}`)
+    logger.debug(`✅ [PDFs] Retornando ${pages.length} páginas para ${fileName}`)
 
         return NextResponse.json(pages)
 
     } catch (error) {
-        console.error('❌ [API] Erro ao obter páginas do PDF:', error)
+    logger.error('❌ [PDFs] Erro ao obter páginas:', error)
         
         return NextResponse.json({
             error: 'Erro interno do servidor',

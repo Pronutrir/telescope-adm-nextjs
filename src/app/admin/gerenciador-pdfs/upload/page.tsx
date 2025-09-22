@@ -10,7 +10,6 @@ import {
     Upload,
     FileText,
     X,
-    Check,
     AlertCircle,
     ArrowLeft,
     Loader2,
@@ -25,7 +24,7 @@ import { PDFManagerService } from '@/services/pdfManager/pdfManagerService'
 const UploadGerenciadorPDFsPage = () => {
     // 🎯 STEP 1: ANÁLISE - Contextos obrigatórios conforme AGENT-CONTEXT
     const { isDark } = useTheme()
-    const { isMobile } = useLayout()
+    useLayout() // manter reatividade sem variáveis não usadas
 
     // 🎯 STEP 2: PRESERVAÇÃO - Estados migrados com tipos corretos
     const [ mounted, setMounted ] = useState(false)

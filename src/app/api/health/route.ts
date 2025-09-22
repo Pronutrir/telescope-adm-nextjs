@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 
 /**
  * Health check endpoint para Docker
  * GET /api/health
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         // Verificações básicas de saúde da aplicação
         const healthData = {
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
             }
         })
     } catch (error) {
-        console.error('Health check failed:', error)
+        logger.error('Health check failed:', error)
         
         return NextResponse.json({
             status: 'unhealthy',

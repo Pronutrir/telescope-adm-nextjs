@@ -82,8 +82,10 @@ src/
 ## 🔧 Configuração de Ambiente
 
 ```bash
-# .env.local - Configurações básicas
-NODE_TLS_REJECT_UNAUTHORIZED=0
+# .env.local - Configurações básicas (exemplo)
+# Use TLS seguro por padrão. Para desenvolvimento local que requer TLS inseguro,
+# habilite explicitamente DEV_ALLOW_INSECURE_TLS e NUNCA em produção.
+# DEV_ALLOW_INSECURE_TLS=1
 
 # Token de autenticação para API Pronutrir (necessário para webhook monitor)
 PRONUTRIR_API_TOKEN=seu_token_aqui

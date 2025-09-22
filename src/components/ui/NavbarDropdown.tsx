@@ -24,7 +24,7 @@ export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
 }) => {
     // 🎯 STEP 1: ANÁLISE - Contextos obrigatórios
     const { isDark } = useTheme()
-    const { isMobile } = useLayout()
+    const { } = useLayout()
 
     // 🎯 STEP 2: PRESERVAÇÃO - Estado e funcionalidades originais
     const [ isOpen, setIsOpen ] = useState(false)

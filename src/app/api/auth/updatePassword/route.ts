@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br'
+import { requireApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,7 +8,8 @@ export async function POST(request: NextRequest) {
     const { username, newPassword } = body
 
     // Fazer a chamada para a API externa
-    const response = await fetch(`${API_BASE_URL}/usershield/api/v1/Auth/updatePassword`, {
+  const API_BASE_URL = requireApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/usershield/api/v1/Auth/updatePassword`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data)
 
   } catch (error) {
-    console.error('Erro na API updatePassword:', error)
+    logger.error('Erro na API updatePassword:', error)
     return NextResponse.json(
       { message: 'Erro interno do servidor' },
       { status: 500 }

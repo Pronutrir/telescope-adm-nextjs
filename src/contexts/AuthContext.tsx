@@ -110,7 +110,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
 
             const token = tokenStorage.getToken()
-            const refreshToken = tokenStorage.getRefreshToken()
+            tokenStorage.getRefreshToken()
 
             // ❌ Log sensível removido (segurança)
             // console.log('🔍 Tokens encontrados:', {

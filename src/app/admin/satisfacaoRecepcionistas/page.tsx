@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { MainLayout } from '@/components/layout'
 import { Users, Phone, Smile, BarChart3 } from 'lucide-react'
 
 export default function SatisfacaoRecepcionistasPage() {

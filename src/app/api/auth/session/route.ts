@@ -8,6 +8,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { requireApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 import { sessionManager } from '@/lib/session'
 // Removido import do zod - validação manual
 
@@ -44,7 +46,7 @@ function validateLoginData(body: any) {
  */
 async function authenticateWithUserShield(email: string, password: string) {
   try {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br'
+    const API_BASE_URL = requireApiBaseUrl()
     
     const response = await fetch(`${API_BASE_URL}/usershield/api/v1/Auth/login`, {
       method: 'POST',
@@ -68,7 +70,7 @@ async function authenticateWithUserShield(email: string, password: string) {
         try {
           data = JSON.parse(text)
         } catch (error) {
-          console.error('❌ Erro ao fazer parse do JSON:', error)
+          logger.error('❌ [Auth] Parse JSON login falhou', error)
           return { success: false, error: 'Resposta inválida do servidor' }
         }
       } else {
@@ -87,7 +89,7 @@ async function authenticateWithUserShield(email: string, password: string) {
 
     return { success: true, data }
   } catch (error) {
-    console.error('❌ Erro na integração UserShield:', error)
+    logger.error('❌ [Auth] Erro na integração UserShield:', error)
     return { success: false, error: 'Erro interno de autenticação' }
   }
 }
@@ -123,12 +125,12 @@ export async function POST(request: NextRequest) {
     const isTestMode = process.env.NODE_ENV === 'development' && 
                       (testEmails.includes(email) || testUsernames.includes(email))
     
-    console.log(`🔐 Tentativa de login: ${email} | IP: ${clientIP}`)
+  logger.info(`🔐 [Auth] Tentativa de login: ${email} | IP: ${clientIP}`)
     
     let userShieldAuth
     if (isTestMode) {
       // Modo de teste - simular sucesso para strings específicas
-      console.log('🧪 Modo de teste ativado para: ' + email)
+  logger.debug('🧪 [Auth] Modo de teste para: ' + email)
       
       const isAdmin = email === 'admin@telescope.com' || email === 'admin'
       
@@ -143,12 +145,12 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Produção - usar UserShield real
-      console.log('🌍 Usando UserShield API para: ' + email)
+  logger.info('🌍 [Auth] Usando UserShield API para: ' + email)
       userShieldAuth = await authenticateWithUserShield(email, password)
     }
     
     if (!userShieldAuth.success) {
-      console.log(`❌ Login falhou: ${email} - ${userShieldAuth.error}`)
+  logger.warn(`❌ [Auth] Login falhou: ${email} - ${userShieldAuth.error}`)
       return NextResponse.json(
         { message: userShieldAuth.error || 'Credenciais inválidas' },
         { status: 401 }
@@ -175,7 +177,7 @@ export async function POST(request: NextRequest) {
     })
 
     // ✅ Log de sucesso
-    console.log(`✅ Login bem-sucedido: ${email} | IP: ${clientIP} | Session: ${sessionId}`)
+  logger.info(`✅ [Auth] Login OK: ${email} | IP: ${clientIP} | Session: ${sessionId}`)
 
     // ✅ Retornar apenas dados não-sensíveis (SEM TOKENS)
     return NextResponse.json({
@@ -190,7 +192,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('❌ Erro interno no login server-side:', error)
+  logger.error('❌ [Auth] Erro interno login:', error)
     return NextResponse.json(
       { message: 'Erro interno do servidor' },
       { status: 500 }
@@ -205,7 +207,7 @@ export async function DELETE(request: NextRequest) {
     
     if (sessionId) {
       await sessionManager.destroySession(sessionId)
-      console.log(`🚪 Logout realizado para sessão: ${sessionId}`)
+  logger.info(`🚪 [Auth] Logout sessão: ${sessionId}`)
     }
 
     const response = NextResponse.json({ 
@@ -221,7 +223,7 @@ export async function DELETE(request: NextRequest) {
     return response
 
   } catch (error) {
-    console.error('❌ Erro no logout server-side:', error)
+  logger.error('❌ [Auth] Erro no logout server-side:', error)
     return NextResponse.json(
       { message: 'Erro interno do servidor' },
       { status: 500 }

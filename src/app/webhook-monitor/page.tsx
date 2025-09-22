@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { twMerge } from 'tailwind-merge'
@@ -50,23 +50,23 @@ interface IConnectionStatus {
 
 const WebhookMonitor = () => {
     const { isDark } = useTheme()
-    const [ connection, setConnection ] = useState<HubConnection | null>(null)
+    const [ , setConnection ] = useState<HubConnection | null>(null)
     const [ connectionStatus, setConnectionStatus ] = useState<IConnectionStatus>({ status: 'disconnected' })
     const [ patientDataHistory, setPatientDataHistory ] = useState<(IPatientData & { timestamp: Date })[]>([])
-    const [ logs, setLogs ] = useState<string[]>([])
-    const [ lastUpdate, setLastUpdate ] = useState<Date | null>(null)
+    const [ , setLogs ] = useState<string[]>([])
+    const [ , setLastUpdate ] = useState<Date | null>(null)
     const [ isFullscreen, setIsFullscreen ] = useState<boolean>(false)
     const [ isLoadingInitialData, setIsLoadingInitialData ] = useState<boolean>(false)
 
     // Adicionar log com timestamp
-    const addLog = (message: string) => {
+    const addLog = useCallback((message: string) => {
         const timestamp = new Date().toLocaleTimeString()
         setLogs(prev => [ `[${timestamp}] ${message}`, ...prev ].slice(0, 30))
-    }
+    }, [])
 
     // Função para obter token de autenticação
     // Função para obter token via API server-side protegida (para SignalR)
-    const getAuthToken = async () => {
+    const getAuthToken = useCallback(async () => {
         try {
             const response = await fetch('/api/auth-token', {
                 method: 'POST',
@@ -90,11 +90,11 @@ const WebhookMonitor = () => {
             addLog(`❌ Erro ao obter token: ${error.message}`)
             return null
         }
-    }
+    }, [ addLog ])
 
     // Função para buscar dados iniciais dos sinais vitais
     // Função para buscar dados iniciais via API server-side protegida
-    const fetchInitialData = async () => {
+    const fetchInitialData = useCallback(async () => {
         try {
             setIsLoadingInitialData(true)
             addLog('🔄 Buscando dados iniciais via servidor protegido...')
@@ -154,8 +154,9 @@ const WebhookMonitor = () => {
         } finally {
             setIsLoadingInitialData(false)
         }
-    }    // Função para entrar/sair da tela cheia
-    const toggleFullscreen = async () => {
+    }, [ addLog ])
+    // Função para entrar/sair da tela cheia
+    const toggleFullscreen = useCallback(async () => {
         try {
             if (!isFullscreen) {
                 // Entrar em tela cheia
@@ -175,7 +176,7 @@ const WebhookMonitor = () => {
         } catch (error: any) {
             addLog(`❌ Erro ao alterar tela cheia: ${error.message}`)
         }
-    }
+    }, [ isFullscreen, addLog ])
 
     // Detectar mudanças na tela cheia (quando usuário pressiona ESC)
     useEffect(() => {
@@ -202,10 +203,10 @@ const WebhookMonitor = () => {
             document.removeEventListener('fullscreenchange', handleFullscreenChange)
             document.removeEventListener('keydown', handleKeyDown)
         }
-    }, [ isFullscreen ])
+    }, [ isFullscreen, toggleFullscreen, addLog ])
 
     // Processar dados recebidos (sem validações - confiar na API)
-    const processPatientData = (data: any) => {
+    const processPatientData = useCallback((data: any) => {
         try {
             let parsedData: IPatientData
 
@@ -245,12 +246,12 @@ const WebhookMonitor = () => {
         } catch (error: any) {
             addLog(`❌ Erro: ${error.message}`)
         }
-    }
+    }, [ addLog ])
 
     // Buscar dados iniciais
     useEffect(() => {
         fetchInitialData()
-    }, [])
+    }, [ fetchInitialData ])
 
     // Configurar conexão SignalR (client-side)
     useEffect(() => {
@@ -329,7 +330,7 @@ const WebhookMonitor = () => {
                 addLog('🔌 Conexão SignalR encerrada')
             }
         }
-    }, [])
+    }, [ addLog, getAuthToken, processPatientData ])
 
     // Função para obter background baseado nos temas
     const getMainBackground = () => {

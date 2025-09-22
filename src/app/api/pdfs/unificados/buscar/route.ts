@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
-
-const { baseUrl: PDF_API_BASE } = getPdfApiConfig()
+import { requirePdfApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
         
         // Construir URL da API real com os mesmos parâmetros
-        const apiUrl = new URL(`${PDF_API_BASE}/Pdfs/unificados`)
+    const baseUrl = requirePdfApiBaseUrl('internal')
+    const apiUrl = new URL(`${baseUrl}/Pdfs/unificados`)
         // NOTA: A API de unificados não possui busca paginada na documentação
         // Usando endpoint base e implementando filtro local se necessário
         const caminho = searchParams.get('caminho')
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         
         return NextResponse.json(data)
     } catch (error) {
-        console.error('Erro ao buscar PDFs unificados:', error)
+        logger.error('❌ [PDFs] Erro ao buscar unificados:', error)
         
         return NextResponse.json({
             success: false,

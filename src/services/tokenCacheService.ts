@@ -2,6 +2,7 @@
  * Serviço para cache seguro de tokens JWT da UserShield API
  * Utiliza Redis para armazenamento server-side com TTL automático
  */
+import { logger } from '@/lib/logger'
 
 interface TokenCacheData {
   token: string
@@ -31,12 +32,12 @@ class TokenCacheService {
           lazyConnect: true
         })
 
-        await this.redis.ping()
-        this.isRedisAvailable = true
-        console.log('✅ Redis conectado para cache de tokens')
+  await this.redis.ping()
+  this.isRedisAvailable = true
+  logger.info('Redis conectado para cache de tokens')
       }
     } catch (error) {
-      console.warn('⚠️ Redis não disponível, usando cache em memória:', error)
+      logger.warn('Redis não disponível, usando cache em memória:', error)
       this.isRedisAvailable = false
     }
   }
@@ -62,14 +63,14 @@ class TokenCacheService {
       if (this.isRedisAvailable && this.redis) {
         // Armazena no Redis com TTL de 55 minutos
         await this.redis.setex(key, 55 * 60, JSON.stringify(tokenData))
-        console.log(`🔐 Token armazenado no Redis para ${identifier}`)
+        logger.info('Token armazenado no Redis para', identifier)
       } else {
         // Fallback: armazena em memória
         this.memoryCache.set(key, tokenData)
-        console.log(`🔐 Token armazenado em memória para ${identifier}`)
+        logger.debug('Token armazenado em memória para', identifier)
       }
     } catch (error) {
-      console.error('❌ Erro ao armazenar token:', error)
+      logger.error('Erro ao armazenar token:', error)
     }
   }
 
@@ -95,18 +96,18 @@ class TokenCacheService {
       if (tokenData) {
         // Verifica se o token ainda está válido (com margem de 5 minutos)
         if (Date.now() < (tokenData.expiresAt - 5 * 60 * 1000)) {
-          console.log(`✅ Token válido encontrado no cache para ${identifier}`)
+          logger.debug('Token válido encontrado no cache para', identifier)
           return tokenData.token
         } else {
           // Token próximo do vencimento, remove do cache
           await this.removeToken(identifier)
-          console.log(`⏰ Token expirado removido do cache para ${identifier}`)
+          logger.info('Token expirado removido do cache para', identifier)
         }
       }
 
       return null
     } catch (error) {
-      console.error('❌ Erro ao recuperar token:', error)
+      logger.error('Erro ao recuperar token:', error)
       return null
     }
   }
@@ -120,13 +121,13 @@ class TokenCacheService {
 
       if (this.isRedisAvailable && this.redis) {
         await this.redis.del(key)
-        console.log(`🗑️ Token removido do Redis para ${identifier}`)
+        logger.info('Token removido do Redis para', identifier)
       } else {
         this.memoryCache.delete(key)
-        console.log(`🗑️ Token removido da memória para ${identifier}`)
+        logger.info('Token removido da memória para', identifier)
       }
     } catch (error) {
-      console.error('❌ Erro ao remover token:', error)
+      logger.error('Erro ao remover token:', error)
     }
   }
 
@@ -154,7 +155,7 @@ class TokenCacheService {
 
       return true // Se não há token, considera que precisa renovar
     } catch (error) {
-      console.error('❌ Erro ao verificar expiração do token:', error)
+      logger.error('Erro ao verificar expiração do token:', error)
       return true
     }
   }
@@ -172,7 +173,7 @@ class TokenCacheService {
             const tokenData: TokenCacheData = JSON.parse(cached)
             if (Date.now() >= tokenData.expiresAt) {
               await this.redis.del(key)
-              console.log(`🧹 Token expirado removido: ${key}`)
+              logger.debug('Token expirado removido:', key)
             }
           }
         }
@@ -181,12 +182,12 @@ class TokenCacheService {
         for (const [key, tokenData] of this.memoryCache.entries()) {
           if (key.startsWith('token:usershield:') && Date.now() >= tokenData.expiresAt) {
             this.memoryCache.delete(key)
-            console.log(`🧹 Token expirado removido da memória: ${key}`)
+            logger.debug('Token expirado removido da memória:', key)
           }
         }
       }
     } catch (error) {
-      console.error('❌ Erro ao limpar tokens expirados:', error)
+      logger.error('Erro ao limpar tokens expirados:', error)
     }
   }
 
@@ -218,7 +219,7 @@ class TokenCacheService {
         memoryTokensCount
       }
     } catch (error) {
-      console.error('❌ Erro ao obter estatísticas do cache:', error)
+      logger.error('Erro ao obter estatísticas do cache:', error)
       return {
         isRedisAvailable: false,
         cachedTokensCount: 0,

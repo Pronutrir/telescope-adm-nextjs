@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br'
+import { logger } from '@/lib/logger'
+import { requireApiBaseUrl } from '@/config/env'
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +10,8 @@ export async function POST(request: NextRequest) {
     if (token) {
       // Fazer logout no servidor remoto
       try {
-        await fetch(`${API_BASE_URL}/usershield/api/v1/Auth/logout`, {
+  const API_BASE_URL = requireApiBaseUrl()
+  await fetch(`${API_BASE_URL}/usershield/api/v1/Auth/logout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
           },
         })
       } catch (error) {
-        console.error('Erro ao fazer logout no servidor remoto:', error)
+        logger.error('❌ [Auth] Erro ao fazer logout remoto:', error)
         // Continuar mesmo se houver erro no logout remoto
       }
     }
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     return response
   } catch (error) {
-    console.error('Erro na API de logout:', error)
+    logger.error('❌ [Auth] Erro na API de logout:', error)
     return NextResponse.json(
       { message: 'Erro interno do servidor' },
       { status: 500 }

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
-
-const { baseUrl: PDF_API_BASE } = getPdfApiConfig()
+import { requirePdfApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
     try {
@@ -23,7 +22,8 @@ export async function POST(request: NextRequest) {
 
         // Fazer proxy para a API real
     // Baseado no app_pdfs: '/api/Pdfs/unificar-especificos'
-        const response = await fetch(`${PDF_API_BASE}/Pdfs/unificar-especificos`, {
+    const baseUrl = requirePdfApiBaseUrl('internal')
+    const response = await fetch(`${baseUrl}/Pdfs/unificar-especificos`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         
         return NextResponse.json(data)
     } catch (error) {
-        console.error('Erro ao unificar PDFs:', error)
+        logger.error('❌ [PDFs] Erro ao unificar:', error)
         
         return NextResponse.json({
             success: false,

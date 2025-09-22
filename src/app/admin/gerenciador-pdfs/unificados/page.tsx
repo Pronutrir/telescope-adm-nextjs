@@ -1,26 +1,23 @@
 'use client'
+/* eslint-disable @next/next/no-img-element */
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { PageWrapper } from '@/components/layout'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
-import { Input } from '@/components/ui/Input'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useLayout } from '@/contexts/LayoutContext'
 import {
     FileText,
-    Search,
     Grid,
     List,
     ArrowLeft,
     Eye,
-    Layers,
     Loader2,
     Edit3,
     FolderOpen,
     Send,
-    Database,
-    X
+    Database
 } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 import { UnifiedPDFItem, ViewMode, PDFEditState, PDFItem } from '@/types/pdf'
@@ -31,7 +28,7 @@ import { TelescopePDFCard } from '@/components/pdf/TelescopePDFCard'
 
 const UnificadosGerenciadorPDFsPage = () => {
     const { isDark } = useTheme()
-    const { isMobile } = useLayout()
+    useLayout() // mantido para reatividade de layout; sem destructuring para evitar unused var
     const notify = useNotify()
 
     // Função para converter SharePointPdfItem para UnifiedPDFItem
@@ -121,12 +118,7 @@ const UnificadosGerenciadorPDFsPage = () => {
     // Ref para controlar o AbortController das requisições
     const abortControllerRef = useRef<AbortController | null>(null)
 
-    useEffect(() => {
-        setMounted(true)
-        loadUnifiedPdfs()
-    }, [])
-
-    const loadUnifiedPdfs = async () => {
+    const loadUnifiedPdfs = useCallback(async () => {
         try {
             setIsLoading(true)
 
@@ -164,7 +156,12 @@ const UnificadosGerenciadorPDFsPage = () => {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [])
+
+    useEffect(() => {
+        setMounted(true)
+        loadUnifiedPdfs()
+    }, [ loadUnifiedPdfs ])
 
     const filteredPdfs = unifiedPdfs.filter(pdf =>
         pdf.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -617,8 +614,7 @@ const UnificadosGerenciadorPDFsPage = () => {
 
         setTasyModal(prev => ({ ...prev, isSending: true }))
 
-        let downloadToastId: any
-        let sendToastId: any
+        // IDs de toast removidos (não utilizados)
 
         try {
             // Etapa 1: Download do PDF do SharePoint

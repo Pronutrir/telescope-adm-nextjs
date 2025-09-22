@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useEffect } from 'react'
+import React from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { Modal } from '@/components/ui/Modal'
 import { PDFItem } from '@/types/pdf'

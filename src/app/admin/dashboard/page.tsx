@@ -5,6 +5,7 @@ import { PageWrapper } from '@/components/layout'
 import { StatsCard } from '@/components/ui/StatsCard'
 import { Button } from '@/components/ui/Button'
 import { useDashboardData } from '@/hooks/useDashboardData'
+import type { DashboardStats } from '@/hooks/useDashboardData'
 import { useGoogleAnalytics } from '@/components/analytics/GoogleAnalyticsLoader'
 import { useTrafficMetrics } from '@/hooks/useTrafficMetrics'
 import {
@@ -79,8 +80,17 @@ const Dashboard = () => {
         'AGENDAS': 'warning' as const
     }
 
+    type StatsCardData = {
+        title: string
+        value: string
+        icon: any
+        iconColor: 'primary' | 'success' | 'info' | 'warning'
+        trend: { value: string; isPositive: boolean }
+        description: string
+    }
+
     // Transformar dados para componente StatsCard (usando o formato dos exemplos)
-    const dashboardStats = stats.map(stat => ({
+    const dashboardStats: StatsCardData[] = stats.map((stat: DashboardStats) => ({
         title: stat.title,
         value: stat.value,
         icon: iconMap[ stat.title as keyof typeof iconMap ] || TrendingUp,
@@ -214,7 +224,7 @@ const Dashboard = () => {
 
                     {/* Cards Principais - Variante Telescope */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {dashboardStats.map((stat, index) => (
+                        {dashboardStats.map((stat: StatsCardData, index: number) => (
                             <StatsCard
                                 key={index}
                                 title={stat.title}

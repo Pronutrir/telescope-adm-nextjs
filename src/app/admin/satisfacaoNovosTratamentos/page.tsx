@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { MainLayout } from '@/components/layout'
 import { Star, ThumbsUp, MessageSquare, TrendingUp } from 'lucide-react'
 
 export default function SatisfacaoNovosTratamentosPage() {

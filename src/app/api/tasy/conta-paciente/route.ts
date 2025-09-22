@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+import { getServiceUrl } from '@/config/env'
 
-const TASY_API_BASE = process.env.NEXT_PUBLIC_APITASY_URL || 'https://servicesapp.pronutrir.com.br/apitasy/api/'
+const TASY_API_BASE = `${getServiceUrl('APITASY')}/api/`
 
 export async function GET(request: NextRequest) {
     try {
@@ -14,7 +16,7 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        console.log(`🔍 Buscando conta paciente para atendimento: ${numeroAtendimento}`)
+    logger.info(`🔍 [TASY] Conta paciente para atendimento: ${numeroAtendimento}`)
 
         // Criar AbortController para timeout manual
         const controller = new AbortController()
@@ -37,7 +39,7 @@ export async function GET(request: NextRequest) {
             clearTimeout(timeoutId)
 
             if (!response.ok) {
-                console.error('❌ Erro na API TASY:', response.status, response.statusText)
+                logger.error('❌ [TASY] Erro API:', response.status, response.statusText)
                 return NextResponse.json(
                     { error: 'Erro ao buscar conta do paciente' },
                     { status: response.status }
@@ -49,20 +51,20 @@ export async function GET(request: NextRequest) {
         // Simular múltiplas contas para alguns números específicos (para teste)
         // Em produção, isso viria da API real
         if (numeroAtendimento === '350991') {
-            console.log(`✅ Múltiplas contas encontradas para ${numeroAtendimento}: [2549371, 2614471]`)
+            logger.debug(`✅ [TASY] Múltiplas contas ${numeroAtendimento}: [2549371, 2614471]`)
             return NextResponse.json({
                 numeroAtendimento,
                 contasPaciente: ['2549371', '2614471'] // Array de contas
             })
         } else if (numeroAtendimento === '350992') {
-            console.log(`✅ Múltiplas contas encontradas para ${numeroAtendimento}: [2549887, 2539471, 2651234]`)
+            logger.debug(`✅ [TASY] Múltiplas contas ${numeroAtendimento}: [2549887, 2539471, 2651234]`)
             return NextResponse.json({
                 numeroAtendimento,
                 contasPaciente: ['2549887', '2539471', '2651234'] // Array de contas
             })
         }
         
-        console.log(`✅ Conta única encontrada: ${contaPaciente}`)
+    logger.info(`✅ [TASY] Conta única: ${contaPaciente}`)
 
         return NextResponse.json({
             numeroAtendimento,
@@ -74,7 +76,7 @@ export async function GET(request: NextRequest) {
             clearTimeout(timeoutId)
             
             if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-                console.error('❌ Timeout na API TASY')
+                logger.error('❌ [TASY] Timeout na API')
                 return NextResponse.json(
                     { error: 'Timeout ao buscar conta do paciente' },
                     { status: 408 }
@@ -85,7 +87,7 @@ export async function GET(request: NextRequest) {
         }
 
     } catch (error) {
-        console.error('❌ Erro ao buscar conta paciente:', error)
+    logger.error('❌ [TASY] Erro ao buscar conta paciente:', error)
         return NextResponse.json(
             { error: 'Erro interno do servidor' },
             { status: 500 }

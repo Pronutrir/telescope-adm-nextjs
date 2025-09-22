@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
-
-const { baseUrl: PDF_API_BASE } = getPdfApiConfig()
+import { requirePdfApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
         
         // Mapear parâmetros do frontend para a API
-        const apiUrl = new URL(`${PDF_API_BASE}/Pdfs/buscar-paginado`)
+    const baseUrl = requirePdfApiBaseUrl('internal')
+    const apiUrl = new URL(`${baseUrl}/Pdfs/buscar-paginado`)
         const query = searchParams.get('query') || searchParams.get('termo') || ''
         const page = searchParams.get('page') || '1'
         const limit = searchParams.get('limit') || '12'
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
         const data = await response.json()
         return NextResponse.json(data)
     } catch (error) {
-        console.error('Erro ao buscar PDFs:', error)
+        logger.error('❌ [PDFs] Erro na busca:', error)
         
         return NextResponse.json({
             success: false,

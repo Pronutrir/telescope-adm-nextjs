@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { MainLayout } from '@/components/layout'
 import { Timer, Play, Pause, RotateCcw, TrendingUp } from 'lucide-react'
 
 export default function StopwatchHPage() {

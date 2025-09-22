@@ -1,9 +1,9 @@
+/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
 import Sortable from 'sortablejs'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card'
-import { LucideIcon } from 'lucide-react'
 import { FileText, Eye, Clock, User } from 'lucide-react'
 
 interface PdfItem {
@@ -44,12 +44,10 @@ const SortablePdfCards: React.FC<SortablePdfCardsProps> = ({
     items,
     onSortEnd,
     className = '',
-    isDark = false,
     gridCols = 3,
     animation = 150,
     disabled = false,
-    showActions = true,
-    interactive = true
+    showActions = true
 }) => {
     const containerRef = useRef<HTMLDivElement>(null)
     const sortableInstance = useRef<Sortable | null>(null)

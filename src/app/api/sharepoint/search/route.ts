@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
-
-const { publicUrl: SHAREPOINT_API_BASE } = getPdfApiConfig()
+import { requirePdfApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,9 +16,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log(`🔍 [API] Buscando PDFs: query="${query}", page=${page}, pageSize=${pageSize}`)
+  logger.info(`🔍 [SharePoint] Busca: query="${query}", page=${page}, pageSize=${pageSize}`)
 
-    const searchUrl = `${SHAREPOINT_API_BASE}/Pdfs/search?query=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`
+  const baseUrl = requirePdfApiBaseUrl()
+  const searchUrl = `${baseUrl}/Pdfs/search?query=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`
     
     const response = await fetch(searchUrl, {
       method: 'GET',
@@ -33,13 +33,13 @@ export async function GET(request: NextRequest) {
       throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`)
     }
 
-    const data = await response.json()
+  const data = await response.json()
     
-    console.log(`✅ [API] Busca realizada: ${data.totalItems || data.length} resultados`)
+  logger.info(`✅ [SharePoint] Busca OK: ${data.totalItems || data.length} resultados`)
     return NextResponse.json(data)
     
   } catch (error) {
-    console.error('❌ [API] Erro na busca de PDFs:', error)
+    logger.error('❌ [SharePoint] Erro na busca de PDFs:', error)
     return NextResponse.json(
       { error: 'Falha na busca de PDFs', message: error instanceof Error ? error.message : 'Erro desconhecido' },
       { status: 500 }

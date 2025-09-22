@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+import { getServiceUrl } from '@/config/env'
 
-const TASY_API_BASE = process.env.NEXT_PUBLIC_APITASY_URL || 'https://servicesapp.pronutrir.com.br/apitasy/api/'
+const TASY_API_BASE = `${getServiceUrl('APITASY')}/api/`
 
 export async function POST(request: NextRequest) {
     try {
@@ -21,7 +23,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        console.log(`📤 Enviando PDF para TASY - Conta: ${contaPaciente}, Arquivo: ${nomeArquivo}`)
+    logger.info(`📤 [TASY] Enviando PDF - Conta: ${contaPaciente}, Arquivo: ${nomeArquivo}`)
 
         // Criar AbortController para timeout manual
         const controller = new AbortController()
@@ -49,7 +51,7 @@ export async function POST(request: NextRequest) {
 
         if (!response.ok) {
             const errorText = await response.text()
-            console.error('❌ Erro na API TASY:', response.status, response.statusText, errorText)
+            logger.error('❌ [TASY] Erro API:', response.status, response.statusText, errorText)
             return NextResponse.json(
                 { 
                     error: 'Erro ao enviar PDF para o TASY',
@@ -61,7 +63,7 @@ export async function POST(request: NextRequest) {
         }
 
         const result = await response.text()
-        console.log(`✅ PDF enviado com sucesso para TASY - Conta: ${contaPaciente}`)
+    logger.info(`✅ [TASY] PDF enviado - Conta: ${contaPaciente}`)
 
         return NextResponse.json({
             success: true,
@@ -76,7 +78,7 @@ export async function POST(request: NextRequest) {
             clearTimeout(timeoutId)
             
             if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-                console.error('❌ Timeout na API TASY')
+                logger.error('❌ [TASY] Timeout na API')
                 return NextResponse.json(
                     { error: 'Timeout ao enviar PDF para o TASY' },
                     { status: 408 }
@@ -87,7 +89,7 @@ export async function POST(request: NextRequest) {
         }
 
     } catch (error) {
-        console.error('❌ Erro ao enviar PDF para TASY:', error)
+    logger.error('❌ [TASY] Erro ao enviar PDF:', error)
         
         if (error instanceof Error && error.name === 'AbortError') {
             return NextResponse.json(

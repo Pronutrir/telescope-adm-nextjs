@@ -1,10 +1,5 @@
 // Helper function to create a signature-only version
-export function createSignatureOverlay(
-    signatureImage: string,
-    x: number,
-    y: number,
-    width = 150
-): Promise<string | null> {
+export function createSignatureOverlay(signatureImage: string): Promise<string | null> {
     if (!signatureImage) return Promise.resolve(null);
 
     return new Promise((resolve) => {

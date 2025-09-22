@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br'
+import { logger } from '@/lib/logger'
+import { requireApiBaseUrl } from '@/config/env'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
     // 🐛 Debug: Log do body recebido
-    console.log('📥 Request body:', body)
+  logger.debug('📥 [Auth] Request body:', body)
     
-    const response = await fetch(`${API_BASE_URL}/usershield/api/v1/Auth/login`, {
+  const API_BASE_URL = requireApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/usershield/api/v1/Auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
     })
 
     // 🐛 Debug: Log da resposta
-    console.log('📤 Response status:', response.status)
+  logger.debug('📤 [Auth] Response status:', response.status)
     
     // Verificar se a resposta tem conteúdo antes de tentar fazer parse do JSON
     const contentType = response.headers.get('content-type')
@@ -31,8 +32,8 @@ export async function POST(request: NextRequest) {
         try {
           data = JSON.parse(text)
         } catch (error) {
-          console.error('❌ Erro ao fazer parse do JSON no login:', error)
-          console.error('Resposta recebida:', text)
+          logger.error('❌ [Auth] Parse JSON login falhou:', error)
+          logger.debug('Resposta recebida:', text)
           return NextResponse.json(
             { message: 'Resposta inválida do servidor' },
             { status: 502 }
@@ -47,14 +48,14 @@ export async function POST(request: NextRequest) {
     }
     
     // 🐛 Debug: Log dos dados retornados
-    console.log('📋 Response data:', { 
+    logger.debug('📋 [Auth] Response data:', { 
       success: response.ok, 
       hasToken: !!data?.jwtToken,
       message: data?.message 
     })
 
     if (!response.ok) {
-      console.error('❌ Erro na resposta da API de login:', {
+      logger.error('❌ [Auth] Erro na resposta da API de login:', {
         status: response.status,
         statusText: response.statusText,
         data
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
 
     return nextResponse
   } catch (error) {
-    console.error('Erro na API de login:', error)
+    logger.error('❌ [Auth] Erro na API de login:', error)
     return NextResponse.json(
       { message: 'Erro interno do servidor' },
       { status: 500 }

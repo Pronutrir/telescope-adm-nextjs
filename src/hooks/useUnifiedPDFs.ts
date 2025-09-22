@@ -5,7 +5,6 @@ import {
     UnifiedPDFItem, 
     PDFItem, 
     ViewMode, 
-    SearchParams, 
     UnificationRequest,
     PDFPreviewState
 } from '@/types/pdf'
@@ -306,7 +305,7 @@ export const useUnifiedPDFs = () => {
     useEffect(() => {
         loadUnifiedPDFs()
         loadAvailablePDFs()
-    }, []) // Removidas as dependências para evitar loops
+    }, [loadUnifiedPDFs, loadAvailablePDFs])
 
     // Effect para busca com debounce
     useEffect(() => {
@@ -319,7 +318,7 @@ export const useUnifiedPDFs = () => {
         }, 500)
 
         return () => clearTimeout(timeoutId)
-    }, [searchTerm]) // Apenas searchTerm como dependência
+    }, [searchTerm, performSearch, loadUnifiedPDFs])
 
     return {
         // Estados

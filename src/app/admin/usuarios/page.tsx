@@ -8,22 +8,13 @@ import {
     KeyRound,
     UserPlus,
     Search,
+    Mail,
     Grid,
     List,
     Edit3,
     Trash2,
-    Download,
-
     AlertCircle,
-    Settings,
-    Shield,
-    Mail,
-    Phone,
-    Calendar,
-    MapPin,
-    Loader2,
-    Plus,
-    Filter
+    Loader2
 } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 import { useUserShield } from '@/hooks/useUserShield'
@@ -391,15 +382,14 @@ const TabContent = ({ activeTab, searchTerm, setSearchTerm, isLoading, viewMode,
 
 export default function UsuariosPage() {
     const { isDark } = useTheme()
-    const { isMobile } = useLayout()
+    useLayout()
     const [ mounted, setMounted ] = useState(false)
     const [ activeTab, setActiveTab ] = useState('cadastrados')
     const [ searchTerm, setSearchTerm ] = useState('')
-    const [ isLoading, setIsLoading ] = useState(false)
     const [ viewMode, setViewMode ] = useState<'grid' | 'list'>('list')
 
     // Hook para gerenciar dados do UserShield
-    const { usuarios, loadingUsuarios, errorUsuarios, listarUsuarios, buscarUsuarios } = useUserShield()
+    const { usuarios, loadingUsuarios, errorUsuarios } = useUserShield()
     const [ usuariosFiltrados, setUsuariosFiltrados ] = useState(usuarios)
 
     useEffect(() => {
@@ -551,7 +541,7 @@ export default function UsuariosPage() {
                             activeTab={activeTab}
                             searchTerm={searchTerm}
                             setSearchTerm={setSearchTerm}
-                            isLoading={isLoading}
+                            isLoading={loadingUsuarios}
                             viewMode={viewMode}
                             setViewMode={setViewMode}
                             usuarios={usuariosFiltrados}

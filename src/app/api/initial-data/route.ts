@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br'
+import { NextResponse } from 'next/server'
+import { requireApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 // Função para obter token de autenticação usando credenciais do servidor
 async function getAuthToken(): Promise<string | null> {
@@ -8,11 +8,12 @@ async function getAuthToken(): Promise<string | null> {
     const password = process.env.USERSHIELD_PASSWORD
 
     if (!username || !password) {
-        console.error('❌ USERSHIELD_USERNAME ou USERSHIELD_PASSWORD não configurados')
+        logger.error('USERSHIELD_USERNAME ou USERSHIELD_PASSWORD não configurados')
         return null
     }
 
     try {
+        const API_BASE_URL = requireApiBaseUrl()
         const response = await fetch(`${API_BASE_URL}/usershield/api/v1/Auth/login`, {
             method: 'POST',
             headers: {
@@ -27,8 +28,7 @@ async function getAuthToken(): Promise<string | null> {
 
         if (!response.ok) {
             const errorText = await response.text()
-            console.error(`❌ Erro ao obter token: ${response.status} ${response.statusText}`)
-            console.error('Detalhes:', errorText)
+            logger.error('Erro ao obter token:', response.status, response.statusText, 'Detalhes:', errorText)
             return null
         }
 
@@ -36,23 +36,22 @@ async function getAuthToken(): Promise<string | null> {
         const token = data?.token || data?.jwtToken
 
         if (token) {
-            console.log('✅ Token obtido com sucesso via servidor')
+            logger.info('Token obtido com sucesso via servidor')
             return token
         } else {
-            console.error('❌ Token não encontrado na resposta da API')
-            console.error('Resposta:', data)
+            logger.error('Token não encontrado na resposta da API', 'Resposta:', data)
             return null
         }
 
     } catch (error: any) {
-        console.error('❌ Erro ao obter token de autenticação:', error.message)
+        logger.error('Erro ao obter token de autenticação:', error.message)
         return null
     }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
-        console.log('🔐 Obtendo token para buscar dados iniciais...')
+        logger.info('Obtendo token para buscar dados iniciais...')
         
         // Obter token de autenticação
         const token = await getAuthToken()
@@ -66,9 +65,10 @@ export async function GET(request: NextRequest) {
             }, { status: 401 })
         }
 
-        console.log('✅ Token obtido, buscando dados da API...')
+        logger.info('Token obtido, buscando dados da API...')
 
         // Buscar dados da API externa
+        const API_BASE_URL = requireApiBaseUrl()
         const response = await fetch(`${API_BASE_URL}/apitasy/api/v1/SinaisVitaisMonitoracaoGeral/GetAlertaSinaisVitaisPaciente`, {
             method: 'GET',
             headers: {
@@ -81,17 +81,12 @@ export async function GET(request: NextRequest) {
             cache: 'no-store', // Não usar cache
         })
 
-        console.log(`📊 API Response Status: ${response.status} ${response.statusText}`)
+        logger.debug('API Response Status:', response.status, response.statusText)
         
         if (!response.ok) {
             // Log mais detalhado para debug
             const errorText = await response.text().catch(() => 'Sem detalhes do erro')
-            console.error(`❌ API Error Details:`, {
-                status: response.status,
-                statusText: response.statusText,
-                headers: Object.fromEntries(response.headers.entries()),
-                body: errorText
-            })
+            logger.error('API Error Details:', { status: response.status, statusText: response.statusText, headers: Object.fromEntries(response.headers.entries()), body: errorText })
 
             return NextResponse.json({
                 success: false,
@@ -102,7 +97,7 @@ export async function GET(request: NextRequest) {
         }
 
         const data = await response.json()
-        console.log(`✅ API Success: Recebidos ${Array.isArray(data) ? data.length : 'N/A'} registros`)
+        logger.info('API Success: Recebidos registros', { count: Array.isArray(data) ? data.length : 'N/A' })
 
         return NextResponse.json({
             success: true,
@@ -111,11 +106,7 @@ export async function GET(request: NextRequest) {
         })
 
     } catch (error: any) {
-        console.error('❌ Erro interno ao buscar dados:', {
-            message: error.message,
-            stack: error.stack,
-            cause: error.cause
-        })
+        logger.error('Erro interno ao buscar dados:', { message: error.message, stack: error.stack, cause: error.cause })
         
         return NextResponse.json({
             success: false,

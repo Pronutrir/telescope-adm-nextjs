@@ -9,8 +9,7 @@ import {
     Download,
     Trash2,
     Calendar,
-    HardDrive,
-    MoreVertical
+    HardDrive
 } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 

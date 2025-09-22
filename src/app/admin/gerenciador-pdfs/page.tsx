@@ -1,23 +1,20 @@
 'use client'
+/* eslint-disable @next/next/no-img-element */
 
-import React, { useState, useEffect, startTransition } from 'react'
+import React, { useState, useEffect, startTransition, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { SortableTelescopePDFList } from '@/components/pdf/SortableTelescopePDFList'
 import { useTheme } from '@/contexts/ThemeContext'
-import { useLayout } from '@/contexts/LayoutContext'
+// import { useLayout } from '@/contexts/LayoutContext'
 import {
     Search,
     Grid,
     List,
     FileText,
-    Download,
-    Trash2,
     Edit3,
-    Check,
-    X,
     FolderOpen,
     Loader2,
     Upload,
@@ -35,7 +32,7 @@ const GerenciadorPDFsPage = () => {
 
     const router = useRouter()
     const { isDark } = useTheme()
-    const { isMobile } = useLayout()
+    // const { isMobile } = useLayout()
 
     const {
         pdfs,
@@ -45,8 +42,8 @@ const GerenciadorPDFsPage = () => {
         totalItems,
         currentPage,
         totalPages,
-        hasNextPage,
-        hasPreviousPage,
+        // hasNextPage,
+        // hasPreviousPage,
         loadPDFs,
         searchPDFs,
         refreshPDFs,
@@ -57,8 +54,6 @@ const GerenciadorPDFsPage = () => {
     const [ searchTerm, setSearchTerm ] = useState('')
     const [ isSearching, setIsSearching ] = useState(false)
     const [ viewMode, setViewMode ] = useState<ViewMode>('grid')
-    const [ editingPdf, setEditingPdf ] = useState<string | null>(null)
-    const [ editValues, setEditValues ] = useState<Record<string, { title: string; description: string }>>({})
 
     // Novos estados para funcionalidades avançadas
     const [ selectionOrder, setSelectionOrder ] = useState<string[]>([])
@@ -153,6 +148,20 @@ const GerenciadorPDFsPage = () => {
         loadPDFs()
     }, [ loadPDFs ])
 
+    const handleSearch = useCallback(async (term: string) => {
+        console.log('🔍 [GerenciadorPDFsPage] Executando busca:', term)
+        setIsSearching(true)
+        try {
+            if (term.trim() === '') {
+                await loadPDFs()
+            } else {
+                await searchPDFs(term)
+            }
+        } finally {
+            setIsSearching(false)
+        }
+    }, [ loadPDFs, searchPDFs ])
+
     useEffect(() => {
         console.log('🔍 [GerenciadorPDFsPage] Termo de busca alterado:', searchTerm)
         const delayedSearch = setTimeout(() => {
@@ -162,7 +171,7 @@ const GerenciadorPDFsPage = () => {
         }, 500)
 
         return () => clearTimeout(delayedSearch)
-    }, [ searchTerm ])
+    }, [ searchTerm, handleSearch ])
 
     // Effect para resetar ordem personalizada quando PDFs mudam significativamente
     useEffect(() => {
@@ -179,19 +188,7 @@ const GerenciadorPDFsPage = () => {
         }
     }, [ filteredPdfs, customPDFOrder ])
 
-    const handleSearch = async (term: string) => {
-        console.log('🔍 [GerenciadorPDFsPage] Executando busca:', term)
-        setIsSearching(true)
-        try {
-            if (term.trim() === '') {
-                await loadPDFs()
-            } else {
-                await searchPDFs(term)
-            }
-        } finally {
-            setIsSearching(false)
-        }
-    }
+
 
     const handleViewModeChange = (mode: ViewMode) => {
         console.log('👁️ [GerenciadorPDFsPage] Alterando modo de visualização:', mode)
@@ -345,50 +342,7 @@ const GerenciadorPDFsPage = () => {
         }
     }
 
-    const handleEdit = (pdf: PDFItem) => {
-        console.log('✏️ [GerenciadorPDFsPage] Editando PDF:', pdf.id)
-        setEditingPdf(pdf.id)
-        setEditValues({
-            ...editValues,
-            [ pdf.id ]: {
-                title: pdf.title,
-                description: pdf.description || ''
-            }
-        })
-    }
-
-    const handleCancelEdit = () => {
-        console.log('❌ [GerenciadorPDFsPage] Cancelando edição')
-        setEditingPdf(null)
-        setEditValues({})
-    }
-
-    const handleDelete = async (pdf: PDFItem) => {
-        console.log('🗑️ [GerenciadorPDFsPage] Tentando excluir PDF:', pdf.id)
-        if (window.confirm(`Tem certeza que deseja excluir o PDF "${pdf.fileName}"?`)) {
-            // TODO: Implementar exclusão
-            console.log('✅ [GerenciadorPDFsPage] PDF seria excluído:', pdf.id)
-        }
-    }
-
-    const handleDownload = async (pdf: PDFItem) => {
-        try {
-            console.log('Baixando PDF:', pdf.id)
-            const response = await PDFManagerService.baixarPdf(pdf.id)
-
-            const blob = await response.blob()
-            const url = window.URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = pdf.fileName
-            document.body.appendChild(a)
-            a.click()
-            document.body.removeChild(a)
-            window.URL.revokeObjectURL(url)
-        } catch (error) {
-            console.error('Erro ao baixar PDF:', error)
-        }
-    }
+    // Funções antigas de edição/download removidas por não serem utilizadas
 
     // Toggle modo de seleção
     const toggleSelectionMode = () => {

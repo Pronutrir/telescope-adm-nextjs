@@ -50,7 +50,7 @@ export const cleanupService = {
         databases.forEach(dbName => {
           try {
             indexedDB.deleteDatabase(dbName)
-          } catch (error) {
+          } catch {
           }
         })
       }
@@ -66,7 +66,7 @@ export const cleanupService = {
               tx.executeSql('DROP TABLE IF EXISTS user_data')
             })
           }
-        } catch (error) {
+        } catch {
         }
       }
       

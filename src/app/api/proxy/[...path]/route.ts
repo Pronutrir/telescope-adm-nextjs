@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br'
+import { requireApiBaseUrl, requirePdfApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function GET(
   request: NextRequest,
@@ -50,14 +49,14 @@ async function handleRequest(
     // Se for uma requisição para PDFs, usar a API específica de PDFs
     let url: string
     if (pathSegments[0] === 'Pdfs') {
-      const { publicUrl: PDF_API_BASE } = getPdfApiConfig()
+      const PDF_API_BASE = requirePdfApiBaseUrl()
       url = `${PDF_API_BASE}/${apiPath}`
     } else {
-      // Para outras APIs, usar a API padrão
+      const API_BASE_URL = requireApiBaseUrl()
       url = `${API_BASE_URL}/apitasy/api/v1/${apiPath}`
     }
 
-    console.log('🔗 Proxy URL:', url)
+    logger.info('🔗 [Proxy] URL:', url)
 
     // Preparar headers
     const headers: Record<string, string> = {
@@ -96,7 +95,7 @@ async function handleRequest(
 
     return NextResponse.json(jsonData, { status: response.status })
   } catch (error) {
-    console.error('Erro na API proxy:', error)
+    logger.error('❌ [Proxy] Erro:', error)
     return NextResponse.json(
       { message: 'Erro interno do servidor' },
       { status: 500 }

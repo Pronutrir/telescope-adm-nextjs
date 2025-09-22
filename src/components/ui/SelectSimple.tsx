@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Check } from 'lucide-react'
-import { error } from 'console'
 
 interface SelectOption {
     value: string | number
@@ -87,12 +86,13 @@ const Select: React.FC<SelectProps> = ({
     return (
         <div className="space-y-2">
             {label && (
-                <label className={`block text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                <label className={`block text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`} htmlFor={name}
+                >
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
             )}
-            <div ref={selectRef} className={`relative ${className}`}>
+            <div ref={selectRef} className={`relative ${className}`} data-name={name}>
                 <button
                     type="button"
                     onClick={handleToggle}
@@ -116,6 +116,7 @@ const Select: React.FC<SelectProps> = ({
                     `}
                     aria-expanded={isOpen}
                     aria-haspopup="listbox"
+                    aria-label={label || name || undefined}
                 >
                     <span className={`
                         ${selectedOption

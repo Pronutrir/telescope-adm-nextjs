@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
+import { logger } from '@/lib/logger'
 
-const { baseUrl: PDF_API_BASE } = getPdfApiConfig()
+// const { baseUrl: PDF_API_BASE } = getPdfApiConfig()
 
 export async function DELETE(
     request: NextRequest,
@@ -19,14 +19,14 @@ export async function DELETE(
 
         // NOTA: API não possui endpoint de exclusão na documentação
         // Implementando resposta de sucesso temporária
-        console.warn(`Tentativa de exclusão do PDF ${id} - endpoint não disponível na API`)
+    logger.warn(`Tentativa de exclusão do PDF ${id} - endpoint não disponível na API`)
         
         return NextResponse.json({
             success: true,
             message: `PDF ${id} marcado para exclusão (funcionalidade em desenvolvimento)`
         })
     } catch (error) {
-        console.error('Erro ao excluir PDF:', error)
+        logger.error('Erro ao excluir PDF:', error)
         
         return NextResponse.json({
             success: false,

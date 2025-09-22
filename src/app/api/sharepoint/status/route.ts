@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
-
-const { publicUrl: SHAREPOINT_API_BASE } = getPdfApiConfig()
+import { NextResponse } from 'next/server'
+import { requirePdfApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function GET() {
   try {
-    console.log('🔍 [API] Verificando status SharePoint...')
-    
-    const response = await fetch(`${SHAREPOINT_API_BASE}/Pdfs/status-aprovacao-pdf`, {
+    logger.info('🔍 [SharePoint] Verificando status...')
+    const baseUrl = requirePdfApiBaseUrl()
+
+    const response = await fetch(`${baseUrl}/Pdfs/status-aprovacao-pdf`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json'
@@ -20,11 +20,11 @@ export async function GET() {
 
     const data = await response.json()
     
-    console.log('✅ [API] Status SharePoint obtido com sucesso')
+    logger.info('✅ [SharePoint] Status obtido com sucesso')
     return NextResponse.json(data)
     
   } catch (error) {
-    console.error('❌ [API] Erro ao verificar status:', error)
+    logger.error('❌ [SharePoint] Erro ao verificar status:', error)
     return NextResponse.json(
       { isConnected: false, message: 'SharePoint API não disponível', error: error instanceof Error ? error.message : 'Erro desconhecido' },
       { status: 503 }

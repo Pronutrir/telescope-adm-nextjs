@@ -3,25 +3,19 @@
  * Este arquivo centraliza todas as variáveis de ambiente do projeto
  */
 
-// Validação de variáveis de ambiente obrigatórias
-function requireEnv(key: string): string {
-  const value = process.env[key]
-  if (!value) {
-    throw new Error(`Variável de ambiente obrigatória não encontrada: ${key}`)
-  }
-  return value
-}
+// (removido) helper requireEnv não utilizado
 
 // Configurações da API principal
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:8080' : ''),
   TIMEOUT: parseInt(process.env.API_TIMEOUT || '10000'),
 } as const
 
 // Configurações da API de PDFs
 export const PDF_API_CONFIG = {
   BASE_URL: process.env.PDF_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5656/api/v1' : ''),
-  PUBLIC_URL: process.env.NEXT_PUBLIC_PDF_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5656/api/v1' : ''),
+  // PUBLIC_URL prioriza a var pública, mas faz fallback para a interna quando não definida
+  PUBLIC_URL: process.env.NEXT_PUBLIC_PDF_API_URL || process.env.PDF_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5656/api/v1' : ''),
   TIMEOUT: parseInt(process.env.PDF_API_TIMEOUT || '30000'),
 } as const
 
@@ -41,7 +35,7 @@ export const GA_CONFIG = {
 
 // Configurações de desenvolvimento
 export const DEV_CONFIG = {
-  NODE_TLS_REJECT_UNAUTHORIZED: process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0' ? '0' : '1',
+  NODE_TLS_REJECT_UNAUTHORIZED: (process.env.NODE_ENV === 'development' && process.env.DEV_ALLOW_INSECURE_TLS === '1') ? '0' : '1',
   IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
   IS_PRODUCTION: process.env.NODE_ENV === 'production',
 } as const
@@ -76,6 +70,19 @@ export function getPdfApiConfig() {
   }
 }
 
+// Helpers que validam a presença das URLs quando forem necessárias
+export function requireApiBaseUrl(): string {
+  const url = API_CONFIG.BASE_URL
+  if (!url) throw new Error('API_URL não configurada. Defina NEXT_PUBLIC_API_URL no ambiente de produção.')
+  return url
+}
+
+export function requirePdfApiBaseUrl(kind: 'public' | 'internal' = 'public'): string {
+  const url = kind === 'public' ? PDF_API_CONFIG.PUBLIC_URL : PDF_API_CONFIG.BASE_URL
+  if (!url) throw new Error('PDF_API_URL não configurada. Defina PDF_API_URL/NEXT_PUBLIC_PDF_API_URL no ambiente de produção.')
+  return url
+}
+
 // Validação das configurações críticas
 export function validateConfig() {
   const errors: string[] = []
@@ -104,3 +111,5 @@ if (DEV_CONFIG.IS_DEVELOPMENT) {
     NODE_ENV: process.env.NODE_ENV,
   })
 }
+
+// Validação deve ser chamada explicitamente pelos consumidores quando necessário

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
-// Types para os dados do dashboard
+// Tipos expostos para possíveis consumidores externos deste hook
 export interface DashboardStats {
     title: string
     value: string
@@ -19,29 +19,6 @@ export interface ActivityItem {
     color: string
 }
 
-export interface TrafficItem {
-    url: string
-    views: number
-    users: number
-    rate: number
-    app: string
-}
-
-export interface GeoDataItem {
-    country: string
-    sessions: number
-    percentage: number
-}
-
-export interface TrafficOriginItem {
-    source: string
-    users: number
-    sessions: number
-    engagement: number
-    avgTime: string
-    percentage: number
-}
-
 export interface AnalyticsState {
     isConnected: boolean
     lastUpdate: Date
@@ -49,7 +26,76 @@ export interface AnalyticsState {
     error: string | null
 }
 
-export const useDashboardData = () => {
+// Helpers isolados
+const fetchGA4Data = async (): Promise<{ users: number; traffic: number; isConnected: boolean }> => {
+    try {
+        if (
+            typeof window !== 'undefined' &&
+            window.gapi &&
+            window.gapi.client &&
+            window.gapi.client.analyticsdata
+        ) {
+            const response = await window.gapi.client.analyticsdata.properties.batchRunReports({
+                property: 'properties/275938136',
+                resource: {
+                    requests: [
+                        {
+                            dimensions: [{ name: 'hostName' }],
+                            metrics: [{ name: 'activeUsers' }],
+                            dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+                            metricAggregations: ['TOTAL']
+                        },
+                        {
+                            dimensions: [{ name: 'pagePath' }],
+                            metrics: [{ name: 'screenPageViews' }],
+                            dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+                            metricAggregations: ['TOTAL']
+                        }
+                    ]
+                }
+            })
+
+            if (response.status === 200) {
+                const { result } = response
+                const users = parseInt(result.reports?.[0]?.totals?.[0]?.metricValues?.[0]?.value || '59')
+                const traffic = parseInt(result.reports?.[1]?.totals?.[0]?.metricValues?.[0]?.value || '0')
+                return { users, traffic, isConnected: true }
+            }
+        }
+        return { users: 59, traffic: 0, isConnected: false }
+    } catch (err) {
+        console.error('Erro ao buscar dados do GA4:', err)
+        return { users: 59, traffic: 0, isConnected: false }
+    }
+}
+
+const fetchInternalData = async (): Promise<{ pacientes: number; agendas: number }> => {
+    try {
+        // Usar rota relativa que passa pelo rewrite do Next
+        const response = await fetch(`/api/dashboard/stats`, {
+            headers: { 'Content-Type': 'application/json' }
+        })
+        if (response.ok) {
+            const data = await response.json()
+            return { pacientes: data.pacientes || 0, agendas: data.agendas || 2201 }
+        }
+        return { pacientes: 0, agendas: 2201 }
+    } catch (err) {
+        console.error('Erro ao buscar dados internos:', err)
+        return { pacientes: 0, agendas: 2201 }
+    }
+}
+
+export type DashboardDataHookReturn = {
+    stats: DashboardStats[]
+    analyticsState: AnalyticsState
+    isLoading: boolean
+    refreshData: () => Promise<void>
+    toggleGAConnection: () => void
+}
+
+export const useDashboardData = (): DashboardDataHookReturn => {
+    const [stats, setStats] = useState<DashboardStats[]>([])
     const [analyticsState, setAnalyticsState] = useState<AnalyticsState>({
         isConnected: true,
         lastUpdate: new Date(),
@@ -57,256 +103,105 @@ export const useDashboardData = () => {
         error: null
     })
 
-    const [stats, setStats] = useState<DashboardStats[]>([])
-    const [activities, setActivities] = useState<ActivityItem[]>([])
-    const [trafficData, setTrafficData] = useState<TrafficItem[]>([])
-    const [geoData, setGeoData] = useState<GeoDataItem[]>([])
-    const [trafficOrigin, setTrafficOrigin] = useState<TrafficOriginItem[]>([])
-
-    // Simular dados iniciais (será substituído por API calls)
-    useEffect(() => {
-        loadDashboardData()
-    }, [])
-
-    const loadDashboardData = async () => {
-        setAnalyticsState(prev => ({ ...prev, isLoading: true, error: null }))
-
+    const loadDashboardData = useCallback(async () => {
+        setAnalyticsState((prev: AnalyticsState) => ({ ...prev, isLoading: true, error: null }))
         try {
-            // Tentar buscar dados do Google Analytics 4
             const analyticsData = await fetchGA4Data()
-            
-            // Buscar dados internos da API
             const internalData = await fetchInternalData()
 
-            // Combinar dados do GA4 e dados internos
-            const combinedStats = [
+            const nextStats: DashboardStats[] = [
                 {
                     title: 'USUÁRIOS',
-                    value: analyticsData.users?.toString() || '59',
-                    change: '+12%',
-                    changeType: 'positive' as const,
+                    value: analyticsData.users.toString(),
+                    change: '3.2%',
+                    changeType: 'positive',
                     icon: null,
-                    color: 'from-green-500 to-green-600'
+                    color: 'primary'
                 },
                 {
                     title: 'PACIENTES',
-                    value: internalData.pacientes?.toString() || '0',
-                    change: '+0%',
-                    changeType: 'positive' as const,
+                    value: internalData.pacientes.toString(),
+                    change: '1.1%',
+                    changeType: 'positive',
                     icon: null,
-                    color: 'from-purple-500 to-purple-600'
+                    color: 'success'
                 },
                 {
                     title: 'AGENDAS',
-                    value: internalData.agendas?.toString() || '2201',
-                    change: '+5%',
-                    changeType: 'positive' as const,
+                    value: internalData.agendas.toString(),
+                    change: '0.5%',
+                    changeType: 'positive',
                     icon: null,
-                    color: 'from-orange-500 to-orange-600'
+                    color: 'warning'
                 }
             ]
-
-            setStats(combinedStats)
-
-            setAnalyticsState(prev => ({ 
-                ...prev, 
-                isLoading: false, 
+            setStats(nextStats)
+            setAnalyticsState((prev: AnalyticsState) => ({
+                ...prev,
+                isLoading: false,
                 lastUpdate: new Date(),
                 isConnected: analyticsData.isConnected
             }))
-
         } catch (error) {
             console.error('Erro ao carregar dados do dashboard:', error)
-            setAnalyticsState(prev => ({ 
-                ...prev, 
-                isLoading: false, 
-                error: 'Erro ao carregar dados do dashboard',
-                isConnected: false
+            setAnalyticsState((prev: AnalyticsState) => ({
+                ...prev,
+                isLoading: false,
+                error: error instanceof Error ? error.message : 'Erro desconhecido'
             }))
-            
-            // Fallback para dados estáticos
-            setStats([
-                {
-                    title: 'USUÁRIOS',
-                    value: '59',
-                    change: '+12%',
-                    changeType: 'positive' as const,
-                    icon: null,
-                    color: 'from-green-500 to-green-600'
-                },
-                {
-                    title: 'PACIENTES',
-                    value: '0',
-                    change: '+0%',
-                    changeType: 'positive' as const,
-                    icon: null,
-                    color: 'from-purple-500 to-purple-600'
-                },
-                {
-                    title: 'AGENDAS',
-                    value: '2201',
-                    change: '+5%',
-                    changeType: 'positive' as const,
-                    icon: null,
-                    color: 'from-orange-500 to-orange-600'
-                }
-            ])
         }
-    }
+    }, [])
 
-    // Função para buscar dados do Google Analytics 4
-    const fetchGA4Data = async () => {
-        try {
-            // Verificar se Google Analytics está carregado
-            if (typeof window !== 'undefined' && window.gapi && window.gapi.client && window.gapi.client.analyticsdata) {
-                const response = await window.gapi.client.analyticsdata.properties.batchRunReports({
-                    property: "properties/275938136", // ID da propriedade GA4 do sistema original
-                    resource: {
-                        requests: [
-                            // Requisição para usuários ativos
-                            {
-                                dimensions: [{ name: "hostName" }],
-                                metrics: [{ name: "activeUsers" }],
-                                dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
-                                metricAggregations: ["TOTAL"]
-                            },
-                            // Requisição para visualizações de página (tráfego)
-                            {
-                                dimensions: [{ name: "pagePath" }],
-                                metrics: [{ name: "screenPageViews" }],
-                                dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
-                                metricAggregations: ["TOTAL"]
-                            }
-                        ]
-                    }
-                })
-
-                if (response.status === 200) {
-                    const { result } = response
-                    const users = parseInt(result.reports[0]?.totals?.[0]?.metricValues?.[0]?.value || '59')
-                    const traffic = parseInt(result.reports[1]?.totals?.[0]?.metricValues?.[0]?.value || '0')
-                    
-                    return {
-                        users,
-                        traffic,
-                        isConnected: true
-                    }
-                }
-            }
-            
-            // Se GA4 não estiver disponível, retornar dados padrão
-            return {
-                users: 59,
-                traffic: 0,
-                isConnected: false
-            }
-        } catch (error) {
-            console.error('Erro ao buscar dados do GA4:', error)
-            return {
-                users: 59,
-                traffic: 0,
-                isConnected: false
-            }
-        }
-    }
-
-    // Função para buscar dados internos do sistema
-    const fetchInternalData = async () => {
-        try {
-            // Simular chamada para API interna
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/dashboard/stats`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Adicionar token de autenticação se necessário
-                    // 'Authorization': `Bearer ${token}`
-                }
-            })
-            
-            if (response.ok) {
-                const data = await response.json()
-                return {
-                    pacientes: data.pacientes || 0,
-                    agendas: data.agendas || 2201
-                }
-            }
-            
-            // Fallback para dados estáticos
-            return {
-                pacientes: 0,
-                agendas: 2201
-            }
-        } catch (error) {
-            console.error('Erro ao buscar dados internos:', error)
-            return {
-                pacientes: 0,
-                agendas: 2201
-            }
-        }
-    }
-
-    const refreshData = () => {
+    useEffect(() => {
         loadDashboardData()
-    }
+    }, [loadDashboardData])
 
-    const toggleGAConnection = () => {
-        setAnalyticsState(prev => ({ 
-            ...prev, 
-            isConnected: !prev.isConnected 
-        }))
-    }
+    const toggleGAConnection = useCallback(() => {
+        setAnalyticsState((prev: AnalyticsState) => ({ ...prev, isConnected: !prev.isConnected }))
+    }, [])
 
-    return {
-        analyticsState,
-        stats,
-        activities,
-        trafficData,
-        geoData,
-        trafficOrigin,
-        refreshData,
-        toggleGAConnection,
-        isLoading: analyticsState.isLoading
-    }
+    return { stats, analyticsState, isLoading: analyticsState.isLoading, refreshData: loadDashboardData, toggleGAConnection }
 }
 
-// Hook para dados de chart
+// Hook para dados de chart (simulado)
 export const useChartData = (period: 'month' | 'week' = 'month') => {
     const [chartData, setChartData] = useState<any>(null)
     const [isLoading, setIsLoading] = useState(false)
 
-    useEffect(() => {
-        loadChartData(period)
-    }, [period])
-
-    const loadChartData = async (selectedPeriod: 'month' | 'week') => {
+    const loadChartData = useCallback(async (selectedPeriod: 'month' | 'week') => {
         setIsLoading(true)
-        
         try {
-            // TODO: Implementar chamada para API do Google Analytics
-            // const data = await fetchAnalyticsChart(selectedPeriod)
-            
-            // Dados simulados para Chart.js
             const mockData = {
-                labels: selectedPeriod === 'month' 
-                    ? ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-                    : ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
-                datasets: [{
-                    label: 'Visitas',
-                    data: selectedPeriod === 'month'
-                        ? [320, 450, 680, 890, 1200, 1450, 1680, 1890, 2100, 2300, 2150, 2400]
-                        : [120, 190, 300, 500, 200, 300, 450],
-                    borderColor: 'rgb(59, 130, 246)',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    tension: 0.4
-                }]
+                labels:
+                    selectedPeriod === 'month'
+                        ? ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+                        : ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+                datasets: [
+                    {
+                        label: 'Visitas',
+                        data:
+                            selectedPeriod === 'month'
+                                ? [320, 450, 680, 890, 1200, 1450, 1680, 1890, 2100, 2300, 2150, 2400]
+                                : [120, 190, 300, 500, 200, 300, 450],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4
+                    }
+                ]
             }
-
             setChartData(mockData)
-        } catch (error) {
-            console.error('Erro ao carregar dados do gráfico:', error)
+        } catch (err) {
+            console.error('Erro ao carregar dados do gráfico:', err)
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [])
 
-    return { chartData, isLoading, refreshChart: () => loadChartData(period) }
+    useEffect(() => {
+        loadChartData(period)
+    }, [period, loadChartData])
+
+    const refreshChart = useCallback(() => loadChartData(period), [loadChartData, period])
+
+    return { chartData, isLoading, refreshChart }
 }

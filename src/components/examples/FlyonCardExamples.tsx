@@ -43,7 +43,6 @@ import {
     Trash2,
     Eye,
     Info,
-    X,
     AlertTriangle as AlertTriangleIcon
 } from 'lucide-react'
 
@@ -222,8 +221,8 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                         <button
                             onClick={confirmModal.closeModal}
                             className={`px-4 py-2 transition-colors ${isDark
-                                    ? 'text-gray-300 hover:text-white'
-                                    : 'text-gray-600 hover:text-gray-800'
+                                ? 'text-gray-300 hover:text-white'
+                                : 'text-gray-600 hover:text-gray-800'
                                 }`}
                         >
                             Cancelar
@@ -266,8 +265,8 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                             type="button"
                             onClick={formModal.closeModal}
                             className={`px-4 py-2 transition-colors ${isDark
-                                    ? 'text-gray-300 hover:text-white'
-                                    : 'text-gray-600 hover:text-gray-800'
+                                ? 'text-gray-300 hover:text-white'
+                                : 'text-gray-600 hover:text-gray-800'
                                 }`}
                         >
                             Cancelar
@@ -295,8 +294,8 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                             value={formData.name}
                             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
-                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                                 }`}
                             placeholder="Seu nome completo"
                         />
@@ -314,8 +313,8 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                             value={formData.email}
                             onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
-                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                                 }`}
                             placeholder="seu@email.com"
                         />
@@ -331,8 +330,8 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                             value={formData.category}
                             onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
                             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
-                                    ? 'bg-gray-700 border-gray-600 text-white'
-                                    : 'bg-white border-gray-300 text-gray-900'
+                                ? 'bg-gray-700 border-gray-600 text-white'
+                                : 'bg-white border-gray-300 text-gray-900'
                                 }`}
                         >
                             <option value="general">Geral</option>
@@ -353,8 +352,8 @@ const ModalExamplesSection: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                             value={formData.message}
                             onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
                             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
-                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                                 }`}
                             placeholder="Digite sua mensagem..."
                         />

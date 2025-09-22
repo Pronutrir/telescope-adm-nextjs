@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import PDFManagerService, { 
-  type SharePointPdfItem, 
-  type PagedPdfResponse,
-  type EditPdfRequest
+    type SharePointPdfItem, 
+    type PagedPdfResponse
 } from '@/services/pdfManager/pdfManagerService'
 import type { PDFItem } from '@/types/pdf'
 
@@ -59,9 +58,14 @@ export const usePDFManager = (): UsePDFManagerReturn => {
             setTotalPages(1)
             setCurrentSearchTerm('')
             
-            // Com as APIs diretas, sempre temos dados reais
-            console.log('✅ [usePDFManager] Dados reais do SharePoint carregados')
-            setError(null) // Limpar qualquer erro anterior
+            if (pdfItems.length === 0) {
+                // Sinalizar indisponibilidade amigavelmente sem quebrar a página
+                setError('Serviço de PDF temporariamente indisponível (503). Tente novamente mais tarde.')
+                console.warn('⚠️ [usePDFManager] Lista vazia recebida — possivelmente 503 upstream')
+            } else {
+                console.log('✅ [usePDFManager] Dados reais do SharePoint carregados')
+                setError(null)
+            }
             
         } catch (error) {
             console.error('❌ [usePDFManager] Erro ao carregar PDFs:', error)

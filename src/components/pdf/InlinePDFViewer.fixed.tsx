@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { twMerge } from 'tailwind-merge'
 
@@ -36,7 +37,7 @@ export default function InlinePDFViewer({
     const [ signatureImage, setSignatureImage ] = useState<string | null>(null)
     const [ signaturePosition, setSignaturePosition ] = useState({ x: 0, y: 0, page: 1 })
     const [ isDraggingSignature, setIsDraggingSignature ] = useState(false)
-    const [ signedPdfBase64, setSignedPdfBase64 ] = useState<string | null>(null)
+    const [ , setSignedPdfBase64 ] = useState<string | null>(null)
     const [ signatureError, setSignatureError ] = useState<string | null>(null)
 
     useEffect(() => {
@@ -227,9 +228,7 @@ export default function InlinePDFViewer({
         ? '95vh' // 95% da viewport height para modal full - deixa espaço para visualizar melhor
         : `calc(${height} + 20px)` // Adiciona 20px extra para garantir visualização completa
 
-    const toggleFullScreen = () => {
-        setIsFullScreen(!isFullScreen)
-    }
+    // Fullscreen toggle not used in fixed viewer variant
 
     return (
         <div className={containerClasses}>

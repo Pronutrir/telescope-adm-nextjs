@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
-
-const { baseUrl: PDF_API_BASE } = getPdfApiConfig()
+import { requirePdfApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
     try {
         const formData = await request.formData()
         
-        console.log('📤 Iniciando upload de PDF...')
-        console.log('🌐 URL da API:', `${PDF_API_BASE}/Pdfs/upload`)
+    logger.info('📤 [PDFs] Iniciando upload...')
+    const baseUrl = requirePdfApiBaseUrl('internal')
+    logger.debug('🌐 [PDFs] Base URL:', baseUrl)
         
         // Verificar se o arquivo foi enviado com o nome correto
         const file = formData.get('arquivo') || formData.get('file')
         if (!file) {
-            console.log('❌ Arquivo não encontrado no FormData')
-            console.log('📋 Campos disponíveis:', Array.from(formData.keys()))
+            logger.warn('❌ [PDFs] Arquivo não encontrado no FormData')
+            logger.debug('📋 [PDFs] Campos disponíveis:', Array.from(formData.keys()))
             return NextResponse.json({
                 success: false,
                 message: 'Arquivo não encontrado. Use o campo "arquivo" para enviar o PDF.'
@@ -27,14 +27,14 @@ export async function POST(request: NextRequest) {
         
         // Verificar se existe nomePersonalizado
         const nomePersonalizado = formData.get('nomePersonalizado')
-        let uploadUrl = `${PDF_API_BASE}/Pdfs/upload`
+    let uploadUrl = `${baseUrl}/Pdfs/upload`
         
         if (nomePersonalizado && typeof nomePersonalizado === 'string') {
             uploadUrl += `?nomePersonalizado=${encodeURIComponent(nomePersonalizado)}`
-            console.log('📝 Nome personalizado:', nomePersonalizado)
+            logger.debug('📝 [PDFs] Nome personalizado:', nomePersonalizado)
         }
         
-        console.log('📤 Enviando arquivo para:', uploadUrl)
+    logger.info('📤 [PDFs] Enviando arquivo para:', uploadUrl)
         
         // Fazer proxy do upload para a API real
         const response = await fetch(uploadUrl, {
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
             signal: AbortSignal.timeout(30000) // 30 segundos para upload
         })
 
-        console.log('📡 Status da resposta:', response.status, response.statusText)
+    logger.debug('📡 [PDFs] Resposta:', response.status, response.statusText)
 
         if (!response.ok) {
             let errorMessage = `API Error: ${response.status} ${response.statusText}`
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
             // Tentar obter detalhes do erro da API
             try {
                 const errorData = await response.text()
-                console.log('❌ Detalhes do erro da API:', errorData)
+                logger.warn('❌ [PDFs] Detalhes do erro da API:', errorData)
                 
                 // Tentar fazer parse do JSON se possível
                 try {
@@ -60,19 +60,19 @@ export async function POST(request: NextRequest) {
                 } catch {
                     errorMessage = errorData || errorMessage
                 }
-            } catch (parseError) {
-                console.log('⚠️ Não foi possível parse do erro da API')
+            } catch {
+                logger.warn('⚠️ [PDFs] Não foi possível parsear o erro da API')
             }
             
             throw new Error(errorMessage)
         }
 
-        const data = await response.json()
-        console.log('✅ Upload realizado com sucesso:', data)
+    const data = await response.json()
+    logger.info('✅ [PDFs] Upload concluído')
         
         return NextResponse.json(data)
     } catch (error) {
-        console.error('❌ Erro ao fazer upload:', error)
+        logger.error('❌ [PDFs] Erro ao fazer upload:', error)
         
         return NextResponse.json({
             success: false,

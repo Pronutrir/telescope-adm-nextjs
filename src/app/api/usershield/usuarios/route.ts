@@ -8,17 +8,19 @@
  * - Renovação proativa de tokens próximos ao vencimento
  * - Fallback robusto para cache em memória
  */
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { tokenCacheService } from '@/services/tokenCacheService'
+import { logger } from '@/lib/logger'
+import { getServiceUrl } from '@/config/env'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   // URLs da UserShield API a partir de variáveis de ambiente
-  const USERSHIELD_BASE_URL = process.env.NEXT_PUBLIC_USERSHIELD_URL || 'https://servicesapp.pronutrir.com.br/usershield/api/'
+  const USERSHIELD_BASE_URL = `${getServiceUrl('USERSHIELD')}/api/`
   const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}v1/Auth/login`
   const USERSHIELD_USERS_URL = `${USERSHIELD_BASE_URL}v1/Usuarios`
   
   try {
-    console.log('🚀 API Route UserShield UNIFICADA: Iniciada')
+    logger.info('API Route UserShield UNIFICADA: Iniciada')
     
     // Validar se as variáveis de ambiente estão definidas
     if (!process.env.USERSHIELD_USERNAME || !process.env.USERSHIELD_PASSWORD) {
@@ -29,19 +31,19 @@ export async function GET(request: NextRequest) {
     let jwtToken = await tokenCacheService.getToken('usershield')
     
     if (!jwtToken) {
-      console.log('🔐 Nenhum token no cache, fazendo login...')
+      logger.info('Nenhum token no cache, fazendo login...')
       jwtToken = await performLogin(USERSHIELD_LOGIN_URL)
       
       if (!jwtToken) {
         throw new Error('Falha na autenticação')
       }
     } else {
-      console.log('✅ Token encontrado no cache Redis')
+      logger.debug('Token encontrado no cache Redis')
       
       // Verificar se o token está próximo do vencimento (renovação proativa)
       const isNearExpiry = await tokenCacheService.isTokenNearExpiry('usershield')
       if (isNearExpiry) {
-        console.log('⏰ Token próximo do vencimento, renovando...')
+        logger.info('Token próximo do vencimento, renovando...')
         const newToken = await performLogin(USERSHIELD_LOGIN_URL)
         if (newToken) {
           jwtToken = newToken
@@ -50,7 +52,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar usuários com o token
-    console.log('👥 Buscando usuários...')
+    logger.debug('Buscando usuários...')
     let usuariosResponse = await fetch(USERSHIELD_USERS_URL, {
       method: 'GET',
       headers: {
@@ -61,7 +63,7 @@ export async function GET(request: NextRequest) {
 
     // Se token inválido (401), remover do cache e tentar novo login
     if (usuariosResponse.status === 401) {
-      console.log('🔄 Token inválido (401), removendo do cache e fazendo novo login...')
+      logger.warn('Token inválido (401), removendo do cache e fazendo novo login...')
       await tokenCacheService.removeToken('usershield')
       
       const newToken = await performLogin(USERSHIELD_LOGIN_URL)
@@ -87,8 +89,8 @@ export async function GET(request: NextRequest) {
       throw new Error(`Falha na busca de usuários: ${usuariosResponse.status}`)
     }
 
-    const usuariosData = await usuariosResponse.json()
-    console.log('✅ Usuários obtidos:', usuariosData.result?.length || 0)
+  const usuariosData = await usuariosResponse.json()
+  logger.info('Usuários obtidos:', usuariosData.result?.length || 0)
 
     // Mapear para formato esperado pela aplicação
     const usuarios = usuariosData.result?.map((user: any) => ({
@@ -115,7 +117,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('❌ Erro na API UserShield:', error)
+    logger.error('Erro na API UserShield:', error)
     
     return NextResponse.json(
       { 
@@ -133,7 +135,7 @@ export async function GET(request: NextRequest) {
  */
 async function performLogin(loginUrl: string): Promise<string | null> {
   try {
-    console.log('🔐 Fazendo login na UserShield API...')
+    logger.info('Fazendo login na UserShield API...')
     
     const loginResponse = await fetch(loginUrl, {
       method: 'POST',
@@ -148,7 +150,7 @@ async function performLogin(loginUrl: string): Promise<string | null> {
     })
 
     if (!loginResponse.ok) {
-      console.error('❌ Login falhou:', loginResponse.status)
+      logger.error('Login falhou:', loginResponse.status)
       return null
     }
 
@@ -156,17 +158,17 @@ async function performLogin(loginUrl: string): Promise<string | null> {
     const token = loginData.jwtToken
 
     if (!token) {
-      console.error('❌ Token não encontrado na resposta do login')
+      logger.error('Token não encontrado na resposta do login')
       return null
     }
 
     // Armazenar token no cache Redis por 55 minutos
     await tokenCacheService.setToken(token, 'usershield', process.env.USERSHIELD_USERNAME!)
-    console.log('✅ Login realizado e token armazenado no cache Redis')
+    logger.info('Login realizado e token armazenado no cache Redis')
     
     return token
   } catch (error) {
-    console.error('❌ Erro no login:', error)
+    logger.error('Erro no login:', error)
     return null
   }
 }
@@ -174,7 +176,7 @@ async function performLogin(loginUrl: string): Promise<string | null> {
 /**
  * Endpoint para estatísticas do cache Redis (útil para debugging)
  */
-export async function HEAD(request: NextRequest) {
+export async function HEAD() {
   try {
     const stats = await tokenCacheService.getCacheStats()
     
@@ -186,7 +188,7 @@ export async function HEAD(request: NextRequest) {
         'X-Cache-Tokens-Count': stats.cachedTokensCount.toString()
       }
     })
-  } catch (error) {
+  } catch {
     return new NextResponse(null, { status: 500 })
   }
 }

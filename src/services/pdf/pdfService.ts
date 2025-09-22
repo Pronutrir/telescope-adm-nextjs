@@ -181,7 +181,12 @@ export class PDFService {
   static async uploadPDF(file: File, customName?: string): Promise<PDFUploadResponse> {
     try {
       const formData = new FormData();
-      formData.append('arquivo', file);
+      const ensurePdfName = (name: string) => name.toLowerCase().endsWith('.pdf') ? name : `${name}.pdf`;
+      const uploadFile = customName
+        ? new File([file], ensurePdfName(customName), { type: file.type || 'application/pdf' })
+        : file;
+
+      formData.append('arquivo', uploadFile);
 
       const response = await fetch(`${API_BASE_URL}/pdfs/upload`, {
         method: 'POST',
@@ -199,10 +204,10 @@ export class PDFService {
         success: data.sucesso,
         message: data.mensagem || 'Upload realizado com sucesso',
         data: data.sucesso ? mapPdfInfoToPDFItem({
-          nome: data.nomeArquivo || file.name,
+          nome: data.nomeArquivo || uploadFile.name,
           caminhoCompleto: data.caminhoCompleto || '',
-          tamanhoBytes: file.size,
-          tamanhoMB: file.size / (1024 * 1024),
+          tamanhoBytes: uploadFile.size,
+          tamanhoMB: uploadFile.size / (1024 * 1024),
           dataCriacao: new Date().toISOString(),
           dataModificacao: new Date().toISOString(),
           numeroPaginas: data.numeroPaginas

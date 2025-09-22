@@ -1,32 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
+import { requirePdfApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
-const { publicUrl: NAS_API_BASE } = getPdfApiConfig()
-
-console.log('🚀 [API Route] Rota /api/transferir-pdf carregada com sucesso!')
+logger.info('🚀 [API Route] /api/transferir-pdf pronta')
 
 export async function POST(request: NextRequest) {
-  console.log('� [API Route] POST recebido em /api/transferir-pdf')
+  logger.debug('📥 POST /api/transferir-pdf recebido')
   
   try {
     const body = await request.json()
     const { sharePointUrl } = body
     
-    console.log('📝 [API Route] Body da requisição:', { sharePointUrl })
+  logger.debug('📝 Body:', { sharePointUrl })
 
     if (!sharePointUrl) {
-      console.log('❌ [API Route] sharePointUrl não fornecido')
+  logger.warn('sharePointUrl não fornecido')
       return NextResponse.json(
         { message: 'O parametro sharePointUrl e obrigatorio.' },
         { status: 400 }
       )
     }
 
-    console.log(`[API Proxy] Transferindo arquivo do SharePoint: ${sharePointUrl}`)
+  logger.info('[API Proxy] Transferindo arquivo do SharePoint', { sharePointUrl })
 
     // Encaminha a requisicao para a API NAS
     try {
-      const response = await fetch(`${NAS_API_BASE}/transferir-sharepoint-para-nas`, {
+  const NAS_API_BASE = requirePdfApiBaseUrl()
+  const response = await fetch(`${NAS_API_BASE}/transferir-sharepoint-para-nas`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error(`[API Proxy] Erro da API NAS (${response.status}):`, errorText)
+        logger.error(`[API Proxy] Erro da API NAS (${response.status}):`, errorText)
         return NextResponse.json(
           {
             sucesso: false,
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       }
 
       const result = await response.json()
-      console.log('[API Proxy] Resposta da API NAS:', result)
+      logger.debug('[API Proxy] Resposta NAS', result)
 
       return NextResponse.json({
         sucesso: true,
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       })
 
     } catch (fetchError) {
-      console.error('[API Proxy] Erro ao conectar com API NAS:', fetchError)
+      logger.error('[API Proxy] Erro ao conectar com API NAS:', fetchError)
 
       return NextResponse.json(
         {
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('[API Proxy] Erro interno:', error)
+    logger.error('[API Proxy] Erro interno:', error)
     return NextResponse.json(
       { message: 'Erro interno do servidor' },
       { status: 500 }

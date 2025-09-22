@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
+import { requirePdfApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
     try {
@@ -7,12 +8,12 @@ export async function GET(request: NextRequest) {
         const pathSegments = url.pathname.split('/').slice(3) // Remove /api/pdf-details
         const pdfId = pathSegments[0]
         
-        console.log('📡 Buscando detalhes do PDF:', pdfId)
+        logger.debug('Buscando detalhes do PDF:', pdfId)
         
-    const { baseUrl: PDF_API_BASE } = getPdfApiConfig()
+    const PDF_API_BASE = requirePdfApiBaseUrl('internal')
         const apiUrl = `${PDF_API_BASE}/Pdfs/${pdfId}/details`
         
-        console.log('🔗 URL da API:', apiUrl)
+        logger.debug('URL da API:', apiUrl)
         
         const response = await fetch(apiUrl, {
             method: 'GET',
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
         }
 
         const data = await response.json()
-        console.log('📄 Detalhes do PDF obtidos:', {
+        logger.info('Detalhes do PDF obtidos:', {
             id: data.id,
             name: data.name,
             pageCount: data.pageCount,
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
         
         return NextResponse.json(data)
     } catch (error) {
-        console.error('❌ Erro ao buscar detalhes do PDF:', error)
+        logger.error('Erro ao buscar detalhes do PDF:', error)
         
         return NextResponse.json({
             success: false,

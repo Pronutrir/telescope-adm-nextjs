@@ -1,12 +1,33 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 
 interface GoogleAnalyticsLoaderProps {
     onLoad?: (isLoaded: boolean) => void
 }
 
 export const GoogleAnalyticsLoader = ({ onLoad }: GoogleAnalyticsLoaderProps) => {
-    // Removendo variáveis não utilizadas
-    const loadGoogleAnalytics = async () => {
+    const initializeGoogleAnalytics = useCallback(async () => {
+        const apiKey = process.env.NEXT_PUBLIC_GA_API_KEY
+        const clientId = process.env.NEXT_PUBLIC_GA_CLIENT_ID
+
+        if (!apiKey || !clientId) {
+            throw new Error('Chaves de API do Google Analytics não configuradas')
+        }
+
+        await window.gapi.client.init({
+            apiKey,
+            discoveryDocs: [ 'https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta' ],
+            scope: 'https://www.googleapis.com/auth/analytics.readonly'
+        })
+
+        await window.gapi.auth2.init({
+            client_id: clientId,
+            scope: 'https://www.googleapis.com/auth/analytics.readonly'
+        })
+
+        console.log('Google Analytics API inicializada com sucesso')
+    }, [])
+
+    const loadGoogleAnalytics = useCallback(async () => {
         try {
             // Verificar se já está carregado
             if (window.gapi) {
@@ -42,35 +63,11 @@ export const GoogleAnalyticsLoader = ({ onLoad }: GoogleAnalyticsLoaderProps) =>
             console.error('Erro ao carregar Google Analytics:', err)
             onLoad?.(false)
         }
-    }
+    }, [ initializeGoogleAnalytics, onLoad ])
 
     useEffect(() => {
         loadGoogleAnalytics()
     }, [ loadGoogleAnalytics ])
-
-    const initializeGoogleAnalytics = async () => {
-        const apiKey = process.env.NEXT_PUBLIC_GA_API_KEY
-        const clientId = process.env.NEXT_PUBLIC_GA_CLIENT_ID
-
-        if (!apiKey || !clientId) {
-            throw new Error('Chaves de API do Google Analytics não configuradas')
-        }
-
-        // Inicializar o cliente da API
-        await window.gapi.client.init({
-            apiKey,
-            discoveryDocs: [ 'https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta' ],
-            scope: 'https://www.googleapis.com/auth/analytics.readonly'
-        })
-
-        // Inicializar autenticação OAuth2 separadamente
-        await window.gapi.auth2.init({
-            client_id: clientId,
-            scope: 'https://www.googleapis.com/auth/analytics.readonly'
-        })
-
-        console.log('Google Analytics API inicializada com sucesso')
-    }
 
     // Este componente não renderiza nada visualmente
     return null

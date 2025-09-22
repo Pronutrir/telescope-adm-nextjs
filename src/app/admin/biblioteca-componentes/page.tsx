@@ -1,4 +1,5 @@
 ﻿'use client'
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import React, { useState } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
@@ -1566,7 +1567,7 @@ const ComponentsExamples: React.FC = () => {
                             priority="high"
                             showStats={true}
                             onView={(pdf) => console.log('Visualizar:', pdf.title)}
-                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+
                             onDelete={(pdf) => console.log('Excluir:', pdf.title)}
                         />
                         <TelescopePDFCard
@@ -1575,7 +1576,7 @@ const ComponentsExamples: React.FC = () => {
                             priority="medium"
                             showStats={true}
                             onView={(pdf) => console.log('Visualizar:', pdf.title)}
-                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+
                             onDelete={(pdf) => console.log('Excluir:', pdf.title)}
                         />
                         <TelescopePDFCard
@@ -1584,7 +1585,7 @@ const ComponentsExamples: React.FC = () => {
                             priority="critical"
                             showStats={true}
                             onView={(pdf) => console.log('Visualizar:', pdf.title)}
-                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+
                             onDelete={(pdf) => console.log('Excluir:', pdf.title)}
                         />
                     </div>
@@ -1602,7 +1603,7 @@ const ComponentsExamples: React.FC = () => {
                             priority="medium"
                             showStats={true}
                             onView={(pdf) => console.log('Visualizar:', pdf.title)}
-                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+
                             onDelete={(pdf) => console.log('Excluir:', pdf.title)}
                         />
                         <TelescopePDFCard
@@ -1611,7 +1612,7 @@ const ComponentsExamples: React.FC = () => {
                             priority="low"
                             showStats={false}
                             onView={(pdf) => console.log('Visualizar:', pdf.title)}
-                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+
                             onDelete={(pdf) => console.log('Excluir:', pdf.title)}
                         />
                         <TelescopePDFCard
@@ -1620,7 +1621,7 @@ const ComponentsExamples: React.FC = () => {
                             priority="high"
                             showStats={true}
                             onView={(pdf) => console.log('Visualizar:', pdf.title)}
-                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+
                             onDelete={(pdf) => console.log('Excluir:', pdf.title)}
                         />
                     </div>
@@ -1641,7 +1642,7 @@ const ComponentsExamples: React.FC = () => {
                             isSelected={true}
                             onSelect={(pdf) => console.log('Selecionado:', pdf.title)}
                             onView={(pdf) => console.log('Visualizar:', pdf.title)}
-                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+
                             onDelete={(pdf) => console.log('Excluir:', pdf.title)}
                         />
                         <TelescopePDFCard
@@ -1653,7 +1654,7 @@ const ComponentsExamples: React.FC = () => {
                             isSelected={false}
                             onSelect={(pdf) => console.log('Selecionado:', pdf.title)}
                             onView={(pdf) => console.log('Visualizar:', pdf.title)}
-                            onDownload={(pdf) => console.log('Download:', pdf.title)}
+
                             onDelete={(pdf) => console.log('Excluir:', pdf.title)}
                         />
                     </div>

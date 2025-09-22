@@ -19,11 +19,9 @@ interface SelectProps {
     className?: string
     isDark?: boolean
     style?: React.CSSProperties
+    name?: string
+    label?: string
     error?: string | false
-    searchable?: boolean
-    loading?: boolean
-    emptyMessage?: string
-    onValueChange?: (value: string | number) => void
     onChange?: (value: string | number) => void
     onFocus?: () => void
     onBlur?: () => void
@@ -39,11 +37,9 @@ const Select: React.FC<SelectProps> = ({
     className = '',
     isDark = false,
     style,
-    error,
-    searchable = false,
-    loading = false,
-    emptyMessage = 'Nenhuma opção encontrada',
-    onValueChange,
+    name,
+    label,
+    // error is currently unused but kept in API for compatibility
     onChange,
     onFocus,
     onBlur
@@ -299,12 +295,26 @@ const Select: React.FC<SelectProps> = ({
     }
 
     return (
-        <div ref={selectRef} style={{ ...selectStyles.container, ...style }} className={className}>
+        <div ref={selectRef} style={{ ...selectStyles.container, ...style }} className={className} data-name={name}>
+            {label && (
+                <label
+                    style={{
+                        display: 'block',
+                        marginBottom: '0.375rem',
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                        color: isDark ? 'rgb(229, 231, 235)' : 'rgb(51, 65, 85)'
+                    }}
+                >
+                    {label}
+                </label>
+            )}
             <button
                 type="button"
                 onClick={handleToggle}
                 disabled={disabled}
                 style={selectStyles.toggle}
+                aria-label={label || name || undefined}
                 aria-expanded={isOpen}
                 aria-haspopup="listbox"
             >

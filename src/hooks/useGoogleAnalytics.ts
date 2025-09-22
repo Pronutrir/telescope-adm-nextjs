@@ -58,6 +58,15 @@ export const useGoogleAnalytics = (): UseGoogleAnalyticsReturn => {
     const [error, setError] = useState<string | null>(null)
     const [isConnected, setIsConnected] = useState(false)
 
+    const loadGapi = useCallback(() => {
+        const script = document.createElement('script')
+        script.src = 'https://apis.google.com/js/api.js'
+        script.onload = () => {
+            window.gapi.load('client:auth2', initializeGapi)
+        }
+        document.head.appendChild(script)
+    }, [])
+
     const checkGapiReady = useCallback(() => {
         if (typeof window !== 'undefined' && window.gapi) {
             setIsConnected(true)
@@ -65,21 +74,14 @@ export const useGoogleAnalytics = (): UseGoogleAnalyticsReturn => {
             // Carregar GAPI se não estiver disponível
             loadGapi()
         }
-    }, [])
+    }, [loadGapi])
 
     // Verificar se o GAPI está carregado
     useEffect(() => {
         checkGapiReady()
     }, [checkGapiReady])
 
-    const loadGapi = () => {
-        const script = document.createElement('script')
-        script.src = 'https://apis.google.com/js/api.js'
-        script.onload = () => {
-            window.gapi.load('client:auth2', initializeGapi)
-        }
-        document.head.appendChild(script)
-    }
+    // loadGapi agora é memoizado acima
 
     const initializeGapi = () => {
         const apiKey = process.env.NEXT_PUBLIC_GA_API_KEY

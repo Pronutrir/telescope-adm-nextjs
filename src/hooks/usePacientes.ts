@@ -22,7 +22,6 @@ async function getPacientes(searchTerm?: string): Promise<IPaciente[]> {
   }
 
   try {
-    const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
     // Construir URL com parâmetros de busca
     const searchParams = new URLSearchParams({
       nome: searchTerm,
@@ -30,18 +29,16 @@ async function getPacientes(searchTerm?: string): Promise<IPaciente[]> {
       rows: '20'
     })
 
-    const response = await fetch(
-      `${baseURL}/apitasy/api/v1/PacientesSinaisVitais/Search?${searchParams}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          // TODO: Adicionar autenticação quando necessário
-          // 'Authorization': `Bearer ${token}`
-        }
+    // Usar rewrite do Next para resolver para a API de backend
+    const response = await fetch(`/apitasy/api/v1/PacientesSinaisVitais/Search?${searchParams}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        // TODO: Adicionar autenticação quando necessário
+        // 'Authorization': `Bearer ${token}`
       }
-    )
+    })
 
     if (!response.ok) {
       throw new Error(`Erro na API: ${response.status} ${response.statusText}`)

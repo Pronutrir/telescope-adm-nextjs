@@ -1,41 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
-
-const { baseUrl: PDF_API_BASE } = getPdfApiConfig()
+import { requirePdfApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
+    const { searchParams } = new URL(request.url)
+    const caminho = searchParams.get('caminho')
+
+    const buildUrl = (baseUrl: string, path: string) => {
+        const url = new URL(`${baseUrl}${path}`)
+        if (caminho) url.searchParams.set('caminho', caminho)
+        return url.toString()
+    }
+
+    const tryFetch = async (baseUrl: string) => {
+        const paths = ['/Pdfs/unified', '/pdfs/unified']
+        let lastError: unknown = null
+        for (const p of paths) {
+            const target = buildUrl(baseUrl, p)
+            try {
+                logger.info('🔄 [PDFs] Unificados GET ->', target)
+                const response = await fetch(target, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: AbortSignal.timeout(15000),
+                })
+                if (!response.ok) {
+                    lastError = new Error(`API Error: ${response.status} ${response.statusText}`)
+                    continue
+                }
+                return await response.json()
+            } catch (err) {
+                lastError = err
+                logger.warn('⚠️ [PDFs] Falha ao obter unificados em', target, String(err))
+            }
+        }
+        throw lastError instanceof Error ? lastError : new Error('Falha ao obter unificados')
+    }
+
     try {
-        const { searchParams } = new URL(request.url)
-        
-        // Construir URL com parâmetros opcionais
-        const apiUrl = new URL(`${PDF_API_BASE}/Pdfs/unified`)
-        const caminho = searchParams.get('caminho')
-        if (caminho) {
-            apiUrl.searchParams.set('caminho', caminho)
-        }
-
-        const response = await fetch(apiUrl.toString(), {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            signal: AbortSignal.timeout(10000)
-        })
-
-        if (!response.ok) {
-            throw new Error(`API Error: ${response.status} ${response.statusText}`)
-        }
-
-        const data = await response.json()
-        
+        const publicUrl = requirePdfApiBaseUrl('public')
+        const data = await tryFetch(publicUrl)
         return NextResponse.json(data)
-    } catch (error) {
-        console.error('Erro ao listar PDFs unificados:', error)
-        
-        return NextResponse.json({
-            success: false,
-            data: [],
-            message: error instanceof Error ? error.message : 'Erro ao conectar com o servidor de PDFs'
-        }, { status: 503 })
+    } catch (e1) {
+        logger.warn('⚠️ [PDFs] Unificados: falha na URL pública, tentando interna...', e1)
+        let internalUrl: string | null = null
+        try {
+            internalUrl = requirePdfApiBaseUrl('internal')
+        } catch (cfgErr) {
+            logger.warn('ℹ️ [PDFs] URL interna não configurada para unificados.', cfgErr)
+        }
+
+        if (internalUrl) {
+            try {
+                const data = await tryFetch(internalUrl)
+                return NextResponse.json(data)
+            } catch (e2) {
+                logger.error('❌ [PDFs] Unificados: ambas as URLs falharam', { publicError: String(e1), internalError: String(e2) })
+            }
+        }
+
+        const res = NextResponse.json([], { status: 200 })
+        res.headers.set('X-PDF-Service-Status', internalUrl ? 'offline' : 'missing-internal-config')
+        res.headers.set('X-PDF-Service-Message', internalUrl ? 'PDF unified API offline (public/internal)' : 'Falha na pública e sem PDF_API_URL configurada')
+        return res
     }
 }

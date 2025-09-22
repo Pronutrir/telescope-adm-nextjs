@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
-
-const { publicUrl: SHAREPOINT_API_BASE } = getPdfApiConfig()
+import { NextResponse } from 'next/server'
+import { requirePdfApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function GET() {
   try {
-    console.log('📄 [API] Listando PDFs do SharePoint...')
+    logger.info('📄 [SharePoint] Listando PDFs...')
+    const baseUrl = requirePdfApiBaseUrl()
     
-        const response = await fetch(`${SHAREPOINT_API_BASE}/Pdfs/pesquisar-pasta-sharepoint`, {
+        const response = await fetch(`${baseUrl}/Pdfs/pesquisar-pasta-sharepoint`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -21,11 +21,11 @@ export async function GET() {
 
     const data = await response.json()
     
-    console.log(`✅ [API] ${data.length} PDFs carregados do SharePoint`)
+    logger.info(`✅ [SharePoint] ${data.length} PDFs carregados`)
     return NextResponse.json(data)
     
   } catch (error) {
-    console.error('❌ [API] Erro ao listar PDFs:', error)
+    logger.error('❌ [SharePoint] Erro ao listar PDFs:', error)
     return NextResponse.json(
       { error: 'Falha ao carregar PDFs', message: error instanceof Error ? error.message : 'Erro desconhecido' },
       { status: 500 }

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPdfApiConfig } from '@/config/env'
-
-const { publicUrl: SHAREPOINT_API_BASE } = getPdfApiConfig()
+import { requirePdfApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +14,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`✏️ [API] Editando PDF ID: ${id}`, updateData)
+  logger.info('[API] Editando PDF', { id, updateDataKeys: Object.keys(updateData) })
+
+  const SHAREPOINT_API_BASE = requirePdfApiBaseUrl('public')
 
         const response = await fetch(`${SHAREPOINT_API_BASE}/Pdfs/editar-arquivo`, {
       method: 'PUT',
@@ -32,11 +33,11 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json()
     
-    console.log(`✅ [API] PDF ${id} editado com sucesso`)
+    logger.info('[API] PDF editado com sucesso', { id })
     return NextResponse.json(data)
     
   } catch (error) {
-    console.error('❌ [API] Erro ao editar PDF:', error)
+    logger.error('[API] Erro ao editar PDF:', error)
     return NextResponse.json(
       { error: 'Falha ao editar PDF', message: error instanceof Error ? error.message : 'Erro desconhecido' },
       { status: 500 }

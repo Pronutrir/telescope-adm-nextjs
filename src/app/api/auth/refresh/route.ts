@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const API_BASE_URL = process.env.API_BASE_URL || 'https://servicesapp.pronutrir.com.br'
+import { requireApiBaseUrl } from '@/config/env'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔄 Processando refresh token...')
+  logger.info('🔄 [Auth] Processando refresh token...')
     
     const refreshToken = request.cookies.get('refreshToken')?.value
     
     if (!refreshToken) {
-      console.log('❌ Refresh token não encontrado nos cookies')
+  logger.warn('❌ [Auth] Refresh token não encontrado nos cookies')
       return NextResponse.json(
         { message: 'Refresh token não encontrado' },
         { status: 401 }
@@ -17,7 +17,8 @@ export async function POST(request: NextRequest) {
     }
 
     // ✅ Chamada para API externa da Pronutrir
-    const response = await fetch(`${API_BASE_URL}/usershield/api/v1/Auth/refreshtoken`, {
+  const API_BASE_URL = requireApiBaseUrl()
+  const response = await fetch(`${API_BASE_URL}/usershield/api/v1/Auth/refreshtoken`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
         try {
           data = JSON.parse(text)
         } catch (error) {
-          console.error('❌ Erro ao fazer parse do JSON no refresh:', error)
+          logger.error('❌ [Auth] Parse JSON refresh falhou', error)
           return NextResponse.json(
             { message: 'Resposta inválida do servidor' },
             { status: 502 }
@@ -44,14 +45,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (!response.ok) {
-      console.error('❌ Erro na API de refresh:', response.status, data)
+      logger.error('❌ [Auth] Erro na API de refresh:', response.status, data)
       return NextResponse.json(
         { message: data?.message || 'Erro ao renovar token' },
         { status: response.status }
       )
     }
 
-    console.log('✅ Refresh token realizado com sucesso')
+    logger.info('✅ [Auth] Refresh token OK')
 
     const nextResponse = NextResponse.json(data)
     
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     return nextResponse
   } catch (error) {
-    console.error('❌ Erro interno no refresh token:', error)
+    logger.error('❌ [Auth] Erro interno no refresh token:', error)
     return NextResponse.json(
       { message: 'Erro interno do servidor' },
       { status: 500 }

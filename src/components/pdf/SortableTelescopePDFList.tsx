@@ -117,7 +117,7 @@ const SortableTelescopePDFList: React.FC<SortableTelescopePDFListProps> = ({
                 sortableInstance.current = null
             }
         }
-    }, [ animation, disabled, isSelectionMode ])
+    }, [ animation, disabled, isSelectionMode, currentItems, onSortEnd ])
 
     // Atualizar configurações do Sortable quando props mudarem
     useEffect(() => {
@@ -134,16 +134,16 @@ const SortableTelescopePDFList: React.FC<SortableTelescopePDFListProps> = ({
     // Cleanup adicional no desmonte do componente
     useEffect(() => {
         isComponentMounted.current = true
+        const elAtMount = containerRef.current
 
         return () => {
             isComponentMounted.current = false
-
-            if (sortableInstance.current) {
+            const sortable = sortableInstance.current
+            const containerEl = elAtMount
+            if (sortable) {
                 try {
-                    // Verificar se o elemento ainda existe antes de destruir
-                    if (containerRef.current) {
-                        sortableInstance.current.destroy()
-                    }
+                    const el = containerEl
+                    if (el) sortable.destroy()
                 } catch (error) {
                     console.warn('Erro final na limpeza do SortableJS:', error)
                 }
@@ -194,10 +194,7 @@ const SortableTelescopePDFList: React.FC<SortableTelescopePDFListProps> = ({
         onEditPDF?.(pdf)
     }
 
-    const handleDownloadPDF = (pdf: PDFItem) => {
-        // Função de download (pode ser implementada conforme necessidade)
-        console.log('Download PDF:', pdf.title)
-    }
+    // Download desativado nesta lista
 
     const handleDeletePDF = (pdf: PDFItem) => {
         // Função de exclusão (implementar conforme necessidade)
@@ -234,7 +231,6 @@ const SortableTelescopePDFList: React.FC<SortableTelescopePDFListProps> = ({
                         showStats={viewMode === 'grid'}
                         onView={handleViewPDF}
                         onEdit={handleEditPDF}
-                        onDownload={handleDownloadPDF}
                         onDelete={handleDeletePDF}
                         onSelect={() => handleCardClick(pdf)}
                         onSendToTasy={onSendToTasy ? handleSendToTasyPDF : undefined}
