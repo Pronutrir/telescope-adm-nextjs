@@ -3,6 +3,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useThemeClasses, useMainBackground } from '@/hooks/useThemeClasses'
+import { ConnectionStatus } from '@/components/ui/ConnectionStatus'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { twMerge } from 'tailwind-merge'
 import { HubConnectionBuilder, HubConnection, LogLevel } from '@microsoft/signalr'
@@ -45,6 +47,7 @@ interface ISinalVital {
 interface IPatientData {
     cD_PACIENTE: string
     nM_PACIENTE: string
+    dT_SINAL_VITAL: string
     comparacaoDtos: ISinalVital[]
     // Campo vindo da API para filtrar cards
     motivo_ATENDIMENTO?: string
@@ -59,6 +62,8 @@ interface IConnectionStatus {
 
 const WebhookMonitor = () => {
     const { isDark } = useTheme()
+    const themeClasses = useThemeClasses()
+    const mainBackground = useMainBackground()
     const [ , setConnection ] = useState<HubConnection | null>(null)
     const [ connectionStatus, setConnectionStatus ] = useState<IConnectionStatus>({ status: 'disconnected' })
     const [ patientDataHistory, setPatientDataHistory ] = useState<(IPatientData & { timestamp: Date })[]>([])
@@ -165,7 +170,7 @@ const WebhookMonitor = () => {
         try {
             const trigger = e.currentTarget as HTMLElement
             const rect = trigger.getBoundingClientRect()
-            const tooltipWidth = 384 // w-96 => 24rem ~ 384px
+            const tooltipWidth = window.innerWidth < 640 ? 320 : 384 // w-80 para mobile, w-96 para desktop
             const margin = 8 // ml-2/mr-2 ~ 8px
             const spaceRight = window.innerWidth - rect.right
             if (spaceRight < tooltipWidth + margin) {
@@ -509,78 +514,14 @@ const WebhookMonitor = () => {
         }
     }, [ addLog, getAuthToken, processPatientData ])
 
-    // Função para obter background baseado nos temas
-    const getMainBackground = () => {
-        if (isDark) {
-            return 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)'
-        } else {
-            return 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)'
-        }
-    }
-
-    // Renderizar status da conexão
-    const renderConnectionStatus = () => {
-        // Priorizar indicador de carregamento inicial
-        if (isLoadingInitialData) {
-            return (
-                <div className={twMerge(
-                    'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium',
-                    isDark ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-100 text-blue-700'
-                )}>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Carregando dados iniciais...</span>
-                </div>
-            )
-        }
-
-        const statusConfig = (() => {
-            switch (connectionStatus.status) {
-                case 'connected':
-                    return {
-                        icon: <Wifi className="w-4 h-4" />,
-                        text: 'Conectado',
-                        className: twMerge(
-                            'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium',
-                            isDark ? 'bg-green-900/20 text-green-400' : 'bg-green-100 text-green-700'
-                        )
-                    }
-                case 'connecting':
-                    return {
-                        icon: <Loader2 className="w-4 h-4 animate-spin" />,
-                        text: 'Conectando...',
-                        className: twMerge(
-                            'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium',
-                            isDark ? 'bg-yellow-900/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700'
-                        )
-                    }
-                case 'error':
-                    return {
-                        icon: <WifiOff className="w-4 h-4" />,
-                        text: 'Erro de Conexão',
-                        className: twMerge(
-                            'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium',
-                            isDark ? 'bg-red-900/20 text-red-400' : 'bg-red-100 text-red-700'
-                        )
-                    }
-                default:
-                    return {
-                        icon: <WifiOff className="w-4 h-4" />,
-                        text: 'Desconectado',
-                        className: twMerge(
-                            'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium',
-                            isDark ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'
-                        )
-                    }
-            }
-        })()
-
-        return (
-            <div className={statusConfig.className}>
-                {statusConfig.icon}
-                <span>{statusConfig.text}</span>
-            </div>
-        )
-    }
+    // Status da conexão otimizado com componente memoizado
+    const renderConnectionStatus = () => (
+        <ConnectionStatus
+            connectionStatus={connectionStatus}
+            isLoadingInitialData={isLoadingInitialData}
+            isDark={isDark}
+        />
+    )
 
     return (
         <div
@@ -588,14 +529,14 @@ const WebhookMonitor = () => {
                 "w-full flex flex-col transition-all duration-300",
                 isFullscreen ? "fixed inset-0 z-50 h-screen" : "min-h-screen"
             )}
-            style={{ background: getMainBackground() }}
+            style={{ background: mainBackground }}
         >
             {/* Container principal estendido para toda a tela */}
             <div className={twMerge(
-                "flex-1 flex flex-col gap-4",
+                "flex-1 flex flex-col gap-2 sm:gap-4",
                 isFullscreen
-                    ? "px-3 py-3 h-full"
-                    : "px-3 sm:px-4 py-4 min-h-screen"
+                    ? "px-2 sm:px-3 py-2 sm:py-3 h-full"
+                    : "px-2 sm:px-3 md:px-4 py-3 sm:py-4 min-h-screen"
             )}>
                 {/* Header */}
                 <div className={twMerge(
@@ -618,7 +559,7 @@ const WebhookMonitor = () => {
                                     'mt-1 text-base',
                                     isDark ? 'text-gray-300' : 'text-gray-600'
                                 )}>
-                                    Monitoramento em tempo real de dados de pacientes via WebSocket
+                                    Monitoramento de Sinais Vitais e Peso
                                 </p>
                             )}
                             {patientDataHistory.length > 0 && (
@@ -631,7 +572,7 @@ const WebhookMonitor = () => {
                             )}
                         </div>
 
-                        <div className="flex flex-wrap gap-3">
+                        <div className="flex flex-wrap gap-2 sm:gap-3 justify-end sm:justify-start">
                             {/* Status da Conexão */}
                             {renderConnectionStatus()}
 
@@ -639,7 +580,7 @@ const WebhookMonitor = () => {
                             <button
                                 onClick={toggleFullscreen}
                                 className={twMerge(
-                                    'relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border-2 transition-all duration-300',
+                                    'relative flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold border-2 transition-all duration-300',
                                     'transform hover:scale-105 hover:-translate-y-0.5 backdrop-blur-sm',
                                     isFullscreen
                                         ? (isDark
@@ -656,12 +597,14 @@ const WebhookMonitor = () => {
                                 )}
                                 {isFullscreen ? (
                                     <>
-                                        <Minimize size={18} className="relative z-10" />
+                                        <Minimize size={14} className="sm:hidden relative z-10" />
+                                        <Minimize size={18} className="hidden sm:block relative z-10" />
                                         <span className="hidden sm:inline relative z-10">SAIR</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Maximize size={18} />
+                                        <Maximize size={14} className="sm:hidden" />
+                                        <Maximize size={18} className="hidden sm:block" />
                                         <span className="hidden sm:inline">TELA CHEIA</span>
                                     </>
                                 )}
@@ -675,7 +618,7 @@ const WebhookMonitor = () => {
                                 onClick={fetchInitialData}
                                 disabled={isLoadingInitialData}
                                 className={twMerge(
-                                    'relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border-2 transition-all duration-300',
+                                    'relative flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold border-2 transition-all duration-300',
                                     'transform hover:scale-105 hover:-translate-y-0.5 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:translate-y-0',
                                     isLoadingInitialData
                                         ? (isDark
@@ -691,9 +634,15 @@ const WebhookMonitor = () => {
                                     <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/20 to-cyan-500/20 animate-pulse"></div>
                                 )}
                                 {isLoadingInitialData ? (
-                                    <Loader2 size={18} className="dashboard-icon animate-spin relative z-10" />
+                                    <>
+                                        <Loader2 size={14} className="dashboard-icon animate-spin relative z-10 sm:hidden" />
+                                        <Loader2 size={18} className="dashboard-icon animate-spin relative z-10 hidden sm:block" />
+                                    </>
                                 ) : (
-                                    <Activity size={18} className="dashboard-icon" />
+                                    <>
+                                        <Activity size={14} className="dashboard-icon sm:hidden" />
+                                        <Activity size={18} className="dashboard-icon hidden sm:block" />
+                                    </>
                                 )}
                                 <span className="hidden sm:inline relative z-10">
                                     {isLoadingInitialData ? 'CARREGANDO...' : 'RECARREGAR'}
@@ -707,7 +656,7 @@ const WebhookMonitor = () => {
                             <button
                                 onClick={() => setMostrarFiltros(v => !v)}
                                 className={twMerge(
-                                    'relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border-2 transition-all duration-300',
+                                    'relative flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold border-2 transition-all duration-300',
                                     'transform hover:scale-105 hover:-translate-y-0.5 backdrop-blur-sm',
                                     mostrarFiltros
                                         ? (isDark
@@ -722,7 +671,8 @@ const WebhookMonitor = () => {
                                 {mostrarFiltros && (
                                     <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-400/20 to-violet-500/20 animate-pulse"></div>
                                 )}
-                                <Target size={18} className="relative z-10" />
+                                <Target size={14} className="dashboard-icon relative z-10 sm:hidden" />
+                                <Target size={18} className="dashboard-icon relative z-10 hidden sm:block" />
                                 <span className="hidden sm:inline relative z-10">FILTROS</span>
                                 {mostrarFiltros && (
                                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-400 rounded-full border-2 border-white dark:border-gray-800 animate-bounce"></div>
@@ -734,65 +684,55 @@ const WebhookMonitor = () => {
                         </div>
                     </div>
 
-                    {/* Indicador de tela cheia */}
-                    {isFullscreen && (
-                        <div className={twMerge(
-                            'relative mt-3 px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-3 border-2 overflow-hidden',
-                            isDark
-                                ? 'bg-gradient-to-r from-orange-900/40 to-red-800/40 text-orange-200 border-orange-600/50 shadow-lg shadow-orange-900/20'
-                                : 'bg-gradient-to-r from-orange-100 to-red-100 text-orange-800 border-orange-400/50 shadow-lg shadow-orange-500/10'
-                        )}>
-                            <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 to-red-500/10 animate-pulse"></div>
-                            <Monitor size={16} className="relative z-10 animate-pulse" />
-                            <span className="relative z-10">MODO TELA CHEIA ATIVO • F11 OU ESC PARA SAIR</span>
-                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full border-2 border-white dark:border-gray-800 animate-bounce"></div>
-                        </div>
-                    )}
                 </div>
 
                 {/* Conteúdo principal */}
-                <div className="flex-1 overflow-visible">
+                <div className={twMerge(
+                    "flex-1 flex flex-col",
+                    isFullscreen ? "overflow-hidden" : "overflow-visible"
+                )}>
                     {/* Painel de filtros */}
                     {mostrarFiltros && (
-                        <div className={twMerge(
-                            'mt-2 p-3 rounded-xl border',
-                            isDark ? 'bg-gray-800/80 border-gray-700/60' : 'bg-white/80 border-gray-200/60'
-                        )}>
+                        <div className={`mt-2 p-3 sm:p-4 rounded-xl border ${themeClasses.filterPanelBg} ${themeClasses.filterPanelBorder}`}>
                             {/* Filtro por Nome/ID do Paciente */}
-                            <div className="mb-6">
-                                <div className={twMerge('text-base font-bold mb-4 flex items-center gap-2', isDark ? 'text-gray-100' : 'text-gray-900')}>
-                                    <Search size={16} className="dashboard-icon" />
-                                    BUSCAR PACIENTE
+                            <div className="mb-4 sm:mb-6">
+                                <div className={twMerge('text-sm sm:text-base font-bold mb-3 sm:mb-4 flex items-center gap-2', isDark ? 'text-gray-100' : 'text-gray-900')}>
+                                    <Search size={14} className="dashboard-icon sm:hidden" />
+                                    <Search size={16} className="dashboard-icon hidden sm:block" />
+                                    <span className="hidden sm:inline">BUSCAR PACIENTE</span>
+                                    <span className="sm:hidden">BUSCAR</span>
                                 </div>
                                 <div className="relative">
                                     <input
                                         type="text"
                                         value={filtroPaciente}
                                         onChange={(e) => setFiltroPaciente(e.target.value)}
-                                        placeholder="Digite o nome ou ID do paciente..."
+                                        placeholder="Nome ou ID do paciente..."
                                         className={twMerge(
-                                            'w-full px-4 py-3 pl-12 pr-12 rounded-xl border-2 text-sm font-medium transition-all duration-300',
+                                            'w-full px-3 sm:px-4 py-2.5 sm:py-3 pl-10 sm:pl-12 pr-10 sm:pr-12 rounded-lg sm:rounded-xl border-2 text-sm font-medium transition-all duration-300',
                                             'focus:outline-none focus:ring-0 focus:border-blue-500 focus:shadow-lg',
                                             isDark
                                                 ? 'bg-gray-700/60 border-gray-600 text-gray-100 placeholder-gray-400 focus:bg-gray-700/80'
                                                 : 'bg-white/90 border-gray-300 text-gray-900 placeholder-gray-500 focus:bg-white'
                                         )}
                                     />
-                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                                        <Search size={16} className={twMerge('dashboard-icon', isDark ? 'text-gray-400' : 'text-gray-500')} />
+                                    <div className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2">
+                                        <Search size={14} className={twMerge('dashboard-icon sm:hidden', isDark ? 'text-gray-400' : 'text-gray-500')} />
+                                        <Search size={16} className={twMerge('dashboard-icon hidden sm:block', isDark ? 'text-gray-400' : 'text-gray-500')} />
                                     </div>
                                     {filtroPaciente && (
                                         <button
                                             onClick={() => setFiltroPaciente('')}
                                             className={twMerge(
-                                                'absolute right-4 top-1/2 transform -translate-y-1/2 p-1 rounded-full transition-colors',
+                                                'absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 p-1 rounded-full transition-colors',
                                                 isDark
                                                     ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-600/50'
                                                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
                                             )}
                                             title="Limpar busca"
                                         >
-                                            <X size={14} />
+                                            <X size={12} className="sm:hidden" />
+                                            <X size={14} className="hidden sm:block" />
                                         </button>
                                     )}
                                 </div>
@@ -861,13 +801,16 @@ const WebhookMonitor = () => {
                         </div>
                     )}
                     {/* Cards dos Pacientes - Grid Horizontal */}
-                    <div className="h-full">
+                    <div className={twMerge(
+                        "flex-1",
+                        isFullscreen ? "overflow-hidden" : "min-h-0"
+                    )}>
                         {patientDataHistory.length > 0 ? (
                             <div className={twMerge(
-                                "h-full overflow-y-auto",
+                                "overflow-y-auto",
                                 isFullscreen
-                                    ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-6 p-3"
-                                    : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-2"
+                                    ? "h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 p-2 sm:p-3"
+                                    : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 p-2"
                             )}>
                                 {patientDataHistory
                                     .filter(p => {
@@ -912,19 +855,23 @@ const WebhookMonitor = () => {
                                                 <div className="h-full">
                                                     {/* Header do Paciente */}
                                                     <div className={twMerge(
-                                                        'rounded-t-xl p-4 border-b transition-colors duration-300',
+                                                        'rounded-t-xl p-3 sm:p-4 border-b transition-colors duration-300',
                                                         isDark
                                                             ? 'bg-gray-800/50 border-gray-700/50'
                                                             : 'bg-gray-50/50 border-gray-200/50'
                                                     )}>
                                                         <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                                                                 <div className={twMerge(
-                                                                    'p-2 rounded-lg',
+                                                                    'p-1.5 sm:p-2 rounded-lg',
                                                                     isDark ? 'bg-blue-900/20' : 'bg-blue-50'
                                                                 )}>
+                                                                    <User size={18} className={twMerge(
+                                                                        'dashboard-icon sm:hidden',
+                                                                        isDark ? 'text-blue-400' : 'text-blue-600'
+                                                                    )} />
                                                                     <User size={22} className={twMerge(
-                                                                        'dashboard-icon',
+                                                                        'dashboard-icon hidden sm:block',
                                                                         isDark ? 'text-blue-400' : 'text-blue-600'
                                                                     )} />
                                                                 </div>
@@ -951,7 +898,7 @@ const WebhookMonitor = () => {
                                                                     'text-sm font-mono',
                                                                     isDark ? 'text-gray-300' : 'text-gray-700'
                                                                 )}>
-                                                                    {patientData.timestamp.toLocaleTimeString()}
+                                                                    {new Date(patientData.dT_SINAL_VITAL).toLocaleTimeString()}
                                                                 </p>
                                                                 {/* Badge Motivo do Atendimento */}
                                                                 <div className="mt-2 flex justify-end">
@@ -979,10 +926,14 @@ const WebhookMonitor = () => {
                                                     </div>
 
                                                     {/* Sinais Vitais */}
-                                                    <div className="p-4 space-y-3">
-                                                        <div className="flex items-center gap-2 mb-3">
+                                                    <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+                                                        <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                                                            <Activity size={16} className={twMerge(
+                                                                'dashboard-icon sm:hidden',
+                                                                isDark ? 'text-blue-400' : 'text-blue-600'
+                                                            )} />
                                                             <Activity size={20} className={twMerge(
-                                                                'dashboard-icon',
+                                                                'dashboard-icon hidden sm:block',
                                                                 isDark ? 'text-blue-400' : 'text-blue-600'
                                                             )} />
                                                             <span className={twMerge(
@@ -990,7 +941,7 @@ const WebhookMonitor = () => {
                                                                 isDark ? 'text-white' : 'text-gray-900'
                                                             )}>Sinais Vitais ({patientData.comparacaoDtos.length})</span>
                                                         </div>
-                                                        <div className="grid grid-cols-2 gap-3 min-h-fit">
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 min-h-fit">
                                                             {(() => {
                                                                 // Determina quais tipos de sinais mostrar conforme motivo do atendimento
                                                                 const motivoCard = obterMotivoAtendimento(patientData).toLowerCase()
@@ -1213,12 +1164,12 @@ const WebhookMonitor = () => {
 
                                                                                             {tooltipVisivel === tooltipId && (
                                                                                                 <div className={twMerge(
-                                                                                                    'absolute z-[9999] p-4 rounded-lg shadow-lg border backdrop-blur-sm w-96 max-h-96 overflow-y-auto',
-                                                                                                    tooltipSide === 'right' ? '-top-2 left-full ml-2' : '-top-2 right-full mr-2',
+                                                                                                    'absolute z-[9999] p-3 sm:p-4 rounded-lg shadow-lg border backdrop-blur-sm w-80 sm:w-96 max-h-80 sm:max-h-96 overflow-y-auto',
+                                                                                                    tooltipSide === 'right' ? '-top-2 left-full ml-1 sm:ml-2' : '-top-2 right-full mr-1 sm:mr-2',
                                                                                                     isDark ? 'bg-gray-800/95 border-gray-700/50 text-white' : 'bg-white/95 border-gray-200/50 text-gray-900'
                                                                                                 )}>
                                                                                                     <div className="flex items-center gap-2 mb-3">
-                                                                                                        <AlertTriangle size={16} className={twMerge(isDark ? c.cor.textDark : c.cor.text)} />
+                                                                                                        <AlertTriangle size={16} className={twMerge('dashboard-icon', isDark ? c.cor.textDark : c.cor.text)} />
                                                                                                         <span className="font-semibold text-sm">{c.titulo}</span>
                                                                                                     </div>
                                                                                                     <div className="text-sm mb-2"><strong>Valores registrados:</strong> PAS: {pas} | PAD: {pad}</div>
@@ -1282,24 +1233,27 @@ const WebhookMonitor = () => {
                                                                             {index === 0 && sinal.alteracaoMaior10 && typeof sinal.qT_PESO === 'number' && Number.isFinite(sinal.qT_PESO) && sinal.qT_PESO > 0 && (
                                                                                 <div
                                                                                     className={twMerge(
-                                                                                        'mt-1 px-1 py-0.5 border rounded text-center transition-colors animate-pulse',
+                                                                                        'mt-1 px-3 py-2 border-2 rounded-lg text-center',
+                                                                                        'animate-pulse hover:animate-none hover:scale-105 transition-all duration-300',
+                                                                                        'relative overflow-hidden shadow-lg',
                                                                                         isDark
-                                                                                            ? 'bg-red-900/30 border-red-700'
-                                                                                            : 'bg-red-100 border-red-400'
+                                                                                            ? 'bg-red-900/30 border-red-500/70 hover:bg-red-900/50 hover:border-red-400'
+                                                                                            : 'bg-red-100/90 border-red-400/90 hover:bg-red-200 hover:border-red-500'
                                                                                     )}
                                                                                     style={{
-                                                                                        animation: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite, glow 2s ease-in-out infinite alternate',
                                                                                         boxShadow: isDark
-                                                                                            ? '0 0 10px rgba(239, 68, 68, 0.3)'
-                                                                                            : '0 0 10px rgba(239, 68, 68, 0.2)'
+                                                                                            ? '0 0 20px rgba(239, 68, 68, 0.4), 0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                                                                            : '0 0 20px rgba(239, 68, 68, 0.3), 0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                                                                                     }}
                                                                                 >
-                                                                                    <span className={twMerge(
-                                                                                        'text-sm font-bold animate-bounce',
-                                                                                        isDark ? 'text-red-300' : 'text-red-700'
+                                                                                    <div className={twMerge(
+                                                                                        'text-sm font-bold flex items-center justify-center gap-2',
+                                                                                        isDark ? 'text-red-200' : 'text-red-800'
                                                                                     )}>
-                                                                                        🚨 ALERTA &gt;10%
-                                                                                    </span>
+                                                                                        <span className="animate-ping inline-block text-lg">🚨</span>
+                                                                                        <span className="animate-bounce">Alerta de alteração maior que 10%</span>
+                                                                                        <span className="animate-ping inline-block text-lg">🚨</span>
+                                                                                    </div>
                                                                                 </div>
                                                                             )}
                                                                         </div>

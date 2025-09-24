@@ -1,0 +1,158 @@
+/* CSS Custom Properties para cores dinâmicas baseadas no tema */
+:root {
+    --theme-transition: all 0.2s ease-in-out;
+}
+
+/* Cores de fundo */
+.bg-theme-primary {
+    background-color: var(--bg-primary);
+    transition: var(--theme-transition);
+}
+
+.bg-theme-secondary {
+    background-color: var(--bg-secondary);
+    transition: var(--theme-transition);
+}
+
+.bg-theme-card {
+    background-color: var(--bg-card);
+    transition: var(--theme-transition);
+}
+
+.bg-theme-elevated {
+    background-color: var(--bg-elevated);
+    transition: var(--theme-transition);
+}
+
+/* Cores de texto */
+.text-theme-primary {
+    color: var(--text-primary);
+    transition: var(--theme-transition);
+}
+
+.text-theme-secondary {
+    color: var(--text-secondary);
+    transition: var(--theme-transition);
+}
+
+.text-theme-muted {
+    color: var(--text-muted);
+    transition: var(--theme-transition);
+}
+
+/* Cores de borda */
+.border-theme-primary {
+    border-color: var(--border-primary);
+    transition: var(--theme-transition);
+}
+
+.border-theme-secondary {
+    border-color: var(--border-secondary);
+    transition: var(--theme-transition);
+}
+
+/* Estados de loading e conexão */
+.bg-theme-loading {
+    background-color: var(--bg-loading);
+    transition: var(--theme-transition);
+}
+
+.text-theme-loading {
+    color: var(--text-loading);
+    transition: var(--theme-transition);
+}
+
+.bg-theme-connected {
+    background-color: var(--bg-connected);
+    transition: var(--theme-transition);
+}
+
+.text-theme-connected {
+    color: var(--text-connected);
+    transition: var(--theme-transition);
+}
+
+.bg-theme-error {
+    background-color: var(--bg-error);
+    transition: var(--theme-transition);
+}
+
+.text-theme-error {
+    color: var(--text-error);
+    transition: var(--theme-transition);
+}
+
+/* Cores de filtro */
+.bg-theme-filter {
+    background-color: var(--bg-filter);
+    transition: var(--theme-transition);
+}
+
+.border-theme-filter {
+    border-color: var(--border-filter);
+    transition: var(--theme-transition);
+}
+
+/* Definição das variáveis CSS para tema escuro */
+.dark {
+    --bg-primary: rgb(15 23 42 / 0.95);
+    --bg-secondary: rgb(30 41 59 / 0.95);
+    --bg-card: rgb(51 65 85 / 0.95);
+    --bg-elevated: rgb(71 85 105 / 0.95);
+
+    --text-primary: rgb(248 250 252);
+    --text-secondary: rgb(203 213 225);
+    --text-muted: rgb(148 163 184);
+
+    --border-primary: rgb(71 85 105 / 0.6);
+    --border-secondary: rgb(51 65 85 / 0.6);
+
+    --bg-loading: rgb(30 58 138 / 0.2);
+    --text-loading: rgb(147 197 253);
+
+    --bg-connected: rgb(21 128 61 / 0.2);
+    --text-connected: rgb(134 239 172);
+
+    --bg-error: rgb(153 27 27 / 0.2);
+    --text-error: rgb(252 165 165);
+
+    --bg-filter: rgb(55 65 81 / 0.8);
+    --border-filter: rgb(75 85 99 / 0.6);
+}
+
+/* Definição das variáveis CSS para tema claro */
+.light {
+    --bg-primary: rgb(248 250 252 / 0.95);
+    --bg-secondary: rgb(226 232 240 / 0.95);
+    --bg-card: rgb(255 255 255 / 0.95);
+    --bg-elevated: rgb(241 245 249 / 0.95);
+
+    --text-primary: rgb(15 23 42);
+    --text-secondary: rgb(71 85 105);
+    --text-muted: rgb(100 116 139);
+
+    --border-primary: rgb(203 213 225 / 0.6);
+    --border-secondary: rgb(226 232 240 / 0.6);
+
+    --bg-loading: rgb(59 130 246 / 0.1);
+    --text-loading: rgb(29 78 216);
+
+    --bg-connected: rgb(34 197 94 / 0.1);
+    --text-connected: rgb(21 128 61);
+
+    --bg-error: rgb(239 68 68 / 0.1);
+    --text-error: rgb(185 28 28);
+
+    --bg-filter: rgb(255 255 255 / 0.8);
+    --border-filter: rgb(203 213 225 / 0.6);
+}
+
+/* Classe utilitária para elementos que precisam de transição suave */
+.theme-transition {
+    transition: var(--theme-transition);
+}
+
+/* Remove transições durante mudanças de tema para evitar flash */
+.no-theme-transition * {
+    transition: none !important;
+}
