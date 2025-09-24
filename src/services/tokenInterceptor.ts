@@ -41,6 +41,15 @@ class TokenInterceptorService {
     input: RequestInfo | URL, 
     init?: RequestInit
   ): Promise<Response> {
+    // Se não houver refreshToken no cookie, não tentar renovar; retornar resposta 401 original na próxima chamada
+    try {
+      const hasRefresh = document.cookie.split('; ').some(x => x.startsWith('refreshToken='))
+      if (!hasRefresh) {
+        console.error('❌ Refresh token não encontrado (interceptor)')
+        // Propagar 401 sem acionar fluxo de refresh para evitar loops/ruído
+        return fetch(input, init)
+      }
+    } catch { /* ignore */ }
     if (this.isRefreshing) {
       // ✅ Se já está renovando, aguardar na fila
       return new Promise((resolve, reject) => {

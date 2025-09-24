@@ -87,6 +87,10 @@ src/
 # habilite explicitamente DEV_ALLOW_INSECURE_TLS e NUNCA em produção.
 # DEV_ALLOW_INSECURE_TLS=1
 
+# URL específica para desenvolvimento - endpoint de sinais vitais
+# Em produção, usa automaticamente a URL da API principal
+DEV_SINAIS_VITAIS_URL=https://localhost:44326/api/v1/SinaisVitaisMonitoracaoGeral/GetAlertaSinaisVitaisPaciente
+
 # Token de autenticação para API Pronutrir (necessário para webhook monitor)
 PRONUTRIR_API_TOKEN=seu_token_aqui
 ```

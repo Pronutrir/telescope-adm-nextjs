@@ -51,6 +51,14 @@ async function getAuthToken(): Promise<string | null> {
 
 export async function GET() {
     try {
+        // Permitir TLS inseguro somente em desenvolvimento quando explicitamente habilitado
+        if (process.env.NODE_ENV === 'development' && process.env.DEV_ALLOW_INSECURE_TLS === '1') {
+            if (process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0') {
+                process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+                logger.warn('DEV TLS: NODE_TLS_REJECT_UNAUTHORIZED=0 habilitado para desenvolvimento')
+            }
+        }
+        
         logger.info('Obtendo token para buscar dados iniciais...')
         
         // Obter token de autenticação
@@ -59,7 +67,7 @@ export async function GET() {
         if (!token) {
             return NextResponse.json({
                 success: false,
-                error: 'Falha na autenticação: Configure PRONUTRIR_USERNAME e PRONUTRIR_PASSWORD',
+                error: 'Falha na autenticação: configure USERSHIELD_USERNAME e USERSHIELD_PASSWORD',
                 type: 'auth_error',
                 timestamp: new Date().toISOString()
             }, { status: 401 })
@@ -67,9 +75,14 @@ export async function GET() {
 
         logger.info('Token obtido, buscando dados da API...')
 
-        // Buscar dados da API externa
-        const API_BASE_URL = requireApiBaseUrl()
-        const response = await fetch(`${API_BASE_URL}/apitasy/api/v1/SinaisVitaisMonitoracaoGeral/GetAlertaSinaisVitaisPaciente`, {
+        // Buscar dados da API externa - URL específica para sinais vitais
+        const sinaisVitaisUrl = process.env.NODE_ENV === 'development' 
+            ? process.env.DEV_SINAIS_VITAIS_URL || 'https://localhost:44326/api/v1/SinaisVitaisMonitoracaoGeral/GetAlertaSinaisVitaisPaciente'
+            : `${requireApiBaseUrl()}/apitasy/api/v1/SinaisVitaisMonitoracaoGeral/GetAlertaSinaisVitaisPaciente`
+        
+        logger.info(`Fazendo request para: ${sinaisVitaisUrl}`)
+        
+        const response = await fetch(sinaisVitaisUrl, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
