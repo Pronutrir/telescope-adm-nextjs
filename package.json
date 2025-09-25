@@ -14,7 +14,13 @@
     "test:auth": "node scripts/test-auth.js",
     "test:logout": "node scripts/test-logout.js",
     "test:server-ui": "node scripts/test-server-login-ui.js",
-    "test:redirects": "node scripts/test-redirects.js"
+    "test:redirects": "node scripts/test-redirects.js",
+    "test:redis:local": "tsx scripts/test-redis.ts local",
+    "test:redis:prod": "tsx scripts/test-redis.ts production",
+    "test:redis:all": "tsx scripts/test-redis.ts both",
+    "redis:health": "tsx scripts/redis-health-check.ts once",
+    "redis:monitor": "tsx scripts/redis-health-check.ts monitor",
+    "redis:config": "tsx scripts/show-redis-config.ts"
   },
   "dependencies": {
     "@microsoft/signalr": "^9.0.6",
@@ -51,13 +57,17 @@
     "@eslint/eslintrc": "^3",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4",
+    "@types/jest": "^29.5.14",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
+    "jest": "^29.7.0",
     "tailwindcss": "^4",
+    "ts-jest": "^29.4.4",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.5",
     "typescript": "^5"
   }
 }
