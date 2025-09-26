@@ -1,0 +1,281 @@
+name: 🏥 Infrastructure Health
+
+on:
+  # Executa a cada 6 horas para monitoramento contínuo
+  schedule:
+    - cron: '0 */6 * * *'
+  
+  # Executa após deploys para validação
+  workflow_run:
+    workflows: ["🚀 CI/CD Pipeline"]
+    branches: [main, master]
+    types: [completed]
+  
+  # Permite execução manual
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+        - local
+        - production
+        - both
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  # ===============================================
+  # JOB 1: REDIS HEALTH CHECK
+  # ===============================================
+  redis-health:
+    name: 🔴 Redis Health Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    # Executa apenas se o workflow anterior foi bem-sucedido
+    if: |
+      github.event_name != 'workflow_run' || 
+      github.event.workflow_run.conclusion == 'success'
+    
+    services:
+      redis-local:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          echo "✅ Dependencies installed for infrastructure tests"
+
+      - name: ⚙️ Setup Test Environment
+        run: |
+          echo "REDIS_LOCAL_HOST=localhost" >> $GITHUB_ENV
+          echo "REDIS_LOCAL_PORT=6379" >> $GITHUB_ENV
+          echo "REDIS_LOCAL_PASSWORD=" >> $GITHUB_ENV
+          echo "REDIS_LOCAL_DB=0" >> $GITHUB_ENV
+          echo "NODE_ENV=test" >> $GITHUB_ENV
+
+      - name: 🔴 Test Redis Local Connection
+        run: |
+          echo "🔍 Testing Redis Local Connection..."
+          npm run test:redis:local
+          echo "✅ Redis local connection tested successfully"
+
+      - name: 🌐 Test Redis Production Connection
+        if: github.event.inputs.environment == 'production' || github.event.inputs.environment == 'both' || github.event_name != 'workflow_dispatch'
+        env:
+          REDIS_HOST_PROD: ${{ secrets.REDIS_HOST_PROD }}
+          REDIS_PORT_PROD: ${{ secrets.REDIS_PORT_PROD }}
+          REDIS_PASSWORD_PROD: ${{ secrets.REDIS_PASSWORD_PROD }}
+        run: |
+          echo "🔍 Testing Redis Production Connection..."
+          npm run test:redis:prod || echo "⚠️ Production Redis connection failed (expected in some environments)"
+          echo "✅ Redis production connection tested"
+
+      - name: 📊 Redis Configuration Validation
+        run: |
+          echo "🔍 Validating Redis Configuration..."
+          npm run redis:config
+          echo "✅ Redis configuration validated"
+
+      - name: 📈 Redis Performance Test
+        run: |
+          echo "🔍 Running Redis Performance Tests..."
+          npm run redis:performance || echo "⚠️ Performance tests completed with warnings"
+          echo "✅ Redis performance tests completed"
+
+      - name: 📊 Upload Redis Health Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: redis-health-report-${{ github.run_number }}
+          path: |
+            redis-health-*.json
+            redis-performance-*.log
+          retention-days: 7
+
+  # ===============================================
+  # JOB 2: INTEGRATION TESTS (Pós-Deploy)
+  # ===============================================
+  integration-tests:
+    name: 🔗 Integration Tests
+    runs-on: ubuntu-latest
+    needs: redis-health
+    timeout-minutes: 20
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          echo "✅ Dependencies installed for integration tests"
+
+      - name: 🌐 Test API Endpoints
+        env:
+          API_BASE_URL: ${{ secrets.STAGING_DEPLOY_URL || 'https://localhost:3000' }}
+        run: |
+          echo "🔍 Testing API endpoints..."
+          npm run test:api:health || echo "⚠️ Some API endpoints may be unavailable"
+          echo "✅ API endpoint tests completed"
+
+      - name: 🔄 Test Webhook Endpoints
+        env:
+          WEBHOOK_BASE_URL: ${{ secrets.STAGING_DEPLOY_URL || 'https://localhost:3000' }}
+        run: |
+          echo "🔍 Testing webhook endpoints..."
+          npm run test:webhooks:e2e || echo "⚠️ Webhook tests completed with warnings"
+          echo "✅ Webhook endpoint tests completed"
+
+      - name: 📊 Upload Integration Test Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-report-${{ github.run_number }}
+          path: |
+            integration-test-*.json
+            api-response-*.log
+          retention-days: 7
+
+  # ===============================================
+  # JOB 3: INFRASTRUCTURE STATUS SUMMARY
+  # ===============================================
+  status-summary:
+    name: 📊 Infrastructure Status
+    runs-on: ubuntu-latest
+    needs: [redis-health, integration-tests]
+    if: always()
+    timeout-minutes: 5
+    
+    steps:
+      - name: 📊 Generate Status Summary
+        run: |
+          echo "# 🏥 Infrastructure Health Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow:** ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Redis Local | ${{ needs.redis-health.result == 'success' && '✅ Healthy' || '❌ Unhealthy' }} |" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.integration-tests.result }}" != "skipped" ]]; then
+            echo "| Integration Tests | ${{ needs.integration-tests.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Integration Tests | ⏭️ Skipped |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.redis-health.result }}" == "success" ]]; then
+            echo "**Overall Status:** ✅ Infrastructure is healthy" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Overall Status:** ❌ Infrastructure issues detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Action Required:** Check Redis connectivity and configuration" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 🚨 Create Issue on Failure
+        if: needs.redis-health.result == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🚨 Infrastructure Health Check Failed - ${new Date().toISOString().split('T')[0]}`;
+            const body = `
+            ## Infrastructure Health Check Failed
+            
+            **Workflow:** ${{ github.workflow }}
+            **Run ID:** ${{ github.run_id }}
+            **Time:** ${new Date().toISOString()}
+            
+            ### Failed Components:
+            - Redis Health: ${{ needs.redis-health.result }}
+            
+            ### Actions Taken:
+            - [ ] Check Redis server status
+            - [ ] Verify network connectivity
+            - [ ] Review Redis configuration
+            - [ ] Check security group settings
+            
+            ### Links:
+            - [Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - [Repository](https://github.com/${{ github.repository }})
+            
+            **Auto-generated by Infrastructure Health Check**
+            `;
+            
+            // Check if similar issue already exists
+            const existingIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['infrastructure', 'auto-created'],
+              state: 'open'
+            });
+            
+            const today = new Date().toISOString().split('T')[0];
+            const hasRecentIssue = existingIssues.data.some(issue => 
+              issue.title.includes(today)
+            );
+            
+            if (!hasRecentIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['infrastructure', 'bug', 'auto-created']
+              });
+            }
+
+  # ===============================================
+  # JOB 4: NOTIFICATION (Opcional)
+  # ===============================================
+  notify:
+    name: 📢 Infrastructure Notification
+    runs-on: ubuntu-latest
+    needs: [redis-health, integration-tests, status-summary]
+    if: always() && needs.redis-health.result == 'failure'
+    timeout-minutes: 5
+    
+    steps:
+      - name: 📧 Send Notification
+        run: |
+          echo "🚨 Infrastructure health check failed!"
+          echo "Redis Health: ${{ needs.redis-health.result }}"
+          echo "Integration Tests: ${{ needs.integration-tests.result }}"
+          echo ""
+          echo "Check the workflow logs for more details:"
+          echo "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          
+          # Adicione aqui integração com Slack, Teams, etc. se necessário

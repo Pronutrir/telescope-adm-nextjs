@@ -1,6 +1,15 @@
 # syntax=docker.io/docker/dockerfile:1
 
-FROM node:18-alpine AS base
+# ================================================
+# Telescope ADM - Production Docker Image
+# ================================================
+
+FROM node:20-alpine AS base
+
+# Adiciona labels para melhor gestão
+LABEL maintainer="WilliameCorreia"
+LABEL version="1.0.0"
+LABEL description="Telescope ADM Next.js Application"
 
 # Install dependencies only when needed
 FROM base AS deps

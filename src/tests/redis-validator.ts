@@ -61,7 +61,6 @@ export class RedisValidator {
         port: config.port,
         password: config.password || undefined,
         db: config.db || 0,
-        retryDelayOnFailover: 100,
         maxRetriesPerRequest: 3,
         lazyConnect: true
       })
