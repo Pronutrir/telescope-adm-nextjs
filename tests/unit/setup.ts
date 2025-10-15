@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+import React from 'react'
 
 // Mock Next.js modules
 jest.mock('next/navigation', () => ({
@@ -17,14 +18,13 @@ jest.mock('next/image', () => ({
   default: (props: any) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { fill, ...rest } = props
-    // eslint-disable-next-line jsx-a11y/alt-text
-    return <img {...rest} />
+    return React.createElement('img', rest)
   },
 }))
 
 // Mock environment variables
-process.env.NODE_ENV = 'test'
-process.env.NEXT_PUBLIC_API_URL = 'http://localhost:3000/api'
+Object.defineProperty(process.env, 'NODE_ENV', { value: 'test', writable: true })
+Object.defineProperty(process.env, 'NEXT_PUBLIC_API_URL', { value: 'http://localhost:3000/api', writable: true })
 
 // Setup global test utilities
 global.ResizeObserver = jest.fn().mockImplementation(() => ({

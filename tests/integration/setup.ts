@@ -1,7 +1,10 @@
 import '@testing-library/jest-dom'
 
 // Mock fetch for API testing
-global.fetch = jest.fn()
+Object.defineProperty(global, 'fetch', {
+  writable: true,
+  value: jest.fn(),
+})
 
 // Mock Next.js modules for integration tests
 jest.mock('next/navigation', () => ({

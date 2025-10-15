@@ -14,8 +14,8 @@ const mockHealthResponse = {
 
 describe('API Integration Tests', () => {
   beforeEach(() => {
-    // Reset fetch mock before each test
-    ;(fetch as jest.Mock).mockClear()
+    // Reset and setup fetch mock before each test
+    global.fetch = jest.fn()
   })
 
   describe('Health Check API', () => {

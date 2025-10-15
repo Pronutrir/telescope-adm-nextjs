@@ -9,8 +9,6 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { twMerge } from 'tailwind-merge'
 import { HubConnectionBuilder, HubConnection, LogLevel } from '@microsoft/signalr'
 import {
-    Wifi,
-    WifiOff,
     Loader2,
     Heart,
     User,
@@ -19,7 +17,6 @@ import {
     TrendingUp,
     TrendingDown,
     Activity,
-    Monitor,
     Target,
     Maximize,
     Minimize,
@@ -231,7 +228,7 @@ const WebhookMonitor = () => {
             return {
                 nivel: 'urgencia',
                 titulo: 'Urgência hipertensiva – Paciente assintomático',
-                conduta: 'Acionar plantonista para avaliação do paciente',
+                conduta: 'Acionar plantonista (Captopril 25mg ou Atensina 0,10mg, conforme indicação médica))',
                 cor: {
                     bg: 'bg-red-100',
                     border: 'border-red-600',
@@ -247,7 +244,7 @@ const WebhookMonitor = () => {
             return {
                 nivel: 'crise',
                 titulo: 'Crise hipertensiva – Paciente assintomático',
-                conduta: 'Captopril 25mg • Atenolol 0,10mg',
+                conduta: 'Captopril 25mg',
                 cor: {
                     bg: 'bg-orange-50',
                     border: 'border-orange-600',

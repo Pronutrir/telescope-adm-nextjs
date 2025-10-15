@@ -17,7 +17,7 @@ module.exports = {
     ],
     testTimeout: 30000,
     setupFilesAfterEnv: [],
-    moduleNameMapping: {
+    moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1'
     }
 }

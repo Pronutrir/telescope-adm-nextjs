@@ -12,12 +12,6 @@
 # Para funcionar corretamente, configure os seguintes secrets no GitHub:
 # Settings > Secrets and variables > Actions > New repository secret
 
-# 🔴 Redis Configuration
-REDIS_HOST_STAGING=seu-redis-staging.com
-REDIS_HOST_PRODUCTION=seu-redis-prod.com
-REDIS_PASSWORD_STAGING=senha-staging
-REDIS_PASSWORD_PRODUCTION=senha-producao
-
 # 🐳 Docker Registry
 DOCKER_REGISTRY_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxx
 DOCKER_REGISTRY_USER=seu-usuario

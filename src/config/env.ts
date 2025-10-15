@@ -7,15 +7,15 @@
 
 // Configurações da API principal
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:8080' : ''),
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || '',
   TIMEOUT: parseInt(process.env.API_TIMEOUT || '10000'),
 } as const
 
 // Configurações da API de PDFs
 export const PDF_API_CONFIG = {
-  BASE_URL: process.env.PDF_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5656/api/v1' : ''),
+  BASE_URL: process.env.PDF_API_URL || '',
   // PUBLIC_URL prioriza a var pública, mas faz fallback para a interna quando não definida
-  PUBLIC_URL: process.env.NEXT_PUBLIC_PDF_API_URL || process.env.PDF_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5656/api/v1' : ''),
+  PUBLIC_URL: process.env.NEXT_PUBLIC_PDF_API_URL || process.env.PDF_API_URL || '',
   TIMEOUT: parseInt(process.env.PDF_API_TIMEOUT || '30000'),
 } as const
 

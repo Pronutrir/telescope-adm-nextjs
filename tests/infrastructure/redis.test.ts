@@ -1,5 +1,5 @@
-import { RedisValidator, RedisConfig } from '../src/tests/redis-validator'
-import { redisEnvironments } from '../src/config/redis-environments'
+import { RedisValidator, RedisConfig } from '../../src/tests/redis-validator'
+import { redisEnvironments } from '../../src/config/redis-environments'
 
 describe('Redis Validation Tests', () => {
   let validator: RedisValidator

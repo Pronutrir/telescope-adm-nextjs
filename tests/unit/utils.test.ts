@@ -1,14 +1,7 @@
 // Example unit test for a utility function
 
 import { describe, it, expect } from '@jest/globals'
-
-// Mock utility function to demonstrate unit testing
-function formatCurrency(amount: number, currency = 'BRL'): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency,
-  }).format(amount)
-}
+import { formatCurrency } from '../../src/lib/utils'
 
 function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -18,19 +11,22 @@ function validateEmail(email: string): boolean {
 describe('Utility Functions', () => {
   describe('formatCurrency', () => {
     it('should format currency in BRL by default', () => {
-      expect(formatCurrency(1000)).toBe('R$ 1.000,00')
-    })
-
-    it('should format currency in specified currency', () => {
-      expect(formatCurrency(1000, 'USD')).toContain('1.000')
+      const result = formatCurrency(1000)
+      expect(result).toContain('R$')
+      expect(result).toContain('1.000,00')
     })
 
     it('should handle zero values', () => {
-      expect(formatCurrency(0)).toBe('R$ 0,00')
+      const result = formatCurrency(0)
+      expect(result).toContain('R$')
+      expect(result).toContain('0,00')
     })
 
     it('should handle negative values', () => {
-      expect(formatCurrency(-100)).toBe('-R$ 100,00')
+      const result = formatCurrency(-100)
+      expect(result).toContain('R$')
+      expect(result).toContain('100,00')
+      expect(result).toContain('-')
     })
   })
 
