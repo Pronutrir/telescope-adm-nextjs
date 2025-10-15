@@ -155,7 +155,7 @@ const LoginPage: React.FC = () => {
                         </div>
 
                         <h1 className={`text-2xl font-bold mb-2 transition-colors duration-300 ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
-                            SISTEMA ADMINISTRADOR
+                            TELESCOPE
                         </h1>
                         <p className={`text-sm transition-colors duration-300 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                             Entre com suas credenciais

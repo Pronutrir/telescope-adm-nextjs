@@ -10,7 +10,10 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
+import Image from 'next/image'
 import { useNotify } from '@/contexts/NotificationContext'
+import telescopeLogo from '@/assets/telescope.svg'
+import galaxyBackground from '@/assets/backgrounds/galaxy.jpg'
 
 interface IServerLoginForm {
     User: string
@@ -41,14 +44,16 @@ const ServerSideLoginPage: React.FC = () => {
         return () => observer.disconnect()
     }, [])
 
-    // Background dinâmico baseado no tema
+    // Background dinâmico com imagem galaxy baseado no tema
     const getMainBackground = () => {
+        const baseBackground = `url(${galaxyBackground.src})`
+
         if (isDark) {
-            // Tema escuro: gradiente sofisticado com outer_space e night
-            return 'linear-gradient(135deg, rgba(11, 14, 14, 0.98) 0%, rgba(22, 27, 29, 0.95) 50%, rgba(34, 41, 43, 0.92) 100%)'
+            // Tema escuro: galaxy visível com overlay escuro suave
+            return `${baseBackground}, linear-gradient(135deg, rgba(11, 14, 14, 0.6) 0%, rgba(22, 27, 29, 0.7) 50%, rgba(34, 41, 43, 0.8) 100%)`
         } else {
-            // Tema claro: gradiente limpo com tons neutros
-            return 'linear-gradient(135deg, rgba(248, 250, 252, 0.98) 0%, rgba(241, 245, 249, 0.95) 50%, rgba(226, 232, 240, 0.92) 100%)'
+            // Tema claro: galaxy com overlay claro para legibilidade
+            return `${baseBackground}, linear-gradient(135deg, rgba(248, 250, 252, 0.3) 0%, rgba(241, 245, 249, 0.4) 50%, rgba(226, 232, 240, 0.5) 100%)`
         }
     }
 
@@ -93,8 +98,6 @@ const ServerSideLoginPage: React.FC = () => {
             }
         }
     }
-
-
 
     const validationSchema = Yup.object().shape({
         User: Yup.string()
@@ -246,7 +249,13 @@ const ServerSideLoginPage: React.FC = () => {
     return (
         <div
             className="min-h-screen flex items-center justify-center p-4 transition-all duration-300"
-            style={{ background: getMainBackground() }}
+            style={{
+                background: getMainBackground(),
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundAttachment: 'fixed'
+            }}
         >
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10">
@@ -281,16 +290,23 @@ const ServerSideLoginPage: React.FC = () => {
                                     }}
                                     onClick={() => alert("Telescope: Sistema Administrador SERVER-SIDE com Redis - Máxima segurança com dados 100% server-side")}
                                 >
-                                    <span className={`text-2xl font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>🛡️</span>
+                                    <Image
+                                        src={telescopeLogo}
+                                        alt="Telescope Logo"
+                                        width={48}
+                                        height={48}
+                                        className="transition-transform duration-300 hover:rotate-12"
+                                        priority
+                                    />
                                 </div>
                             )}
                         </div>
 
                         <h1 className={`text-2xl font-bold mb-2 transition-colors duration-300 ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
-                            SISTEMA ADMINISTRADOR
+                            TELESCOPE
                         </h1>
                         <p className={`text-sm transition-colors duration-300 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                            Entre com suas credenciais (Server-Side)
+                            Entre com suas credenciais
                         </p>
                     </div>
 
@@ -393,7 +409,7 @@ const ServerSideLoginPage: React.FC = () => {
                                     Autenticando...
                                 </div>
                             ) : (
-                                'Server-Side Login'
+                                'Entrar'
                             )}
                         </button>
                     </form>
