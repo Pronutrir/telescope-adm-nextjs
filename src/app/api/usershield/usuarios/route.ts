@@ -15,7 +15,7 @@ import { getServiceUrl } from '@/config/env'
 
 export async function GET() {
   // URLs da UserShield API a partir de variáveis de ambiente
-  const USERSHIELD_BASE_URL = `${getServiceUrl('USERSHIELD')}/api/`
+  const USERSHIELD_BASE_URL = `${getServiceUrl('USERSHIELD')}`
   const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}v1/Auth/login`
   const USERSHIELD_USERS_URL = `${USERSHIELD_BASE_URL}v1/Usuarios`
   

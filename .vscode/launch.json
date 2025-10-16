@@ -2,48 +2,39 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Next.js: debug server-side",
-            "type": "node-terminal",
-            "request": "launch",
-            "command": "npm run dev"
-        },
-        {
-            "name": "Next.js: debug client-side",
-            "type": "chrome",
-            "request": "launch",
-            "url": "http://localhost:3000"
-        },
-        {
-            "name": "Next.js: debug client-side (Firefox)",
-            "type": "firefox",
-            "request": "launch",
-            "url": "http://localhost:3000",
-            "reAttach": true,
-            "pathMappings": [
-                {
-                    "url": "webpack://_N_E",
-                    "path": "${workspaceFolder}"
-                }
-            ]
-        },
-        {
-            "name": "Next.js: debug full stack",
+            "name": "Next.js: Server (SSR)",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
+            "runtimeExecutable": "npm",
             "runtimeArgs": [
-                "--inspect"
+                "run",
+                "dev"
             ],
+            "env": {
+                "NODE_OPTIONS": "--inspect"
+            },
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "serverReadyAction": {
-                "action": "debugWithEdge",
-                "killOnServerStop": true,
-                "pattern": "- Local:.+(https?://.+)",
-                "uriFormat": "%s",
-                "webRoot": "${workspaceFolder}"
-            }
+            "console": "integratedTerminal",
+            "outputCapture": "std",
+            "port": 9229
+        },
+        {
+            "name": "Next.js: Client (Chrome)",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}",
+            "sourceMaps": true
+        },
+        {
+            "name": "Next.js: Full Stack",
+            "type": "compound",
+            "configurations": [
+                "Next.js: Server (SSR)",
+                "Next.js: Client (Chrome)"
+            ]
         }
     ]
 }
