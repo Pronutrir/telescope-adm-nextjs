@@ -7,8 +7,8 @@ import './globals.css'
 const inter = Inter({ subsets: [ 'latin' ] })
 
 export const metadata: Metadata = {
-  title: 'Telescope ADM - NPS Management',
-  description: 'Sistema de gerenciamento de pesquisas de satisfação',
+  title: 'Telescope ADM',
+  description: 'Sistema de gerenciamento',
 }
 
 export default function RootLayout({

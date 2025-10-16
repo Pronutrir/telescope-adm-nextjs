@@ -10,10 +10,8 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import Image from 'next/image'
 import { useNotify } from '@/contexts/NotificationContext'
-import telescopeLogo from '@/assets/telescope.svg'
-import galaxyBackground from '@/assets/backgrounds/galaxy.jpg'
+import Image from 'next/image'
 
 interface IServerLoginForm {
     User: string
@@ -45,15 +43,27 @@ const ServerSideLoginPage: React.FC = () => {
     }, [])
 
     // Background dinâmico com imagem galaxy baseado no tema
-    const getMainBackground = () => {
-        const baseBackground = `url(${galaxyBackground.src})`
+    const getBackgroundStyles = () => {
+        const baseImage = `url(/backgrounds/galaxy.jpg)`
 
         if (isDark) {
             // Tema escuro: galaxy visível com overlay escuro suave
-            return `${baseBackground}, linear-gradient(135deg, rgba(11, 14, 14, 0.6) 0%, rgba(22, 27, 29, 0.7) 50%, rgba(34, 41, 43, 0.8) 100%)`
+            return {
+                backgroundImage: `${baseImage}, linear-gradient(135deg, rgba(11, 14, 14, 0.6) 0%, rgba(22, 27, 29, 0.7) 50%, rgba(34, 41, 43, 0.8) 100%)`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundAttachment: 'fixed'
+            }
         } else {
             // Tema claro: galaxy com overlay claro para legibilidade
-            return `${baseBackground}, linear-gradient(135deg, rgba(248, 250, 252, 0.3) 0%, rgba(241, 245, 249, 0.4) 50%, rgba(226, 232, 240, 0.5) 100%)`
+            return {
+                backgroundImage: `${baseImage}, linear-gradient(135deg, rgba(248, 250, 252, 0.3) 0%, rgba(241, 245, 249, 0.4) 50%, rgba(226, 232, 240, 0.5) 100%)`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundAttachment: 'fixed'
+            }
         }
     }
 
@@ -249,13 +259,7 @@ const ServerSideLoginPage: React.FC = () => {
     return (
         <div
             className="min-h-screen flex items-center justify-center p-4 transition-all duration-300"
-            style={{
-                background: getMainBackground(),
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                backgroundAttachment: 'fixed'
-            }}
+            style={getBackgroundStyles()}
         >
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10">
@@ -291,8 +295,8 @@ const ServerSideLoginPage: React.FC = () => {
                                     onClick={() => alert("Telescope: Sistema Administrador SERVER-SIDE com Redis - Máxima segurança com dados 100% server-side")}
                                 >
                                     <Image
-                                        src={telescopeLogo}
-                                        alt="Telescope Logo"
+                                        src="/icons/telescope.svg"
+                                        alt="Telescope Icon"
                                         width={48}
                                         height={48}
                                         className="transition-transform duration-300 hover:rotate-12"
@@ -417,7 +421,7 @@ const ServerSideLoginPage: React.FC = () => {
                     {/* Footer */}
                     <div className="mt-6 text-center">
                         <p className={`text-xs transition-colors duration-300 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                            Telescope © 2025 - Sistema Server-Side Redis
+                            Pronutrir © 2025
                         </p>
                     </div>
                 </div>
