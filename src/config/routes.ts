@@ -46,10 +46,11 @@ export const routes: Route[] = [
     iconColor: 'Primary',
     layout: '/admin',
     private: false,
-    defaultRoute: false, // 🎯 Removido como rota padrão
+    defaultRoute: false,
     search: true,
     component: 'Dashboard',
-    visible: true
+    visible: true,
+    roles: ['default_fullstackdev', 'Administrador']
   },
 
   // Biblioteca de Componentes - Componentes reutilizáveis
@@ -62,7 +63,8 @@ export const routes: Route[] = [
     private: false,
     search: true,
     component: 'biblioteca-componentes',
-    visible: true
+    visible: true,
+    roles: ['default_fullstackdev', 'Administrador']
   },
 
   // Gerenciador de PDFs - Sistema duplicado para gerenciamento avançado
@@ -73,10 +75,11 @@ export const routes: Route[] = [
     iconColor: 'Warning',
     layout: '/admin',
     private: false,
-    defaultRoute: true, // 🎯 Definido como nova rota padrão
+    defaultRoute: true,
     search: true,
     component: 'GerenciadorPDFs',
-    visible: true
+    visible: true,
+    roles: ['default_fullstackdev', 'Administrador']
   },
 
   // Bloqueios
@@ -90,7 +93,7 @@ export const routes: Route[] = [
     search: true,
     component: 'Bloqueios',
     roles: ['default_fullstackdev', 'Gerencial', 'Administrador'],
-    visible: false // Exemplo: opção oculta por padrão
+    visible: true // Exemplo: opção oculta por padrão
   },
 
   // Médicos Exclusivos
@@ -116,7 +119,7 @@ export const routes: Route[] = [
     private: false,
     search: true,
     component: 'EvolucaoMedica',
-    roles: ['default_fullstackdev', 'Doctors', 'Nursing', 'Triagem']
+    roles: ['default_fullstackdev', 'Administrador', 'Doctors', 'Nursing', 'Triagem']
   },
 
   // Stopwatch H
@@ -130,10 +133,10 @@ export const routes: Route[] = [
     search: true,
     component: 'Stopwatch',
     roles: [
-      'Gerencial',
-      'Administrador',
-      'Diretor',
       'default_fullstackdev',
+      'Administrador',
+      'Gerencial',
+      'Diretor',
       'Doctors',
       'Recepção',
       'Triagem',
@@ -277,10 +280,10 @@ export const routes: Route[] = [
     search: true,
     component: 'QuickQueue',
     roles: [
-      'Gerencial',
-      'Administrador',
-      'Diretor',
       'default_fullstackdev',
+      'Administrador',
+      'Gerencial',
+      'Diretor',
       'Doctors',
       'Farmacia',
       'Nursing'
@@ -299,9 +302,9 @@ export const routes: Route[] = [
     component: 'Avaliacoes',
     roles: [
       'default_fullstackdev',
+      'Administrador',
       'Recepção',
       'Gerencial',
-      'Administrador',
       'Diretor',
       'Marketing'
     ]

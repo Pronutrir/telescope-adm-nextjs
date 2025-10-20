@@ -39,6 +39,7 @@ export interface IUser {
   passUpdate: boolean
   refreshToken: string
   roles: IRoles[]
+  perfis?: IPerfis[] // ✅ Perfis diretos do usuário (vem do UserShield)
   telefone: string
   tempoAcesso: number
   tipoUsuario: string

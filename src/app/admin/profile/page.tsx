@@ -14,6 +14,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useLayout } from '@/contexts/LayoutContext'
+import { useNotifications } from '@/contexts/NotificationContext'
 import UserProfileService from '@/services/userProfileService'
 import { 
     User, 
@@ -36,6 +37,7 @@ const UserProfilePage = () => {
     const { user, isAuthenticated, isLoading: authLoading } = useAuth()
     const { isDark } = useTheme()
     const { isMobile } = useLayout()
+    const { showSuccess, showError } = useNotifications()
     const [ isLoading, setIsLoading ] = useState(false)
     const [ activeTab, setActiveTab ] = useState<'profile' | 'info' | 'security' | 'permissions' | 'activity' | 'avatar'>('profile')
     const [ activities, setActivities ] = useState<Activity[]>([])
@@ -111,26 +113,75 @@ const UserProfilePage = () => {
         }
     }
 
+    /**
+     * Handler de Alteração de Senha
+     * 
+     * @architecture
+     * 1. Frontend → POST /api/auth/update-password (session_id cookie)
+     * 2. API valida sessão Redis → obtém user.id e user.email
+     * 3. API adiciona username (email) ao payload automaticamente
+     * 4. API chama proxy → PUT /api/usershield/usuarios/recovery-pass/{idUsuario}
+     * 5. Proxy obtém admin token (cache Redis ou login fresh)
+     * 6. Proxy chama UserShield → PUT /v1/Usuarios/RecoveryPass/{idUsuario}
+     * 7. Resposta flui: UserShield → Proxy → API → Frontend
+     * 
+     * @payload Frontend envia: { idUsuario, password, newPassword }
+     * @payload API envia ao proxy: { username, password, newPassword }
+     * @auth session_id cookie (usuário) + Bearer token (admin, gerenciado pela API)
+     */
     const handleChangePassword = async (data: {
-        username: string
-        password: string
+        currentPassword: string
         newPassword: string
-        idUsuario: number
     }) => {
         try {
-            setIsLoading(true)
+            if (!user?.id || !user?.email) {
+                throw new Error('Usuário não encontrado')
+            }
+
+            console.log('🔐 Iniciando alteração de senha...')
+            console.log('👤 Usuário ID:', user.id)
+            console.log('📧 Email (username):', user.email)
+
+            const response = await fetch('/api/auth/update-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    idUsuario: user.id,
+                    password: data.currentPassword,
+                    newPassword: data.newPassword,
+                    // Nota: username (email) é adicionado automaticamente pela API
+                }),
+            })
             
-            await UserProfileService.updatePassword(
-                data.username,
-                data.password,
-                data.newPassword,
-                data.idUsuario
-            )
+            console.log('📡 Response status:', response.status)
+            
+            const result = await response.json()
+            console.log('📦 Response data:', result)
+
+            if (!response.ok) {
+                console.error('❌ Erro na resposta:', result)
+                throw new Error(result.message || 'Erro ao alterar senha')
+            }
+
+            console.log('✅ Senha alterada com sucesso!')
+            
+            // Exibir notificação de sucesso
+            showSuccess('Senha alterada com sucesso!', {
+                duration: 5000
+            })
+
         } catch (error: any) {
-            console.error('Erro ao alterar senha:', error)
-            throw error
-        } finally {
-            setIsLoading(false)
+            console.error('❌ Erro ao alterar senha:', error)
+            console.error('❌ Stack:', error.stack)
+            
+            // Exibir notificação de erro
+            showError(error.message || 'Erro ao alterar senha. Tente novamente.', {
+                duration: 6000
+            })
+            
+            throw error // Propagar erro para o componente também tratar
         }
     }
 
@@ -162,12 +213,6 @@ const UserProfilePage = () => {
                 </div>
             </PageWrapper>
         )
-    }
-
-    // ✅ Garantir que user.roles existe antes de mapear
-    const safeUser = {
-        ...user,
-        roles: user.roles ? user.roles.map(role => typeof role === 'string' ? role : role.toString()) : []
     }
 
     return (
@@ -218,16 +263,14 @@ const UserProfilePage = () => {
 
                 {/* Tab Content */}
                 <div className="space-y-8">
-                    {activeTab === 'profile' && (
-                        <UserProfileForm
-                            user={safeUser}
-                            isDark={isDark}
-                            isLoading={isLoading}
-                            setIsLoading={setIsLoading}
-                        />
-                    )}
-
-                    {activeTab === 'avatar' && (
+                {activeTab === 'profile' && (
+                    <UserProfileForm
+                        user={user}
+                        isDark={isDark}
+                        isLoading={isLoading}
+                        setIsLoading={setIsLoading}
+                    />
+                )}                    {activeTab === 'avatar' && (
                         <UserAvatarUpload
                             currentAvatar={user?.avatar}
                             userName={user?.nomeCompleto || user?.username}
@@ -244,13 +287,11 @@ const UserProfilePage = () => {
                     )}
 
                     {activeTab === 'permissions' && (
-                        <div className="max-w-2xl mx-auto">
-                            <UserPermissionsCard
-                                user={user}
-                                isDark={isDark}
-                                isLoading={isLoading}
-                            />
-                        </div>
+                        <UserPermissionsCard
+                            user={user}
+                            isDark={isDark}
+                            isLoading={isLoading}
+                        />
                     )}
 
                     {activeTab === 'security' && user && (

@@ -190,6 +190,39 @@ class UserShieldService {
       user.department.toLowerCase().includes(term)
     )
   }
+
+  /**
+   * Alterar senha do usuário
+   * Endpoint: PUT /Usuarios/RecoveryPass/{idUsuario}
+   */
+  async alterarSenha(
+    idUsuario: number,
+    username: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log('🔐 Alterando senha para usuário:', idUsuario)
+      
+      const response = await this.request<{ success: boolean; message: string }>(
+        `Usuarios/RecoveryPass/${idUsuario}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            username,
+            password: currentPassword,
+            newPassword
+          })
+        }
+      )
+      
+      console.log('✅ Senha alterada com sucesso')
+      return response
+    } catch (error) {
+      console.error('❌ Erro ao alterar senha:', error)
+      throw new Error('Falha ao alterar senha. Verifique sua senha atual.')
+    }
+  }
 }
 
 // Instância singleton do serviço

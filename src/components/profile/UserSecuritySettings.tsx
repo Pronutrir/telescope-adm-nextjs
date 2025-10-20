@@ -3,16 +3,32 @@
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Lock, Eye, EyeOff, CheckCircle, AlertCircle, Shield } from 'lucide-react'
+import { Lock, Eye, EyeOff, Shield } from 'lucide-react'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 
+/**
+ * Componente de Configurações de Segurança do Usuário
+ * 
+ * Gerencia a alteração de senha do usuário através da API UserShield.
+ * 
+ * @component
+ * @description
+ * - Valida senha atual, nova senha e confirmação
+ * - Mostra indicador de força da senha
+ * - Integra com API proxy /api/auth/update-password
+ * - API proxy adiciona automaticamente o username (email) do usuário autenticado
+ * - Utiliza sessão Redis para obter dados do usuário
+ * - Token de admin é gerenciado automaticamente pela API com cache Redis
+ * 
+ * @endpoint POST /api/auth/update-password
+ * @payload { idUsuario: number, password: string, newPassword: string }
+ * @auth session_id cookie (Redis session)
+ */
 interface UserSecuritySettingsProps {
     onChangePassword: (data: {
-        username: string
-        password: string
+        currentPassword: string
         newPassword: string
-        idUsuario: number
     }) => Promise<void>
     user: {
         id: number
@@ -48,11 +64,6 @@ export const UserSecuritySettings: React.FC<UserSecuritySettingsProps> = ({
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const [notification, setNotification] = useState<{
-        show: boolean
-        type: 'success' | 'error'
-        message: string
-    }>({ show: false, type: 'success', message: '' })
 
     const formik = useFormik({
         initialValues: {
@@ -63,32 +74,19 @@ export const UserSecuritySettings: React.FC<UserSecuritySettingsProps> = ({
         validationSchema,
         onSubmit: async (values, { resetForm }) => {
             setIsLoading(true)
-            setNotification({ show: false, type: 'success', message: '' })
 
             try {
                 await onChangePassword({
-                    username: user.email,
-                    password: values.currentPassword,
-                    newPassword: values.newPassword,
-                    idUsuario: user.id
+                    currentPassword: values.currentPassword,
+                    newPassword: values.newPassword
                 })
                 
-                setNotification({
-                    show: true,
-                    type: 'success',
-                    message: 'Senha alterada com sucesso!'
-                })
-                
+                // Limpar formulário em caso de sucesso
                 resetForm()
-                setTimeout(() => {
-                    setNotification(prev => ({ ...prev, show: false }))
-                }, 5000)
+                
             } catch (error: any) {
-                setNotification({
-                    show: true,
-                    type: 'error',
-                    message: error.message || 'Erro ao alterar senha. Verifique sua senha atual.'
-                })
+                // Erro já é tratado pela página com notificação global
+                console.error('Erro no formulário:', error)
             } finally {
                 setIsLoading(false)
             }
@@ -152,24 +150,6 @@ export const UserSecuritySettings: React.FC<UserSecuritySettingsProps> = ({
                     </p>
                 </div>
             </div>
-
-            {/* Notification */}
-            {notification.show && (
-                <div className={`
-                    flex items-center gap-3 p-4 mb-6 rounded-lg border
-                    ${notification.type === 'success'
-                        ? (isDark ? 'bg-green-900/20 border-green-800 text-green-400' : 'bg-green-50 border-green-200 text-green-600')
-                        : (isDark ? 'bg-red-900/20 border-red-800 text-red-400' : 'bg-red-50 border-red-200 text-red-600')
-                    }
-                `}>
-                    {notification.type === 'success' ? (
-                        <CheckCircle className="h-5 w-5 flex-shrink-0" />
-                    ) : (
-                        <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                    )}
-                    <p className="text-sm font-medium">{notification.message}</p>
-                </div>
-            )}
 
             <form onSubmit={formik.handleSubmit} className="space-y-6">
                 {/* Senha Atual */}

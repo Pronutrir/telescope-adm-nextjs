@@ -43,12 +43,22 @@ export async function GET(request: NextRequest) {
     console.log(`✅ [Auth/Me] Sessão válida encontrada para: ${sessionData.email}`)
     logger.debug(`✅ [Auth/Me] Dados retornados para: ${sessionData.email}`)
     
+    // ✅ Usar perfis completos se disponíveis, senão transformar permissions
+    const perfis = sessionData.perfis && sessionData.perfis.length > 0
+      ? sessionData.perfis  // Retorna objetos completos com id, statusPerfil, dataRegistro, etc.
+      : (sessionData.permissions || []).map((permissionName: string) => ({
+          nomePerfil: permissionName
+        }))
+    
+    console.log(`📦 [Auth/Me] ${sessionData.perfis ? 'Perfis completos' : 'Perfis básicos'} retornados:`, perfis.length)
+    
     return NextResponse.json({
       id: sessionData.userId,
       nomeCompleto: sessionData.name,
       email: sessionData.email,
-      roles: sessionData.permissions || [],
-      permissions: sessionData.permissions || []
+      roles: sessionData.permissions || [],  // Mantém por compatibilidade
+      permissions: sessionData.permissions || [],  // Mantém por compatibilidade
+      perfis: perfis  // ✅ NOVO: Array completo com metadata (id, statusPerfil, dataRegistro, dataAtualizacao, usuario, roleId)
     })
 
   } catch (error) {

@@ -16,10 +16,15 @@ export interface User {
   tempoAcesso?: number
   perfil?: string
   permissoes?: string[]
-  roles?: string[]
+  roles?: string[] | any[] // Aceita tanto string[] quanto IRoles[]
+  perfis?: any[] // Array de perfis do UserShield
   avatar?: string
   createdAt?: string | Date
   updatedAt?: string | Date
+  dataRegistro?: string
+  dataAtualizacao?: string
+  dataExpira?: string
+  dataHoraValidado?: string
 }
 
 // Tipos para estabelecimentos

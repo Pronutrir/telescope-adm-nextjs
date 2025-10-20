@@ -14,7 +14,9 @@ export interface SessionData {
   userId: string
   email: string
   name: string
+  token?: string  // JWT token from UserShield API
   permissions: string[]
+  perfis?: any[]  // Complete perfil objects from UserShield (id, nomePerfil, statusPerfil, dataRegistro, dataAtualizacao, usuario, roleId)
   expiresAt: Date
   ipAddress: string
   userAgent: string

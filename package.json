@@ -5,6 +5,7 @@
   "scripts": {
     "// ===== DEVELOPMENT SCRIPTS =====": "",
     "dev": "next dev --turbopack",
+    "dev:debug": "NODE_OPTIONS='--inspect' next dev --turbopack",
     "start": "next start",
     "// ===== CI/CD SCRIPTS (Sem dependências externas) =====": "",
     "build": "next build",

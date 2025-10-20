@@ -124,7 +124,7 @@ export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
                 <div className="py-2">
                     {/* 🎯 PRESERVAÇÃO: Item Perfil com classes originais + ADAPTAÇÃO: Tema */}
                     <a
-                        href="/profile"
+                        href="/admin/profile"
                         className={twMerge(
                             // PRESERVAÇÃO: Classes funcionais originais
                             'flex items-center px-4 py-2 text-sm transition-all duration-200',

@@ -163,25 +163,61 @@ export async function POST(request: NextRequest) {
 
     // ✅ Extrair dados do usuário da resposta UserShield
     const userData = userShieldAuth.data
-    const userId = userData?.userId || userData?.id || crypto.randomUUID()
-    const userName = userData?.name || userData?.username || email.split('@')[0]
-    const permissions = userData?.permissions || ['user']
+    const userId = userData?.userId || userData?.id || userData?.username || crypto.randomUUID()
+    const userName = userData?.nomeCompleto || userData?.name || userData?.username || email.split('@')[0]
 
+    // 🔥 NOVO: Extrair perfis COMPLETOS do array 'roles' da resposta do /login
+    // Salvar objeto completo com todos os campos para exibição
+    let userPerfis: string[] = ['user'] // fallback para permissions (compatibilidade)
+    let userPerfisCompletos: any[] = [] // Array completo de perfis com todos os dados
+    
+    if (userData?.roles && Array.isArray(userData.roles)) {
+      // Extrair objetos completos dos perfis
+      userPerfisCompletos = userData.roles
+        .map((roleObj: any) => ({
+          id: roleObj.perfis?.id,
+          nomePerfil: roleObj.perfis?.nomePerfil,
+          statusPerfil: roleObj.perfis?.statusPerfil,
+          dataRegistro: roleObj.dataRegistro,
+          dataAtualizacao: roleObj.dataAtualizacao,
+          usuario: roleObj.usuario,
+          roleId: roleObj.id
+        }))
+        .filter((p: any) => p.nomePerfil) // Remove inválidos
+      
+      // Extrair apenas nomes para array de strings (compatibilidade)
+      userPerfis = userPerfisCompletos.map((p: any) => p.nomePerfil)
+      
+      if (userPerfis.length > 0) {
+        logger.info(`✅ [Auth] ${userPerfis.length} perfis extraídos para ${email}: ${userPerfis.join(', ')}`)
+      } else {
+        logger.warn(`⚠️ [Auth] Usuário ${email} tem roles mas sem perfis, usando padrão`)
+        userPerfis = ['user']
+      }
+    } else {
+      logger.warn(`⚠️ [Auth] Usuário ${email} sem roles na resposta, usando padrão`)
+    }
+    
     // ✅ Obter informações da requisição para segurança
     const userAgent = request.headers.get('user-agent') || 'unknown'
+    
+    // 🔥 NOVO: Extrair token JWT da resposta UserShield
+    const jwtToken = userData?.jwtToken || userData?.token || null
     
     // ✅ Criar sessão server-side (dados ficam 100% no servidor)
     const sessionId = await sessionManager.createSession({
       userId: userId,
       email: email,
       name: userName,
-      permissions: Array.isArray(permissions) ? permissions : ['user'],
+      token: jwtToken, // 🔥 NOVO: Salvar token JWT para chamadas autenticadas
+      permissions: userPerfis, // Array de strings para compatibilidade
+      perfis: userPerfisCompletos, // 🔥 NOVO: Array completo de objetos
       ipAddress: clientIP,
       userAgent: userAgent
     })
 
     // ✅ Log de sucesso
-  logger.info(`✅ [Auth] Login OK: ${email} | IP: ${clientIP} | Session: ${sessionId}`)
+  logger.info(`✅ [Auth] Login OK: ${email} | IP: ${clientIP} | Session: ${sessionId} | Perfis: ${userPerfis.join(', ')}`)
 
     // ✅ Criar response com dados do usuário
     const response = NextResponse.json({
@@ -191,7 +227,7 @@ export async function POST(request: NextRequest) {
         id: userId,
         email: email,
         name: userName,
-        permissions: Array.isArray(permissions) ? permissions : ['user']
+        permissions: userPerfis // 🔥 Retornar perfis reais
       }
     })
 

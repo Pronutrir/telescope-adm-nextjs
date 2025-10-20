@@ -98,32 +98,25 @@ export async function GET() {
       name: user.nomeCompleto || user.username,
       email: user.email || `${user.username}@pronutrir.com.br`,
       userName: user.username,
-      role: user.roles?.[0]?.perfis?.nomePerfil || user.tipoUsuario || 'Usuário',
-      status: user.ativo ? 'Ativo' : 'Inativo',
-      lastLogin: user.dataAtualizacao?.split('T')[0] || new Date().toISOString().split('T')[0],
-      department: user.estabelecimento ? `Estabelecimento ${user.estabelecimento}` : 'N/A',
-      perfis: user.roles?.map((role: any) => ({
-        id: role.perfis.id.toString(),
-        nomePerfil: role.perfis.nomePerfil
-      })) || []
+      role: user.perfis?.[0]?.nomePerfil || 'Usuário',
+      status: user.statusUsuario === 'A' ? 'Ativo' : 'Inativo',
+      lastLogin: user.dataUltimoAcesso || new Date().toISOString().split('T')[0],
+      department: user.departamento || 'N/A',
+      perfis: user.perfis || [],
+      roles: user.roles || []
     })) || []
 
     return NextResponse.json({
       success: true,
-      result: usuarios,
-      message: `${usuarios.length} usuários reais encontrados via UserShield API`,
-      cached: true, // Indica que usa cache Redis
-      timestamp: new Date().toISOString()
+      result: usuarios
     })
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Erro na API UserShield:', error)
-    
     return NextResponse.json(
       { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Erro interno do servidor',
-        details: process.env.NODE_ENV === 'development' ? error : undefined
+        error: error.message || 'Erro ao buscar usuários' 
       },
       { status: 500 }
     )
@@ -131,17 +124,16 @@ export async function GET() {
 }
 
 /**
- * Realiza login na UserShield API e armazena token no cache Redis
+ * Função auxiliar para fazer login no UserShield
  */
 async function performLogin(loginUrl: string): Promise<string | null> {
   try {
-    logger.info('Fazendo login na UserShield API...')
+    logger.debug('Fazendo login no UserShield...')
     
-    const loginResponse = await fetch(loginUrl, {
+    const response = await fetch(loginUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         Username: process.env.USERSHIELD_USERNAME,
@@ -149,46 +141,24 @@ async function performLogin(loginUrl: string): Promise<string | null> {
       })
     })
 
-    if (!loginResponse.ok) {
-      logger.error('Login falhou:', loginResponse.status)
+    if (!response.ok) {
+      logger.error('Falha no login UserShield:', response.status)
       return null
     }
 
-    const loginData = await loginResponse.json()
-    const token = loginData.jwtToken
+    const data = await response.json()
+    const token = data.jwtToken
 
-    if (!token) {
-      logger.error('Token não encontrado na resposta do login')
-      return null
+    if (token) {
+      // Salvar token no cache Redis com TTL de 55 minutos (API expira em 60)
+      const ttlSeconds = 55 * 60
+      await tokenCacheService.setToken('usershield', token, ttlSeconds.toString())
+      logger.info('✅ Token UserShield salvo no cache (55min TTL)')
     }
 
-    // Armazenar token no cache Redis por 55 minutos
-    await tokenCacheService.setToken(token, 'usershield', process.env.USERSHIELD_USERNAME!)
-    logger.info('Login realizado e token armazenado no cache Redis')
-    
     return token
   } catch (error) {
-    logger.error('Erro no login:', error)
+    logger.error('Erro no login UserShield:', error)
     return null
-  }
-}
-
-/**
- * Endpoint para estatísticas do cache Redis (útil para debugging)
- */
-export async function HEAD() {
-  try {
-    const stats = await tokenCacheService.getCacheStats()
-    
-    return new NextResponse(null, {
-      status: 200,
-      headers: {
-        'X-Cache-Stats': JSON.stringify(stats),
-        'X-Cache-Redis-Available': stats.isRedisAvailable.toString(),
-        'X-Cache-Tokens-Count': stats.cachedTokensCount.toString()
-      }
-    })
-  } catch {
-    return new NextResponse(null, { status: 500 })
   }
 }

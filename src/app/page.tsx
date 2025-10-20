@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { getFirstAvailableRoute } from '@/utils/routeUtils'
 import Link from 'next/link'
 
 export default function Home() {
@@ -11,8 +12,10 @@ export default function Home() {
 
     useEffect(() => {
         if (!isLoading && user) {
-            // Se usuário está logado, redireciona para dashboard
-            router.push('/admin/dashboard')
+            // Redireciona para a primeira rota disponível baseada nas permissões do usuário
+            const targetRoute = getFirstAvailableRoute(user)
+            console.log('🔀 Redirecionando usuário para:', targetRoute)
+            router.push(targetRoute)
         }
     }, [ user, isLoading, router ])
 

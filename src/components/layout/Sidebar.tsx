@@ -48,16 +48,36 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
     }, [])
 
     // Filtrar rotas baseado na autenticação e roles do usuário
-    const userRoles = user?.roles?.map(role => role.perfis?.nomePerfil).filter(Boolean) ||
+    console.log('👤 FULL USER OBJECT:', user)
+    console.log('📦 user?.perfis:', user?.perfis)
+    console.log('📦 user?.roles:', user?.roles)
+    console.log('🔑 user?.tipoUsuario:', user?.tipoUsuario)
+    
+    // ✅ CORREÇÃO: Usar perfis diretamente, não roles.perfis
+    const userRoles = user?.perfis?.map((perfil) => perfil.nomePerfil).filter(Boolean) ||
         (user?.tipoUsuario ? [ user.tipoUsuario ] : []) ||
         [ 'default_fullstackdev' ] // fallback para desenvolvimento
+
+    console.log('🔍 User Roles (final):', userRoles)
+    console.log('   📋 Roles extraídos:', userRoles.join(', '))
+    console.log('📊 Total Routes:', routes.length)
+    console.log('👁️ Route Visibility State:', routeVisibility)
 
     let availableRoutes: Route[]
     if (isAuthenticated && user) {
         // Usuário autenticado - filtrar por roles primeiro
         const roleFiltered = filterRoutesByRoles(routes, userRoles)
+        console.log('✅ After Role Filter:', roleFiltered.length, 'routes')
+        console.log('📋 Role Filtered Routes:', roleFiltered.map(r => r.name))
+        
         // Depois filtrar por visibilidade usando o contexto
-        availableRoutes = roleFiltered.filter(route => routeVisibility[ route.name ] !== false)
+        // Se routeVisibility não tem a chave, considera visível (true)
+        availableRoutes = roleFiltered.filter(route => {
+            const isVisible = routeVisibility[route.name] !== false
+            console.log(`  - ${route.name}: visibility=${routeVisibility[route.name]} → ${isVisible ? '✅' : '❌'}`)
+            return isVisible
+        })
+        console.log('🎯 Final Available Routes:', availableRoutes.length)
     } else {
         // Não autenticado - apenas rotas públicas + algumas básicas
         const publicRoutes = routes.filter(route =>
@@ -66,7 +86,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
             route.name === 'FlyonUI Cards'
         )
         // Filtrar por visibilidade usando o contexto
-        availableRoutes = publicRoutes.filter(route => routeVisibility[ route.name ] !== false)
+        // Se routeVisibility não tem a chave, considera visível (true)
+        availableRoutes = publicRoutes.filter(route => routeVisibility[route.name] !== false)
     }
 
     const mainRoutes = getMainMenus(availableRoutes)

@@ -3,22 +3,35 @@
     "configurations": [
         {
             "name": "🚀 Next.js: Server (SSR)",
-            "type": "node",
+            "type": "node-terminal",
             "request": "launch",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": [
-                "run",
-                "dev"
-            ],
-            "env": {
-                "NODE_OPTIONS": "--inspect"
-            },
+            "command": "npm run dev",
             "skipFiles": [
                 "<node_internals>/**",
                 "node_modules/**"
             ],
             "console": "integratedTerminal",
-            "outputCapture": "std"
+            "serverReadyAction": {
+                "pattern": "- Local:.+(https?://.+)",
+                "uriFormat": "%s",
+                "action": "debugWithChrome"
+            }
+        },
+        {
+            "name": "🔧 Next.js: Server (Node Attach)",
+            "type": "node",
+            "request": "attach",
+            "port": 9229,
+            "skipFiles": [
+                "<node_internals>/**",
+                "node_modules/**"
+            ],
+            "restart": true,
+            "sourceMaps": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**",
+                "!**/node_modules/**"
+            ]
         },
         {
             "name": "🌐 Next.js: Client (Chrome)",
@@ -62,6 +75,14 @@
             "name": "🔄 Next.js: Full Stack",
             "configurations": [
                 "🚀 Next.js: Server (SSR)",
+                "🌐 Next.js: Client (Chrome)"
+            ],
+            "stopAll": true
+        },
+        {
+            "name": "🔄 Next.js: Full Stack (Attach)",
+            "configurations": [
+                "🔧 Next.js: Server (Node Attach)",
                 "🌐 Next.js: Client (Chrome)"
             ],
             "stopAll": true
