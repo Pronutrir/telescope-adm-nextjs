@@ -88,7 +88,33 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
             tempoAcesso: user?.tempoAcesso || 0
         },
         validationSchema,
+        enableReinitialize: true,
         onSubmit: async (values) => {
+            // Validar se houve mudanças (como na aplicação original)
+            const hasChanges = (
+                values.nomeCompleto !== user?.nomeCompleto ||
+                values.cpf !== user?.cpf ||
+                values.cnpj !== user?.cnpj ||
+                values.email !== user?.email ||
+                values.telefone !== user?.telefone ||
+                values.celular !== user?.celular ||
+                values.endereco !== user?.endereco
+            )
+
+            if (!hasChanges) {
+                setNotification({
+                    show: true,
+                    type: 'warning',
+                    message: 'É obrigatório realizar alguma modificação sobre seus dados!'
+                })
+
+                setTimeout(() => {
+                    setNotification(prev => ({ ...prev, show: false }))
+                }, 5000)
+                
+                return
+            }
+
             if (setExternalLoading) setExternalLoading(true)
 
             try {
@@ -106,7 +132,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                 setNotification({
                     show: true,
                     type: 'success',
-                    message: 'Dados atualizados com sucesso!'
+                    message: 'Os dados foram atualizados com sucesso!'
                 })
 
                 // Ocultar notificação após 5 segundos
@@ -114,11 +140,11 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                     setNotification(prev => ({ ...prev, show: false }))
                 }, 5000)
 
-            } catch {
+            } catch (error: any) {
                 setNotification({
                     show: true,
                     type: 'error',
-                    message: hookError || 'Erro ao atualizar dados. Tente novamente.'
+                    message: hookError || error.message || 'Erro ao atualizar dados. Tente novamente.'
                 })
 
                 setTimeout(() => {
@@ -182,7 +208,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
             {/* Header do Card */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
-                    <User className={`w-8 h-8 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                    <User className="w-8 h-8 profile-header-icon" />
                     <div>
                         <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
                             Dados do seu Perfil

@@ -2,10 +2,15 @@
  * 🛡️ MIDDLEWARE SERVER-SIDE
  * 
  * Sistema de proteção de rotas completamente server-side
- * - Verificação de sessão no Redis
- * - Validação de IP e User-Agent  
- * - Auto-refresh de sessões
+ * - Verificação de cookie session_id (httpOnly)
+ * - Redirecionamentos automáticos baseados em autenticação
+ * - Proteção de rotas /admin/* e validação via Redis no AuthContext
  * - Segurança enterprise level
+ * 
+ * ⚠️ IMPORTANTE:
+ * - Middleware apenas verifica SE o cookie existe
+ * - Validação da sessão no Redis é feita pelo AuthContext via /api/auth/me
+ * - Cookies httpOnly não são acessíveis via JavaScript (segurança contra XSS)
  */
 
 import { NextResponse } from 'next/server'
@@ -17,8 +22,8 @@ export async function middleware(request: NextRequest) {
   // ✅ Rotas públicas que não precisam de autenticação
   const publicRoutes = ['/auth/login', '/auth/server-login', '/auth/recovery', '/test-pdf', '/webhook-monitor']
   
-  // ✅ Rotas de API que não precisam de middleware
-  const apiRoutes = ['/api/auth/session', '/api/health']
+  // ✅ Rotas de API que não precisam de middleware (tratadas pelos route handlers)
+  const apiRoutes = ['/api/auth/session', '/api/auth/me', '/api/auth/logout', '/api/health']
   const isApiRoute = apiRoutes.some(route => pathname.startsWith(route))
 
   if (isApiRoute) {
@@ -30,10 +35,10 @@ export async function middleware(request: NextRequest) {
   
   // ✅ Verificar se é uma rota pública primeiro
   if (publicRoutes.includes(pathname)) {
-    // Se tem sessão ativa e está tentando acessar login/recovery, redirecionar para dashboard
-    // Mas permitir acesso às páginas de teste e webhook-monitor
-    if (sessionId && pathname !== '/test-pdf' && pathname !== '/webhook-monitor') {
-      // TODO: Verificar se sessão é válida (requer async, implementar quando Redis estiver disponível)
+    // Se tem sessão ativa e está tentando acessar páginas de auth, redirecionar para dashboard
+    // Mas permitir acesso às páginas de teste e webhook-monitor mesmo autenticado
+    if (sessionId && (pathname === '/auth/login' || pathname === '/auth/server-login' || pathname === '/auth/recovery')) {
+      console.log(`🔄 [Middleware] Usuário autenticado tentando acessar ${pathname}, redirecionando para dashboard`)
       return NextResponse.redirect(new URL('/admin/gerenciador-pdfs', request.url))
     }
     return NextResponse.next()
@@ -45,25 +50,22 @@ export async function middleware(request: NextRequest) {
   // ✅ Se estiver tentando acessar uma rota protegida sem session ID
   if (protectedRoutes.some(route => pathname.startsWith(route))) {
     if (!sessionId) {
-      console.log(`🔒 Acesso negado - sem session_id: ${pathname}`)
+      console.log(`🔒 [Middleware] Acesso negado - sem session_id: ${pathname}`)
       return NextResponse.redirect(new URL('/auth/server-login', request.url))
     }
     
-    // TODO: Implementar verificação completa de sessão quando Redis estiver disponível
-    // const session = await sessionManager.getSession(sessionId)
-    // if (!session) {
-    //   console.log(`🔒 Acesso negado - sessão inválida: ${sessionId}`)
-    //   const response = NextResponse.redirect(new URL('/auth/login', request.url))
-    //   response.cookies.delete('session_id')
-    //   return response
-    // }
+    // ✅ Middleware apenas verifica SE o cookie existe
+    // A validação da sessão no Redis é feita pelo AuthContext via /api/auth/me
+    // Isso evita chamadas síncronas ao Redis no Edge Runtime
   }
 
   // ✅ Redirecionar raiz para login se não estiver logado, ou gerenciador de PDFs se estiver
   if (pathname === '/') {
     if (sessionId) {
+      console.log(`🏠 [Middleware] Usuário autenticado acessando raiz, redirecionando para dashboard`)
       return NextResponse.redirect(new URL('/admin/gerenciador-pdfs', request.url))
     } else {
+      console.log(`🏠 [Middleware] Usuário não autenticado acessando raiz, redirecionando para login`)
       return NextResponse.redirect(new URL('/auth/server-login', request.url))
     }
   }

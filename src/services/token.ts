@@ -30,10 +30,26 @@ export const tokenStorage = {
     
     // ✅ Salvar APENAS nos cookies seguros
     const isProduction = process.env.NODE_ENV === 'production'
-    const cookieOptions = `path=/; ${isProduction ? 'secure; ' : ''}samesite=strict; max-age=${4 * 60 * 60}` // 4 horas
+    // ✅ Usar 'lax' ao invés de 'strict' para permitir cookies após redirects internos
+    const cookieOptions = `path=/; ${isProduction ? 'secure; ' : ''}samesite=lax; max-age=${4 * 60 * 60}` // 4 horas
+    
+    console.log('💾 [TOKEN-STORAGE] Salvando tokens:', {
+      tokenLength: token?.length || 0,
+      refreshTokenLength: refreshToken?.length || 0,
+      cookieOptions,
+      isProduction
+    })
     
     document.cookie = `token=${token}; ${cookieOptions}`
     document.cookie = `refreshToken=${refreshToken}; ${cookieOptions}`
+    
+    // Verificar se salvou
+    const savedToken = getCookie('token')
+    const savedRefreshToken = getCookie('refreshToken')
+    console.log('✅ [TOKEN-STORAGE] Tokens salvos? ', {
+      token: savedToken ? `${savedToken.substring(0, 30)}...` : 'null',
+      refreshToken: savedRefreshToken ? `${savedRefreshToken.substring(0, 30)}...` : 'null'
+    })
   },
 
   // Obter tokens (APENAS dos cookies seguros)
@@ -42,7 +58,24 @@ export const tokenStorage = {
     // return localStorage.getItem('token')
     
     // ✅ Ler APENAS dos cookies seguros
-    return getCookie('token')
+    const token = getCookie('token')
+    console.log('🔍 [TOKEN-STORAGE] getToken chamado:', {
+      found: !!token,
+      tokenLength: token?.length || 0,
+      allCookies: typeof document !== 'undefined' ? document.cookie : 'SSR'
+    })
+    return token
+  },
+
+  // ✅ Obter session_id (autenticação server-side)
+  getSessionId(): string | null {
+    const sessionId = getCookie('session_id')
+    console.log('🔍 [TOKEN-STORAGE] getSessionId chamado:', {
+      found: !!sessionId,
+      sessionIdLength: sessionId?.length || 0,
+      allCookies: typeof document !== 'undefined' ? document.cookie : 'SSR'
+    })
+    return sessionId
   },
 
   getRefreshToken(): string | null {

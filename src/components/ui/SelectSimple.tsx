@@ -126,13 +126,7 @@ const Select: React.FC<SelectProps> = ({
                     `}>
                         {selectedOption ? selectedOption.label : placeholder}
                     </span>
-                    <ChevronDown
-                        className={`
-                            h-5 w-5 transition-transform duration-200
-                            ${isOpen ? 'rotate-180' : ''}
-                            ${isDark ? 'text-gray-400' : 'text-gray-500'}
-                        `}
-                    />
+                    <ChevronDown className="h-5 w-5 input-icon transition-transform duration-200" />
                 </button>
 
                 {isOpen && (

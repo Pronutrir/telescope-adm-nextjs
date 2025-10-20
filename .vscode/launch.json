@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Next.js: Server (SSR)",
+            "name": "🚀 Next.js: Server (SSR)",
             "type": "node",
             "request": "launch",
             "runtimeExecutable": "npm",
@@ -14,27 +14,57 @@
                 "NODE_OPTIONS": "--inspect"
             },
             "skipFiles": [
-                "<node_internals>/**"
+                "<node_internals>/**",
+                "node_modules/**"
             ],
             "console": "integratedTerminal",
-            "outputCapture": "std",
-            "port": 9229
+            "outputCapture": "std"
         },
         {
-            "name": "Next.js: Client (Chrome)",
+            "name": "🌐 Next.js: Client (Chrome)",
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}",
-            "sourceMaps": true
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:///./*": "${webRoot}/*",
+                "webpack:///src/*": "${webRoot}/src/*",
+                "webpack:///*": "*",
+                "webpack:///./~/*": "${webRoot}/node_modules/*",
+                "webpack:///./node_modules/*": "${webRoot}/node_modules/*"
+            },
+            "runtimeArgs": [
+                "--remote-debugging-port=9222",
+                "--disable-features=VizDisplayCompositor"
+            ],
+            "userDataDir": false,
+            "trace": true
         },
         {
-            "name": "Next.js: Full Stack",
-            "type": "compound",
+            "name": "🔍 Chrome: Attach to Running",
+            "type": "chrome",
+            "request": "attach",
+            "port": 9222,
+            "webRoot": "${workspaceFolder}",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:///./*": "${webRoot}/*",
+                "webpack:///src/*": "${webRoot}/src/*",
+                "webpack:///*": "*",
+                "webpack:///./~/*": "${webRoot}/node_modules/*"
+            },
+            "trace": true
+        }
+    ],
+    "compounds": [
+        {
+            "name": "🔄 Next.js: Full Stack",
             "configurations": [
-                "Next.js: Server (SSR)",
-                "Next.js: Client (Chrome)"
-            ]
+                "🚀 Next.js: Server (SSR)",
+                "🌐 Next.js: Client (Chrome)"
+            ],
+            "stopAll": true
         }
     ]
 }

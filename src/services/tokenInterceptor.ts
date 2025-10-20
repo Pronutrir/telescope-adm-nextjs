@@ -11,7 +11,9 @@ class TokenInterceptorService {
   }> = []
 
   constructor() {
-    this.setupResponseInterceptor()
+    // 🚫 DESABILITADO: Migrando para autenticação baseada em sessão
+    // this.setupResponseInterceptor()
+    console.log('⚠️ TokenInterceptor DESABILITADO (migração para sessões)')
   }
 
   private setupResponseInterceptor() {

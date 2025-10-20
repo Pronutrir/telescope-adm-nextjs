@@ -5,15 +5,31 @@ const nextConfig = {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br'
     const pdfApiBaseUrl = process.env.PDF_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5656/api/v1' : '')
 
+    // 🚨 TEMPORARIAMENTE DESABILITADO PARA TESTAR ROTAS LOCAIS
+    return []
+    
+    /* REWRITES ORIGINAIS (COMENTADOS)
     return [
       // Rota específica para PDFs
       {
         source: '/pdf-api/:path*',
         destination: `${pdfApiBaseUrl}/:path*`,
       },
+      // ⚠️ IMPORTANTE: /api/auth/* são rotas LOCAIS (route handlers)
+      // NÃO fazer proxy dessas rotas!
+      
+      // Proxy específico para rotas conhecidas (não usar /api/:path* genérico)
       {
-        source: '/api/:path*',
-        destination: `${apiBaseUrl}/:path*`,
+        source: '/api/pacientes/:path*',
+        destination: `${apiBaseUrl}/api/pacientes/:path*`,
+      },
+      {
+        source: '/api/users/:path*',
+        destination: `${apiBaseUrl}/api/users/:path*`,
+      },
+      {
+        source: '/api/webhook/:path*',
+        destination: `${apiBaseUrl}/api/webhook/:path*`,
       },
       {
         source: '/usershield/:path*',
@@ -29,10 +45,12 @@ const nextConfig = {
       },
       // Rota específica para SignalR Hub
       {
+      {
         source: '/signalr/:path*',
         destination: `${apiBaseUrl}/apitasy/:path*`,
       },
     ]
+    */
   },
   webpack(config, { isServer }) {
     // Configuração para importar SVG como componentes React

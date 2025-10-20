@@ -1324,6 +1324,100 @@ svg.navbar-search-icon {
   stroke-width: 1.5 !important;
 }
 
+/* Estilos para ícones dos tabs de perfil - Tema Light */
+svg.profile-tab-icon {
+  stroke: #6b7280 !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+svg.profile-tab-icon-active {
+  stroke: #2563eb !important;
+  fill: none !important;
+  stroke-width: 2 !important;
+}
+
+/* Estilos para ícones dos tabs de perfil - Tema Dark */
+.dark svg.profile-tab-icon {
+  stroke: #9ca3af !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+.dark svg.profile-tab-icon-active {
+  stroke: #60a5fa !important;
+  fill: none !important;
+  stroke-width: 2 !important;
+}
+
+/* Estilos para ícones de inputs de formulário - Tema Light */
+svg.input-icon {
+  stroke: #9ca3af !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+svg.input-icon-error {
+  stroke: #ef4444 !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Estilos para ícones de inputs de formulário - Tema Dark */
+.dark svg.input-icon {
+  stroke: #9ca3af !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+.dark svg.input-icon-error {
+  stroke: #f87171 !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Estilos para ícones de header de seção - Tema Light */
+svg.profile-header-icon {
+  stroke: #2563eb !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Estilos para ícones de header de seção - Tema Dark */
+.dark svg.profile-header-icon {
+  stroke: #60a5fa !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Estilos para ícones de info cards - Tema Light */
+svg.info-card-icon {
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Estilos para ícones de info cards - Tema Dark */
+.dark svg.info-card-icon {
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Estilos para ícones de botões de texto - Tema Light */
+svg.text-button-icon {
+  stroke: #4b5563 !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Estilos para ícones de botões de texto - Tema Dark */
+.dark svg.text-button-icon {
+  stroke: #9ca3af !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+}
+
 /* ========================================
    🔘 SISTEMA DE ÍCONES PARA BOTÕES
    ======================================== */

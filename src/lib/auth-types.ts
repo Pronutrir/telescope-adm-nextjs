@@ -44,6 +44,8 @@ export interface IUser {
   tipoUsuario: string
   username: string
   usuario: string
+  avatar?: string
+  createdAt?: string
 }
 
 export interface IAuthLoginResponse extends IUser {

@@ -44,13 +44,9 @@ export const Textarea: React.FC<TextareaProps> = ({
             <div className="relative">
                 {Icon && (
                     <div className="absolute left-3 top-3 z-10">
-                        <Icon className={`
-                            h-5 w-5
-                            ${hasError
-                                ? (isDark ? 'text-red-400' : 'text-red-500')
-                                : (isDark ? 'text-gray-400' : 'text-gray-400')
-                            }
-                        `} />
+                        <Icon 
+                            className={`h-5 w-5 ${hasError ? 'input-icon-error' : 'input-icon'}`}
+                        />
                     </div>
                 )}
 

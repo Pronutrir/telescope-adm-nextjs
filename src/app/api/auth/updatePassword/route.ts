@@ -4,32 +4,69 @@ import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   try {
+    // Obter o token de autenticação dos cookies
+    const token = request.cookies.get('token')?.value
+
+    if (!token) {
+      logger.warn('❌ Token não encontrado nos cookies')
+      return NextResponse.json(
+        { message: 'Não autenticado. Faça login novamente.' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
-    const { username, newPassword } = body
+    const { username, password, newPassword, idUsuario } = body
 
     // Fazer a chamada para a API externa
   const API_BASE_URL = requireApiBaseUrl()
-  const response = await fetch(`${API_BASE_URL}/usershield/api/v1/Auth/updatePassword`, {
-      method: 'POST',
+  const apiUrl = `${API_BASE_URL}/usershield/api/v1/Usuarios/RecoveryPass/${idUsuario}`
+  
+  logger.info(`🔄 Chamando API RecoveryPass: ${apiUrl}`)
+  logger.info(`🔑 Token presente: ${token ? 'Sim' : 'Não'}`)
+  
+  const response = await fetch(apiUrl, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
         username,
+        password,
         newPassword
       })
     })
 
-    const data = await response.json()
+    logger.info(`📡 Resposta da API: Status ${response.status}`)
+
+    // Tentar ler o corpo da resposta
+    const text = await response.text()
+    logger.info(`📄 Corpo da resposta: ${text.substring(0, 200)}`)
+    
+    let data: any = {}
+    if (text) {
+      try {
+        data = JSON.parse(text)
+      } catch (e) {
+        logger.error('❌ Erro ao parsear JSON:', e)
+        // Se não for JSON, usar o texto como mensagem
+        data = { message: text }
+      }
+    }
 
     if (!response.ok) {
       return NextResponse.json(
-        { message: data.message || 'Erro ao atualizar senha' },
+        { message: data.message || data || 'Erro ao atualizar senha' },
         { status: response.status }
       )
     }
 
-    return NextResponse.json(data)
+    return NextResponse.json({
+      success: true,
+      message: 'Senha atualizada com sucesso',
+      data
+    })
 
   } catch (error) {
     logger.error('Erro na API updatePassword:', error)

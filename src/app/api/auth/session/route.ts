@@ -95,6 +95,10 @@ async function authenticateWithUserShield(email: string, password: string) {
 }
 
 export async function POST(request: NextRequest) {
+  // 🚨 LOG CRÍTICO - Primeira linha da função
+  console.log('🚨🚨🚨 [CRITICAL] POST /api/auth/session EXECUTANDO!')
+  logger.info('🚨 [CRITICAL] POST /api/auth/session foi chamado')
+  
   try {
     // ✅ Obter dados da requisição
     const body = await request.json()
@@ -179,8 +183,8 @@ export async function POST(request: NextRequest) {
     // ✅ Log de sucesso
   logger.info(`✅ [Auth] Login OK: ${email} | IP: ${clientIP} | Session: ${sessionId}`)
 
-    // ✅ Retornar apenas dados não-sensíveis (SEM TOKENS)
-    return NextResponse.json({
+    // ✅ Criar response com dados do usuário
+    const response = NextResponse.json({
       success: true,
       message: 'Login realizado com sucesso',
       user: {
@@ -190,6 +194,23 @@ export async function POST(request: NextRequest) {
         permissions: Array.isArray(permissions) ? permissions : ['user']
       }
     })
+
+    // 🐛 DEBUG - Log antes de setar cookie
+    console.log('🔵 [DEBUG] Prestes a setar cookie session_id:', sessionId)
+    logger.debug(`🔵 [DEBUG] response.cookies existe?`, typeof response.cookies)
+
+    // ✅ DEFINIR COOKIE session_id (httpOnly e secure)
+    response.cookies.set('session_id', sessionId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7 // 7 dias
+    })
+
+  logger.debug(`🍪 [Auth] Cookie session_id definido: ${sessionId}`)
+
+    return response
 
   } catch (error) {
   logger.error('❌ [Auth] Erro interno login:', error)

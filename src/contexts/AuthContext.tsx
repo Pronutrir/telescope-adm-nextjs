@@ -5,7 +5,7 @@ import { authService } from '@/services/auth'
 import { tokenStorage } from '@/services/token'
 import { axiosConfig } from '@/lib/axios-config'
 import { cleanupService } from '@/services/cleanup'
-import { tokenInterceptor } from '@/services/tokenInterceptor'
+// 🚫 REMOVIDO: import { tokenInterceptor } from '@/services/tokenInterceptor'
 import type { IAuthState, IUser, INotification } from '@/lib/auth-types'
 
 interface AuthContextType extends IAuthState {
@@ -36,6 +36,7 @@ const authReducer = (state: IAuthState, action: AuthAction): IAuthState => {
         case 'SET_LOADING':
             return { ...state, isLoading: action.payload }
         case 'SET_USER':
+            debugger;
             return {
                 ...state,
                 user: action.payload,
@@ -85,9 +86,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         message: '',
         type: 'info'
     })
+    const hasInitialized = React.useRef(false) // ✅ Prevenir execuções duplicadas
 
     // Verificar se o usuário já está logado ao carregar a aplicação
     useEffect(() => {
+        // ✅ Prevenir múltiplas execuções (React Strict Mode)
+        if (hasInitialized.current) {
+            console.log('⏭️ initializeAuth já executou, pulando...')
+            return
+        }
+        hasInitialized.current = true
+
         const initializeAuth = async () => {
             console.log('🚀 Iniciando verificação de autenticação...')
 
@@ -109,43 +118,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 }
             }
 
-            const token = tokenStorage.getToken()
-            tokenStorage.getRefreshToken()
+            // ⚠️ IMPORTANTE: session_id é httpOnly, então NÃO aparece em document.cookie!
+            // Vamos SEMPRE tentar buscar do servidor, que vai ler o cookie automaticamente
+            console.log('📡 [DEBUG] Tentando buscar usuário via /api/auth/me (cookie httpOnly enviado automaticamente)...')
 
-            // ❌ Log sensível removido (segurança)
-            // console.log('🔍 Tokens encontrados:', {
-            //     token: token ? `${token.substring(0, 20)}...` : 'null',
-            //     refreshToken: refreshToken ? `${refreshToken.substring(0, 20)}...` : 'null',
-            //     isValid: token ? tokenStorage.isTokenValid(token) : false
-            // })
-
-            if (token && tokenStorage.isTokenValid(token)) {
-                try {
-                    // ❌ Log sensível removido (segurança - produção)
-                    if (process.env.NODE_ENV === 'development') {
-                        console.log('✅ Token válido, aplicando aos headers e buscando usuário...')
-                    }
-
-                    // APLICA O TOKEN AOS HEADERS DE TODAS AS INSTÂNCIAS DO AXIOS
-                    axiosConfig.setAuthToken(token)
-
-                    const userResponse = await authService.getUser()
-                    console.log('👤 Usuário obtido:', userResponse.result ? 'Sucesso' : 'Falhou')
-
-                    dispatch({ type: 'SET_USER', payload: userResponse.result })
-
-                    // ✅ Iniciar monitoramento automático de renovação de token
-                    tokenInterceptor.scheduleTokenRefresh()
-
-                } catch (error) {
-                    console.error('❌ Erro ao inicializar autenticação:', error)
-                    tokenStorage.clearTokens()
-                    cleanupService.clearAuthData()
-                    axiosConfig.clearAuthToken()
-                    dispatch({ type: 'LOGOUT' })
+            try {
+                // ✅ Buscar dados do usuário via API (session_id vai automaticamente no cookie httpOnly)
+                const response = await fetch('/api/auth/me', {
+                    credentials: 'include' // ✅ Garantir que cookies sejam enviados
+                })
+                
+                if (!response.ok) {
+                    console.log('❌ [DEBUG] API retornou status:', response.status)
+                    throw new Error('Sessão inválida ou expirada')
                 }
-            } else {
-                console.log('❌ Token inválido ou inexistente, limpando dados e definindo loading como false')
+                
+                const userData = await response.json()
+                console.log('✅ [DEBUG] Usuário autenticado com sucesso!')
+
+                dispatch({ type: 'SET_USER', payload: userData })
+
+            } catch (error) {
+                console.log('❌ [DEBUG] Nenhuma sessão válida encontrada')
+                console.log('❌ Sessão inexistente ou expirada, definindo loading como false')
                 tokenStorage.clearTokens()
                 cleanupService.clearAuthData()
                 dispatch({ type: 'SET_LOADING', payload: false })
@@ -213,6 +208,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             //     refreshToken: response.refreshToken ? `${response.refreshToken.substring(0, 20)}...` : 'null'
             // })
 
+            // 🐛 DEBUG - Verificar resposta da API
+            console.log('📦 [LOGIN] Resposta da API:', {
+                hasJwtToken: !!response.jwtToken,
+                jwtTokenLength: response.jwtToken?.length || 0,
+                hasRefreshToken: !!response.refreshToken,
+                refreshTokenLength: response.refreshToken?.length || 0,
+                responseKeys: Object.keys(response)
+            })
+
+            if (!response.jwtToken || !response.refreshToken) {
+                console.error('❌ [LOGIN] API não retornou tokens válidos!')
+                debugger; // 🐛 BREAKPOINT - API não retornou tokens
+                throw new Error('API não retornou tokens de autenticação')
+            }
+
             tokenStorage.saveTokens(response.jwtToken, response.refreshToken)
 
             // APLICA O TOKEN AOS HEADERS DE TODAS AS INSTÂNCIAS DO AXIOS
@@ -228,15 +238,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.log('✅ Dados do usuário obtidos, atualizando estado...')
             dispatch({ type: 'SET_USER', payload: userResponse.result })
 
-            // ✅ Iniciar monitoramento automático de renovação de token
-            tokenInterceptor.scheduleTokenRefresh()
+            // 🚫 REMOVIDO: tokenInterceptor.scheduleTokenRefresh() - Sistema JWT legado
 
             setNotification({
                 isOpen: true,
                 message: 'Login realizado com sucesso!',
                 type: 'success'
             })
-
+            
+            // 🐛 DEBUG - Verificar cookies antes do redirect
+            console.log('🍪 [LOGIN] Cookies antes do redirect:', {
+                allCookies: document.cookie,
+                hasToken: document.cookie.includes('token='),
+                hasRefreshToken: document.cookie.includes('refreshToken=')
+            })
+            
             // Redirecionar para gerenciador de PDFs após login bem-sucedido
             console.log('🔄 Redirecionando para /admin/gerenciador-pdfs...')
             window.location.href = '/admin/gerenciador-pdfs'

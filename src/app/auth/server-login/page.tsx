@@ -176,9 +176,10 @@ const ServerSideLoginPage: React.FC = () => {
                         duration: 3000
                     })
 
-                    // Aguardar um pouco para mostrar o sucesso, depois redirecionar
+                    // ✅ Usar window.location.href para forçar reload completo
+                    // Isso garante que o cookie session_id seja lido corretamente
                     setTimeout(() => {
-                        router.push('/admin/gerenciador-pdfs')
+                        window.location.href = '/admin/gerenciador-pdfs'
                     }, 1500)
                 } else {
                     console.error('❌ Erro no login:', data)

@@ -22,9 +22,24 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
         isMobile
     } = useLayout()
 
-    const { user, logout } = useAuth()
+    const { user, logout, isLoading } = useAuth()
     const [ isLoggingOut, setIsLoggingOut ] = useState(false)
     const [ isDark, setIsDark ] = useState(false)
+
+    debugger; // 🐛 BREAKPOINT - User carregado com sucesso
+
+    // 🐛 DEBUG - Observar carregamento do user
+    useEffect(() => {
+        console.log('👤 [NAVBAR] Estado Auth:', { 
+            user: user ? 'Carregado' : 'null', 
+            isLoading,
+            nomeCompleto: user?.nomeCompleto 
+        })
+        
+        if (!isLoading && user) {
+            debugger; // 🐛 BREAKPOINT - User carregado com sucesso
+        }
+    }, [user, isLoading])
 
     // Detectar tema atual
     useEffect(() => {

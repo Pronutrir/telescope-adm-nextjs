@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Api } from '@/lib/api'
 import { UserProfileFormData } from '@/types/user'
+import UserProfileService from '@/services/userProfileService'
 
 export interface UseUserProfileReturn {
   updateUserProfile: (userData: UserProfileFormData) => Promise<void>
@@ -20,8 +20,8 @@ export const useUserProfile = (userId: string | number): UseUserProfileReturn =>
     setSuccess(false)
 
     try {
-      // Endpoint baseado na aplicação original
-      const response = await Api.put(`Usuarios/PutDadosPessoaisUsuario/${userId}`, {
+      // Usar o serviço centralizado
+      const result = await UserProfileService.updatePersonalData(userId, {
         nomeCompleto: userData.nomeCompleto,
         cpf: userData.cpf || '',
         cnpj: userData.cnpj || '',
@@ -32,29 +32,20 @@ export const useUserProfile = (userId: string | number): UseUserProfileReturn =>
         endereco: userData.endereco || '',
       })
 
-      if (response.data.success || response.status === 200) {
+      if (result.success) {
         setSuccess(true)
         setError(null)
-      } else {
-        throw new Error(response.data.message || 'Erro ao atualizar dados')
+        
+        // Recarregar dados do usuário para sincronizar o contexto
+        try {
+          await UserProfileService.getCurrentUser()
+        } catch (err) {
+          console.warn('Aviso: Não foi possível recarregar os dados do usuário:', err)
+        }
       }
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error('Erro ao atualizar perfil:', err)
-      
-      const error = err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } }; message?: string }
-      
-      if (error.response?.data?.message) {
-        setError(error.response.data.message)
-      } else if (error.response?.data?.errors) {
-        // Tratar erros de validação
-        const validationErrors = Object.values(error.response.data.errors).flat()
-        setError(validationErrors.join(', '))
-      } else if (error.message) {
-        setError(error.message)
-      } else {
-        setError('Erro interno do servidor. Tente novamente mais tarde.')
-      }
-      
+      setError(err.message || 'Erro interno do servidor. Tente novamente mais tarde.')
       setSuccess(false)
     } finally {
       setIsLoading(false)
