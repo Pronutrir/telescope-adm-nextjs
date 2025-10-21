@@ -49,15 +49,22 @@ export function useUserShield(): UseUserShieldReturn {
   const [errorUsuarios, setErrorUsuarios] = useState<string | null>(null)
   const [errorPerfis, setErrorPerfis] = useState<string | null>(null)
   const [errorRoles, setErrorRoles] = useState<string | null>(null)
+  
+  // Flag para evitar carregamentos duplicados
+  const [initialized, setInitialized] = useState(false)
 
   /**
    * Listar usuários do UserShield (com cache otimizado)
    */
   const listarUsuarios = useCallback(async () => {
+    const startTime = Date.now()
+    console.log('🚀 [PERF Frontend] Iniciando busca de usuários...')
+    
     setLoadingUsuarios(true)
     setErrorUsuarios(null)
     
     try {
+      const fetchStart = Date.now()
       // Usar API com dados reais da UserShield
       const response = await fetch('/api/usershield/usuarios', {
         method: 'GET',
@@ -65,16 +72,22 @@ export function useUserShield(): UseUserShieldReturn {
           'Content-Type': 'application/json'
         }
       })
+      console.log(`⏱️ [PERF Frontend] Fetch API: ${Date.now() - fetchStart}ms`)
 
       if (!response.ok) {
         throw new Error(`Erro na API: ${response.status}`)
       }
 
+      const parseStart = Date.now()
       const data = await response.json()
+      console.log(`⏱️ [PERF Frontend] Parse JSON: ${Date.now() - parseStart}ms`)
       
       if (data.success) {
+        const setStateStart = Date.now()
         setUsuarios(data.result || [])
-        console.log('✅ Usuários carregados com cache:', data.result?.length || 0)
+        console.log(`⏱️ [PERF Frontend] setState: ${Date.now() - setStateStart}ms`)
+        console.log(`🏁 [PERF Frontend] TEMPO TOTAL: ${Date.now() - startTime}ms`)
+        console.log('✅ Usuários carregados:', data.result?.length || 0)
       } else {
         throw new Error(data.error || 'Erro desconhecido')
       }
@@ -157,10 +170,15 @@ export function useUserShield(): UseUserShieldReturn {
     setErrorRoles(null)
   }, [])
 
-  // Carregar dados iniciais
+  // Carregar dados iniciais APENAS UMA VEZ
   useEffect(() => {
-    listarUsuarios()
-  }, [listarUsuarios])
+    if (!initialized) {
+      console.log('🔄 [useUserShield] Carregamento inicial de usuários')
+      setInitialized(true)
+      listarUsuarios()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Array vazio = executa apenas uma vez
 
   return {
     // Dados

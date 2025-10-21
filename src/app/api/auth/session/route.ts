@@ -95,10 +95,6 @@ async function authenticateWithUserShield(email: string, password: string) {
 }
 
 export async function POST(request: NextRequest) {
-  // 🚨 LOG CRÍTICO - Primeira linha da função
-  console.log('🚨🚨🚨 [CRITICAL] POST /api/auth/session EXECUTANDO!')
-  logger.info('🚨 [CRITICAL] POST /api/auth/session foi chamado')
-  
   try {
     // ✅ Obter dados da requisição
     const body = await request.json()
@@ -162,28 +158,75 @@ export async function POST(request: NextRequest) {
     }
 
     // ✅ Extrair dados do usuário da resposta UserShield
-    const userData = userShieldAuth.data
-    const userId = userData?.userId || userData?.id || userData?.username || crypto.randomUUID()
+    let userData = userShieldAuth.data
+    // 🔥 FIX: UserShield retorna 'idUsuario' na resposta de login, não 'id'
+    const userId = userData?.idUsuario || userData?.id || crypto.randomUUID()
     const userName = userData?.nomeCompleto || userData?.name || userData?.username || email.split('@')[0]
 
-    // 🔥 NOVO: Extrair perfis COMPLETOS do array 'roles' da resposta do /login
+    // 🔥 BUSCAR dados completos do usuário com perfis
+    if (!isTestMode && userId) {
+      try {
+        logger.info(`🔍 [Auth] Buscando dados completos do usuário ID: ${userId}`)
+        const API_BASE_URL = requireApiBaseUrl()
+        const userDetailsUrl = `${API_BASE_URL}/usershield/api/v1/Usuarios/${userId}`
+        
+        const userDetailsResponse = await fetch(userDetailsUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${userData?.jwtToken || userData?.token || ''}`
+          }
+        })
+
+        logger.info(`📡 [Auth] Status da resposta de detalhes: ${userDetailsResponse.status}`)
+
+        if (userDetailsResponse.ok) {
+          const userDetails = await userDetailsResponse.json()
+          
+          // 🔥 FIX: API retorna dados dentro de 'result'
+          const userDataResponse = userDetails.result || userDetails
+          
+          logger.info(`✅ [Auth] Dados completos obtidos`)
+          logger.info(`📊 [Auth] Roles encontrados: ${userDataResponse?.roles?.length || 0} itens`)
+          
+          // Mesclar dados completos com userData
+          userData = { ...userData, ...userDataResponse }
+          logger.info(`🔀 [Auth] userData mesclado, roles finais: ${userData?.roles?.length || 0}`)
+        } else {
+          const errorText = await userDetailsResponse.text()
+          logger.warn(`⚠️ [Auth] Falha ao buscar dados completos: ${userDetailsResponse.status}`)
+          logger.warn(`⚠️ [Auth] Resposta de erro: ${errorText}`)
+        }
+      } catch (error) {
+        logger.error('❌ [Auth] Erro ao buscar dados completos do usuário:', error)
+      }
+    }
+
+    // 🔥 NOVO: Extrair perfis COMPLETOS do array 'roles' da resposta
     // Salvar objeto completo com todos os campos para exibição
     let userPerfis: string[] = ['user'] // fallback para permissions (compatibilidade)
     let userPerfisCompletos: any[] = [] // Array completo de perfis com todos os dados
     
     if (userData?.roles && Array.isArray(userData.roles)) {
+      logger.info(`🔄 [Auth] Processando ${userData.roles.length} roles...`)
+      
       // Extrair objetos completos dos perfis
       userPerfisCompletos = userData.roles
-        .map((roleObj: any) => ({
-          id: roleObj.perfis?.id,
-          nomePerfil: roleObj.perfis?.nomePerfil,
-          statusPerfil: roleObj.perfis?.statusPerfil,
-          dataRegistro: roleObj.dataRegistro,
-          dataAtualizacao: roleObj.dataAtualizacao,
-          usuario: roleObj.usuario,
-          roleId: roleObj.id
-        }))
-        .filter((p: any) => p.nomePerfil) // Remove inválidos
+        .map((roleObj: any) => {
+          return {
+            id: roleObj.perfis?.id,
+            nomePerfil: roleObj.perfis?.nomePerfil,
+            statusPerfil: roleObj.perfis?.statusPerfil,
+            dataRegistro: roleObj.dataRegistro,
+            dataAtualizacao: roleObj.dataAtualizacao,
+            usuario: roleObj.usuario,
+            roleId: roleObj.id
+          }
+        })
+        .filter((p: any) => !!p.nomePerfil)
+      
+      logger.info(`✅ [Auth] Perfis completos extraídos: ${userPerfisCompletos.length}`)
       
       // Extrair apenas nomes para array de strings (compatibilidade)
       userPerfis = userPerfisCompletos.map((p: any) => p.nomePerfil)
@@ -231,10 +274,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // 🐛 DEBUG - Log antes de setar cookie
-    console.log('🔵 [DEBUG] Prestes a setar cookie session_id:', sessionId)
-    logger.debug(`🔵 [DEBUG] response.cookies existe?`, typeof response.cookies)
-
     // ✅ DEFINIR COOKIE session_id (httpOnly e secure)
     response.cookies.set('session_id', sessionId, {
       httpOnly: true,
@@ -244,7 +283,7 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 24 * 7 // 7 dias
     })
 
-  logger.debug(`🍪 [Auth] Cookie session_id definido: ${sessionId}`)
+    logger.debug(`🍪 [Auth] Cookie session_id definido: ${sessionId}`)
 
     return response
 

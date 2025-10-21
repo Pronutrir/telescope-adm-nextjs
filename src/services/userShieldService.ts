@@ -60,7 +60,7 @@ export interface UserShieldRole {
 
 class UserShieldService {
   private baseURL: string
-  private timeout: number = 10000
+  private timeout: number = 30000 // Aumentado para 30 segundos
   private useTestEndpoint: boolean = false // Usar API real
 
   constructor() {

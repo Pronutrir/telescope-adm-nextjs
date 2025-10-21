@@ -14,12 +14,15 @@ import {
     Trash2,
     AlertCircle,
     Loader2,
-    RefreshCw
+    RefreshCw,
+    Key
 } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 import { useUserShield } from '@/hooks/useUserShield'
 import { UserShieldUser } from '@/services/userShieldService'
 import EditUserModal from '@/components/usuarios/EditUserModal'
+import ResetPasswordModal from '@/components/usuarios/ResetPasswordModal'
+import AddUserModal from '@/components/usuarios/AddUserModal'
 
 /**
  * Página de Gerenciamento de Usuários
@@ -42,6 +45,9 @@ export default function UsuariosPage() {
     const [ viewMode, setViewMode ] = useState<'grid' | 'list'>('list')
     const [ editingUser, setEditingUser ] = useState<UserShieldUser | null>(null)
     const [ isEditModalOpen, setIsEditModalOpen ] = useState(false)
+    const [ resetPasswordUser, setResetPasswordUser ] = useState<UserShieldUser | null>(null)
+    const [ isResetPasswordOpen, setIsResetPasswordOpen ] = useState(false)
+    const [ isAddUserOpen, setIsAddUserOpen ] = useState(false)
 
     // Hook para gerenciar dados do UserShield
     const { usuarios, loadingUsuarios, errorUsuarios, listarUsuarios } = useUserShield()
@@ -53,8 +59,11 @@ export default function UsuariosPage() {
 
     // Filtrar usuários baseado no termo de pesquisa
     useEffect(() => {
+        const filterStart = Date.now()
+        
         if (!searchTerm.trim()) {
             setUsuariosFiltrados(usuarios)
+            console.log(`⏱️ [PERF Page] Filter (sem termo): ${Date.now() - filterStart}ms`)
             return
         }
 
@@ -70,6 +79,7 @@ export default function UsuariosPage() {
             )
         )
         setUsuariosFiltrados(filtrados)
+        console.log(`⏱️ [PERF Page] Filter (com termo): ${Date.now() - filterStart}ms - Resultados: ${filtrados.length}`)
     }, [ searchTerm, usuarios ])
 
     // Funções de gerenciamento
@@ -91,6 +101,27 @@ export default function UsuariosPage() {
         await handleRefresh()
         setIsEditModalOpen(false)
         setEditingUser(null)
+    }
+
+    const handleResetPassword = (user: UserShieldUser) => {
+        setResetPasswordUser(user)
+        setIsResetPasswordOpen(true)
+    }
+
+    const handleCloseResetPassword = () => {
+        setIsResetPasswordOpen(false)
+        setResetPasswordUser(null)
+    }
+
+    const handleResetSuccess = async () => {
+        // Pode chamar refresh se quiser atualizar algum dado
+        // await handleRefresh()
+        console.log('✅ Senha resetada com sucesso')
+    }
+
+    const handleAddUserSuccess = async () => {
+        console.log('✅ Usuário criado com sucesso')
+        await handleRefresh()
     }
 
     if (!mounted) {
@@ -121,7 +152,17 @@ export default function UsuariosPage() {
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-3">
-                        {/* Área para futuros botões de ação */}
+                        <button
+                            onClick={() => setIsAddUserOpen(true)}
+                            className={twMerge(
+                                'flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all',
+                                'bg-blue-500 text-white hover:bg-blue-600'
+                            )}
+                        >
+                            <UserPlus className="w-4 h-4" />
+                            <span className="hidden sm:inline">Adicionar Usuário</span>
+                            <span className="sm:hidden">Adicionar</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -328,38 +369,6 @@ export default function UsuariosPage() {
                                                     </div>
                                                 </div>
 
-                                                {/* Badges e Info Secundária */}
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    {user.role && (
-                                                        <span key="role" className={twMerge(
-                                                            'px-2 py-1 text-xs font-medium rounded-full',
-                                                            user.role?.toLowerCase().includes('admin')
-                                                                ? isDark ? 'bg-red-900/50 text-red-200' : 'bg-red-100 text-red-700'
-                                                                : isDark ? 'bg-blue-900/50 text-blue-200' : 'bg-blue-100 text-blue-700'
-                                                        )}>
-                                                            {user.role}
-                                                        </span>
-                                                    )}
-                                                    {user.department && (
-                                                        <span key="department" className={twMerge(
-                                                            'px-2 py-1 text-xs rounded-full',
-                                                            isDark
-                                                                ? 'bg-purple-900/50 text-purple-200'
-                                                                : 'bg-purple-100 text-purple-700'
-                                                        )}>
-                                                            {user.department}
-                                                        </span>
-                                                    )}
-                                                    {user.lastLogin && (
-                                                        <span key="lastLogin" className={twMerge(
-                                                            'text-xs',
-                                                            isDark ? 'text-gray-400' : 'text-gray-500'
-                                                        )}>
-                                                            Último acesso: {new Date(user.lastLogin).toLocaleDateString('pt-BR')}
-                                                        </span>
-                                                    )}
-                                                </div>
-
                                                 {/* Perfis */}
                                                 {user.perfis && user.perfis.length > 0 && (
                                                     <div className="flex flex-wrap gap-1 sm:max-w-[200px]">
@@ -400,6 +409,18 @@ export default function UsuariosPage() {
                                                         title="Editar usuário"
                                                     >
                                                         <Edit3 className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleResetPassword(user)}
+                                                        className={twMerge(
+                                                            'p-2 rounded-lg transition-all',
+                                                            isDark
+                                                                ? 'hover:bg-yellow-900/50 text-yellow-400'
+                                                                : 'hover:bg-yellow-50 text-yellow-600'
+                                                        )}
+                                                        title="Resetar senha"
+                                                    >
+                                                        <Key className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         className={twMerge(
@@ -454,20 +475,6 @@ export default function UsuariosPage() {
                                                     )}
                                                 </div>
 
-                                                {/* Badge de Função */}
-                                                {user.role && (
-                                                    <div className="flex justify-center mb-3">
-                                                        <span className={twMerge(
-                                                            'px-3 py-1 text-xs font-medium rounded-full',
-                                                            user.role?.toLowerCase().includes('admin')
-                                                                ? isDark ? 'bg-red-900/50 text-red-200' : 'bg-red-100 text-red-700'
-                                                                : isDark ? 'bg-blue-900/50 text-blue-200' : 'bg-blue-100 text-blue-700'
-                                                        )}>
-                                                            {user.role}
-                                                        </span>
-                                                    </div>
-                                                )}
-
                                                 {/* Perfis */}
                                                 {user.perfis && user.perfis.length > 0 && (
                                                     <div className="flex flex-col gap-2 mb-3 flex-1">
@@ -519,6 +526,19 @@ export default function UsuariosPage() {
                                                         <span className="text-xs font-medium">Editar</span>
                                                     </button>
                                                     <button
+                                                        onClick={() => handleResetPassword(user)}
+                                                        className={twMerge(
+                                                            'flex-1 flex items-center justify-center gap-2 p-2 rounded-lg transition-all',
+                                                            isDark
+                                                                ? 'hover:bg-yellow-900/50 text-yellow-400'
+                                                                : 'hover:bg-yellow-50 text-yellow-600'
+                                                        )}
+                                                        title="Resetar"
+                                                    >
+                                                        <Key className="w-4 h-4" />
+                                                        <span className="text-xs font-medium">Resetar</span>
+                                                    </button>
+                                                    <button
                                                         className={twMerge(
                                                             'flex-1 flex items-center justify-center gap-2 p-2 rounded-lg transition-all',
                                                             isDark
@@ -551,6 +571,28 @@ export default function UsuariosPage() {
                     onSuccess={handleEditSuccess}
                 />
             )}
+
+            {/* Modal de Reset de Senha */}
+            {resetPasswordUser && (
+                <ResetPasswordModal
+                    user={{
+                        id: resetPasswordUser.id,
+                        name: resetPasswordUser.name || 'Usuário',
+                        userName: resetPasswordUser.userName || 'usuario',
+                        email: resetPasswordUser.email
+                    }}
+                    isOpen={isResetPasswordOpen}
+                    onClose={handleCloseResetPassword}
+                    onSuccess={handleResetSuccess}
+                />
+            )}
+
+            {/* Modal de Adicionar Usuário */}
+            <AddUserModal
+                isOpen={isAddUserOpen}
+                onClose={() => setIsAddUserOpen(false)}
+                onSuccess={handleAddUserSuccess}
+            />
         </div>
     )
 }

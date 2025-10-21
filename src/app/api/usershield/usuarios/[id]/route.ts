@@ -124,3 +124,132 @@ export async function GET(
     )
   }
 }
+
+/**
+ * PUT /api/usershield/usuarios/[id]
+ * Atualiza um usuário (incluindo reset de senha)
+ */
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const body = await request.json()
+    
+    console.log('🔄 [API] Atualizando usuário ID:', id)
+    console.log('📦 Payload:', body)
+
+    // Obter token do cache Redis
+    let token = await tokenCacheService.getToken('usershield')
+    
+    if (!token) {
+      console.warn('⚠️ Token não encontrado no cache, fazendo login...')
+      
+      // Fazer login para obter novo token
+      const loginResponse = await fetch(`${USERSHIELD_API_URL}/Auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          Username: process.env.USERSHIELD_USERNAME,
+          Password: process.env.USERSHIELD_PASSWORD
+        })
+      })
+
+      if (!loginResponse.ok) {
+        throw new Error('Falha ao fazer login no UserShield')
+      }
+
+      const loginData = await loginResponse.json()
+      token = loginData.jwtToken
+
+      // Salvar no cache (55 minutos)
+      if (token) {
+        await tokenCacheService.setToken(token, 'usershield')
+      }
+    }
+
+    // Atualizar usuário
+    const updateResponse = await fetch(`${USERSHIELD_API_URL}/Usuarios/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    })
+
+    // Se token expirou (401), tentar novamente com novo token
+    if (updateResponse.status === 401) {
+      console.warn('⚠️ Token expirado, renovando...')
+      
+      // Remover token inválido
+      await tokenCacheService.removeToken('usershield')
+      
+      // Novo login
+      const loginResponse = await fetch(`${USERSHIELD_API_URL}/Auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          Username: process.env.USERSHIELD_USERNAME,
+          Password: process.env.USERSHIELD_PASSWORD
+        })
+      })
+
+      if (!loginResponse.ok) {
+        throw new Error('Falha ao renovar token')
+      }
+
+      const loginData = await loginResponse.json()
+      token = loginData.jwtToken
+      
+      if (token) {
+        await tokenCacheService.setToken(token, 'usershield')
+      }
+
+      // Retry da atualização
+      const retryResponse = await fetch(`${USERSHIELD_API_URL}/Usuarios/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+
+      if (!retryResponse.ok) {
+        const errorText = await retryResponse.text()
+        console.error('❌ Erro ao atualizar usuário (retry):', retryResponse.status, errorText)
+        return NextResponse.json(
+          { error: 'Erro ao atualizar usuário', details: errorText },
+          { status: retryResponse.status }
+        )
+      }
+
+      const data = await retryResponse.json()
+      console.log('✅ Usuário atualizado com sucesso (retry)')
+      return NextResponse.json(data)
+    }
+
+    if (!updateResponse.ok) {
+      const errorText = await updateResponse.text()
+      console.error('❌ Erro ao atualizar usuário:', updateResponse.status, errorText)
+      return NextResponse.json(
+        { error: 'Erro ao atualizar usuário', details: errorText },
+        { status: updateResponse.status }
+      )
+    }
+
+    const data = await updateResponse.json()
+    console.log('✅ Usuário atualizado com sucesso')
+
+    return NextResponse.json(data)
+
+  } catch (error: any) {
+    console.error('❌ [API] Erro ao atualizar usuário:', error)
+    return NextResponse.json(
+      { error: 'Erro interno ao atualizar usuário', message: error.message },
+      { status: 500 }
+    )
+  }
+}

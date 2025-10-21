@@ -63,10 +63,20 @@ export default function EditUserModal({ user, isOpen, onClose, onSuccess }: Edit
             console.log('🔍 [EditUserModal] Carregando dados para usuário ID:', userId)
             console.log('🔍 [EditUserModal] user.id original:', user.id, 'tipo:', typeof user.id)
             
-            const [profiles, userProfiles] = await Promise.all([
+            // Timeout de 25 segundos para a operação completa
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout ao carregar dados. Tente novamente.')), 25000)
+            )
+            
+            const dataPromise = Promise.all([
                 userShieldService.listarPerfis(),
                 userShieldService.obterPerfisUsuario(userId)
             ])
+            
+            const [profiles, userProfiles] = await Promise.race([
+                dataPromise,
+                timeoutPromise
+            ]) as [any[], any[]]
 
             console.log('✅ [EditUserModal] Perfis disponíveis:', profiles.length)
             console.log('✅ [EditUserModal] Perfis do usuário:', userProfiles.length)
@@ -79,10 +89,16 @@ export default function EditUserModal({ user, isOpen, onClose, onSuccess }: Edit
             setInitialProfiles(profileIds)
         } catch (error: any) {
             console.error('❌ [EditUserModal] Erro ao carregar dados:', error)
-            console.error('❌ [EditUserModal] Error stack:', error.stack)
+            console.error('❌ [EditUserModal] Error message:', error?.message)
+            console.error('❌ [EditUserModal] Error stack:', error?.stack)
+            
+            const errorMessage = error?.message?.includes('Timeout') 
+                ? 'Tempo esgotado ao carregar dados. Por favor, tente novamente.'
+                : error?.message || 'Erro ao carregar dados'
+            
             setMessage({
                 type: 'error',
-                text: error.message || 'Erro ao carregar dados'
+                text: errorMessage
             })
         } finally {
             setLoading(false)
@@ -219,7 +235,7 @@ export default function EditUserModal({ user, isOpen, onClose, onSuccess }: Edit
                     {/* Message */}
                     {message && (
                         <div className={twMerge(
-                            'flex items-center gap-3 p-4 rounded-lg border',
+                            'flex flex-col gap-3 p-4 rounded-lg border',
                             message.type === 'success'
                                 ? isDark
                                     ? 'bg-green-900/20 border-green-800 text-green-200'
@@ -228,19 +244,49 @@ export default function EditUserModal({ user, isOpen, onClose, onSuccess }: Edit
                                     ? 'bg-red-900/20 border-red-800 text-red-200'
                                     : 'bg-red-50 border-red-200 text-red-700'
                         )}>
-                            {message.type === 'success' ? (
-                                <CheckCircle2 className="w-5 h-5 shrink-0" />
-                            ) : (
-                                <AlertCircle className="w-5 h-5 shrink-0" />
+                            <div className="flex items-center gap-3">
+                                {message.type === 'success' ? (
+                                    <CheckCircle2 className="w-5 h-5 shrink-0" />
+                                ) : (
+                                    <AlertCircle className="w-5 h-5 shrink-0" />
+                                )}
+                                <p className="text-sm font-medium flex-1">{message.text}</p>
+                            </div>
+                            {message.type === 'error' && (
+                                <button
+                                    onClick={loadData}
+                                    disabled={loading}
+                                    className={twMerge(
+                                        'text-sm font-medium px-4 py-2 rounded-lg transition-all',
+                                        isDark
+                                            ? 'bg-red-800 hover:bg-red-700 text-white'
+                                            : 'bg-red-600 hover:bg-red-700 text-white'
+                                    )}
+                                >
+                                    Tentar Novamente
+                                </button>
                             )}
-                            <p className="text-sm font-medium">{message.text}</p>
                         </div>
                     )}
 
                     {/* Loading State */}
                     {loading ? (
-                        <div className="flex items-center justify-center py-12">
+                        <div className="flex flex-col items-center justify-center py-12 gap-4">
                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                            <div className="text-center">
+                                <p className={twMerge(
+                                    'text-sm font-medium',
+                                    isDark ? 'text-gray-300' : 'text-gray-700'
+                                )}>
+                                    Carregando perfis do usuário...
+                                </p>
+                                <p className={twMerge(
+                                    'text-xs mt-1',
+                                    isDark ? 'text-gray-500' : 'text-gray-500'
+                                )}>
+                                    Isso pode levar alguns segundos
+                                </p>
+                            </div>
                         </div>
                     ) : (
                         <>

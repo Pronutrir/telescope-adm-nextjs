@@ -14,13 +14,16 @@ import { logger } from '@/lib/logger'
 import { getServiceUrl } from '@/config/env'
 
 export async function GET() {
+  const startTime = Date.now()
+  
   // URLs da UserShield API a partir de variáveis de ambiente
   const USERSHIELD_BASE_URL = `${getServiceUrl('USERSHIELD')}`
   const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}v1/Auth/login`
   const USERSHIELD_USERS_URL = `${USERSHIELD_BASE_URL}v1/Usuarios`
   
   try {
-    logger.info('API Route UserShield UNIFICADA: Iniciada')
+    console.log('🚀 [PERF] API Route UserShield: Iniciada')
+    logger.info('🚀 [PERF] API Route UserShield: Iniciada')
     
     // Validar se as variáveis de ambiente estão definidas
     if (!process.env.USERSHIELD_USERNAME || !process.env.USERSHIELD_PASSWORD) {
@@ -28,11 +31,21 @@ export async function GET() {
     }
     
     // Verificar se há token válido no cache Redis primeiro
+    const cacheStart = Date.now()
     let jwtToken = await tokenCacheService.getToken('usershield')
+    const cacheTime = Date.now() - cacheStart
+    console.log(`⏱️ [PERF] Cache check: ${cacheTime}ms`)
+    logger.info(`⏱️ [PERF] Cache check: ${cacheTime}ms`)
+    logger.info(`⏱️ [PERF] Cache check: ${Date.now() - cacheStart}ms`)
     
     if (!jwtToken) {
+      console.log('Nenhum token no cache, fazendo login...')
       logger.info('Nenhum token no cache, fazendo login...')
+      const loginStart = Date.now()
       jwtToken = await performLogin(USERSHIELD_LOGIN_URL)
+      const loginTime = Date.now() - loginStart
+      console.log(`⏱️ [PERF] Login: ${loginTime}ms`)
+      logger.info(`⏱️ [PERF] Login: ${loginTime}ms`)
       
       if (!jwtToken) {
         throw new Error('Falha na autenticação')
@@ -44,7 +57,9 @@ export async function GET() {
       const isNearExpiry = await tokenCacheService.isTokenNearExpiry('usershield')
       if (isNearExpiry) {
         logger.info('Token próximo do vencimento, renovando...')
+        const renewStart = Date.now()
         const newToken = await performLogin(USERSHIELD_LOGIN_URL)
+        logger.info(`⏱️ [PERF] Token renewal: ${Date.now() - renewStart}ms`)
         if (newToken) {
           jwtToken = newToken
         }
@@ -52,7 +67,9 @@ export async function GET() {
     }
 
     // Buscar usuários com o token
+    console.log('Buscando usuários...')
     logger.debug('Buscando usuários...')
+    const fetchStart = Date.now()
     let usuariosResponse = await fetch(USERSHIELD_USERS_URL, {
       method: 'GET',
       headers: {
@@ -60,6 +77,9 @@ export async function GET() {
         'Content-Type': 'application/json'
       }
     })
+    const fetchTime = Date.now() - fetchStart
+    console.log(`⏱️ [PERF] Fetch usuarios: ${fetchTime}ms`)
+    logger.info(`⏱️ [PERF] Fetch usuarios: ${fetchTime}ms`)
 
     // Se token inválido (401), remover do cache e tentar novo login
     if (usuariosResponse.status === 401) {
@@ -89,10 +109,16 @@ export async function GET() {
       throw new Error(`Falha na busca de usuários: ${usuariosResponse.status}`)
     }
 
+  const parseStart = Date.now()
   const usuariosData = await usuariosResponse.json()
+  const parseTime = Date.now() - parseStart
+  console.log(`⏱️ [PERF] Parse JSON: ${parseTime}ms`)
+  console.log('Usuários obtidos:', usuariosData.result?.length || 0)
+  logger.info(`⏱️ [PERF] Parse JSON: ${parseTime}ms`)
   logger.info('Usuários obtidos:', usuariosData.result?.length || 0)
 
     // Mapear para formato esperado pela aplicação
+    const mapStart = Date.now()
     const usuarios = usuariosData.result?.map((user: any) => ({
       id: user.id.toString(),
       name: user.nomeCompleto || user.username,
@@ -105,6 +131,13 @@ export async function GET() {
       perfis: user.perfis || [],
       roles: user.roles || []
     })) || []
+    const mapTime = Date.now() - mapStart
+    console.log(`⏱️ [PERF] Mapping: ${mapTime}ms`)
+    logger.info(`⏱️ [PERF] Mapping: ${mapTime}ms`)
+    
+    const totalTime = Date.now() - startTime
+    console.log(`🏁 [PERF] TEMPO TOTAL: ${totalTime}ms`)
+    logger.info(`🏁 [PERF] TEMPO TOTAL: ${totalTime}ms`)
 
     return NextResponse.json({
       success: true,
@@ -159,5 +192,104 @@ async function performLogin(loginUrl: string): Promise<string | null> {
   } catch (error) {
     logger.error('Erro no login UserShield:', error)
     return null
+  }
+}
+
+/**
+ * POST - Criar novo usuário
+ */
+export async function POST(request: Request) {
+  const USERSHIELD_BASE_URL = `${getServiceUrl('USERSHIELD')}`
+  const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}v1/Auth/login`
+  const USERSHIELD_USERS_URL = `${USERSHIELD_BASE_URL}v1/Usuarios`
+  
+  try {
+    const body = await request.json()
+    const { name, userName, email, password, ativo = true, integraApi = false } = body
+
+    // Validações
+    if (!name || !userName || !email || !password) {
+      return NextResponse.json(
+        { success: false, message: 'Campos obrigatórios faltando' },
+        { status: 400 }
+      )
+    }
+
+    // Obter token
+    let jwtToken = await tokenCacheService.getToken('usershield')
+    
+    if (!jwtToken) {
+      jwtToken = await performLogin(USERSHIELD_LOGIN_URL)
+      if (!jwtToken) {
+        throw new Error('Falha na autenticação')
+      }
+    }
+
+    // Criar usuário
+    let response = await fetch(USERSHIELD_USERS_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${jwtToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        nomeCompleto: name,
+        username: userName,
+        email: email,
+        password: password,
+        ativo: ativo,
+        integraApi: integraApi,
+        statusUsuario: ativo ? 'A' : 'I'
+      })
+    })
+
+    // Se token inválido (401), tentar novo login
+    if (response.status === 401) {
+      await tokenCacheService.removeToken('usershield')
+      const newToken = await performLogin(USERSHIELD_LOGIN_URL)
+      
+      if (!newToken) {
+        throw new Error('Falha na reautenticação')
+      }
+
+      response = await fetch(USERSHIELD_USERS_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${newToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          nomeCompleto: name,
+          username: userName,
+          email: email,
+          password: password,
+          ativo: ativo,
+          integraApi: integraApi,
+          statusUsuario: ativo ? 'A' : 'I'
+        })
+      })
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Erro ao criar usuário')
+    }
+
+    const result = await response.json()
+
+    return NextResponse.json({
+      success: true,
+      result: result
+    })
+
+  } catch (error: any) {
+    logger.error('Erro ao criar usuário:', error)
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: error.message || 'Erro ao criar usuário' 
+      },
+      { status: 500 }
+    )
   }
 }
