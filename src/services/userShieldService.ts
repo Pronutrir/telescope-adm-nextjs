@@ -8,7 +8,7 @@ import { tokenStorage } from './token'
 import { tokenCacheService } from './tokenCacheService'
 
 export interface UserShieldUser {
-  id: string
+  id: string // ID do usuário (string vinda da API)
   name: string
   email: string
   userName: string
@@ -17,15 +17,20 @@ export interface UserShieldUser {
   lastLogin: string
   department: string
   perfis?: {
-    id: string
+    id: number  // Corrigido para number
     nomePerfil: string
   }[]
   roles?: {
-    id: string
-    nomeRole: string
+    id: number  // Corrigido para number
+    perfisId: number
+    usuarioId: number
     perfis: {
-      id: string
+      id: number  // Corrigido para number
       nomePerfil: string
+      statusPerfil?: string
+      dataRegistro?: string
+      dataAtualizacao?: string
+      usuario?: string
     }
   }[]
 }
@@ -37,9 +42,13 @@ export interface UserShieldResponse {
 }
 
 export interface UserShieldProfile {
-  id: string
+  id: number  // ID é number na API
   nomePerfil: string
   descricao?: string
+  statusPerfil?: string
+  dataRegistro?: string
+  dataAtualizacao?: string
+  usuario?: string
 }
 
 export interface UserShieldRole {
@@ -133,21 +142,27 @@ class UserShieldService {
   }
 
   /**
-   * Listar perfis disponíveis no UserShield
-   * Baseado na função listarPerfisUserShield do telescopeContext.tsx
+   * Listar todos os perfis disponíveis
    */
   async listarPerfis(): Promise<UserShieldProfile[]> {
+    const response = await this.request<{ result: UserShieldProfile[] }>(
+      'perfis'
+    )
+    return response.result || []
+  }
+
+  /**
+   * Obter um perfil específico por ID
+   */
+  async obterPerfilPorId(perfilId: number): Promise<UserShieldProfile | null> {
     try {
-      const response = await this.request<{ success: boolean, result: UserShieldProfile[] }>('Perfis')
-      
-      if (response.success && response.result) {
-        return response.result
-      }
-      
-      return []
+      const response = await this.request<{ result: UserShieldProfile }>(
+        `perfis/${perfilId}`
+      )
+      return response.result || null
     } catch (error) {
-      console.error('Erro ao listar perfis UserShield:', error)
-      throw new Error('Falha ao carregar perfis do sistema')
+      console.error('❌ Erro ao obter perfil:', error)
+      return null
     }
   }
 
@@ -221,6 +236,168 @@ class UserShieldService {
     } catch (error) {
       console.error('❌ Erro ao alterar senha:', error)
       throw new Error('Falha ao alterar senha. Verifique sua senha atual.')
+    }
+  }
+
+  /**
+   * Obter perfis/roles de um usuário específico
+   * Os perfis vêm dentro do array 'roles' do usuário
+   * Endpoint: GET /Usuarios/{idUsuario}
+   */
+  async obterPerfisUsuario(idUsuario: number): Promise<UserShieldProfile[]> {
+    try {
+      console.log('🔄 Obtendo perfis do usuário:', idUsuario)
+      
+      // Buscar usuário completo
+      const response = await this.request<{ result: UserShieldUser }>(
+        `usuarios/${idUsuario}`
+      )
+      
+      const usuario = response.result
+      if (!usuario || !usuario.roles) {
+        console.log('⚠️ Usuário sem perfis')
+        return []
+      }
+      
+      // Extrair perfis únicos do array roles
+      const perfisMap = new Map<number, UserShieldProfile>()
+      usuario.roles.forEach(role => {
+        if (role.perfis && !perfisMap.has(role.perfis.id)) {
+          perfisMap.set(role.perfis.id, role.perfis)
+        }
+      })
+      
+      const perfis = Array.from(perfisMap.values())
+      console.log('✅ Perfis obtidos:', perfis.length)
+      return perfis
+    } catch (error) {
+      console.error('❌ Erro ao obter perfis do usuário:', error)
+      throw new Error('Falha ao carregar perfis do usuário.')
+    }
+  }
+
+  /**
+   * Adicionar perfil a um usuário
+   * Usa PUT no usuário completo com array perfisIds atualizado
+   */
+  async adicionarPerfilUsuario(
+    idUsuario: number,
+    perfilId: number
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log(`🔄 Adicionando perfil ${perfilId} ao usuário ${idUsuario}`)
+      
+      // Buscar perfis atuais
+      const perfisAtuais = await this.obterPerfisUsuario(idUsuario)
+      const perfisIds: number[] = perfisAtuais.map(p => p.id)
+      
+      // Adicionar novo se ainda não existe
+      if (!perfisIds.includes(perfilId)) {
+        perfisIds.push(perfilId)
+      }
+      
+      // Atualizar usuário com novos perfis
+      await this.atualizarPerfisUsuario(idUsuario, perfisIds)
+      
+      console.log('✅ Perfil adicionado com sucesso')
+      return { success: true, message: 'Perfil adicionado com sucesso' }
+    } catch (error) {
+      console.error('❌ Erro ao adicionar perfil:', error)
+      throw new Error('Falha ao adicionar perfil ao usuário.')
+    }
+  }
+
+  /**
+   * Remover perfil de um usuário
+   * Usa PUT no usuário completo sem o perfil removido
+   */
+  async removerPerfilUsuario(
+    idUsuario: number,
+    perfilId: number
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log(`🔄 Removendo perfil ${perfilId} do usuário ${idUsuario}`)
+      
+      // Buscar perfis atuais
+      const perfisAtuais = await this.obterPerfisUsuario(idUsuario)
+      const perfisIds: number[] = perfisAtuais
+        .map(p => p.id)
+        .filter(id => id !== perfilId)
+      
+      // Atualizar usuário sem o perfil removido
+      await this.atualizarPerfisUsuario(idUsuario, perfisIds)
+      
+      console.log('✅ Perfil removido com sucesso')
+      return { success: true, message: 'Perfil removido com sucesso' }
+    } catch (error) {
+      console.error('❌ Erro ao remover perfil:', error)
+      throw new Error('Falha ao remover perfil do usuário.')
+    }
+  }
+
+  /**
+   * Atualizar perfis do usuário (substituir todos)
+   * Usa PUT no usuário completo com campo perfisIds
+   */
+  /**
+   * ⚠️ ATENÇÃO: A API UserShield NÃO tem endpoint direto para atualizar perfis.
+   * 
+   * Estratégia baseada na documentação OpenAPI real:
+   * 1. GET /Usuarios/{id} - Buscar roles atuais
+   * 2. DELETE /Roles/{id} - Remover roles antigas
+   * 3. POST /Roles - Criar novas roles com perfisIds
+   * 
+   * Segundo schema "Roles": {usuarioId, perfisId, perfis{...}, usuarios{...}}
+   */
+  async atualizarPerfisUsuario(idUsuario: number, perfisIds: number[]): Promise<void> {
+    try {
+      console.log(`🔄 Atualizando perfis do usuário ${idUsuario}`)
+      console.log('📋 Novos perfis IDs:', perfisIds)
+      
+      // 1. Buscar roles atuais do usuário
+      const usuarioResponse = await this.request<{ result: UserShieldUser }>(
+        `usuarios/${idUsuario}`
+      )
+      const rolesAtuais = usuarioResponse.result.roles || []
+      
+      console.log(`📋 Roles atuais (${rolesAtuais.length}):`, rolesAtuais.map(r => r.id))
+      
+      // 2. Deletar todas as roles antigas
+      for (const role of rolesAtuais) {
+        console.log(`🗑️ Deletando role ID: ${role.id}`)
+        await this.request(`roles/${role.id}`, {
+          method: 'DELETE'
+        })
+      }
+      
+      // 3. Criar novas roles para cada perfilId
+      if (perfisIds.length > 0) {
+        // Buscar detalhes dos perfis para montar o rolesArray
+        const perfisDetalhes = await Promise.all(
+          perfisIds.map(id => this.obterPerfilPorId(id))
+        )
+        
+        // Filtrar perfis válidos (não nulos)
+        const perfisValidos = perfisDetalhes.filter(p => p !== null) as UserShieldProfile[]
+        
+        console.log(`➕ Criando ${perfisValidos.length} novas roles`)
+        await this.request('roles', {
+          method: 'POST',
+          body: JSON.stringify({
+            usuarioId: idUsuario,
+            rolesArray: perfisValidos.map(perfil => ({
+              id: perfil.id,
+              nomePerfil: perfil.nomePerfil,
+              statusPerfil: perfil.statusPerfil || 'A'
+            }))
+          })
+        })
+      }
+      
+      console.log('✅ Perfis do usuário atualizados com sucesso')
+    } catch (error) {
+      console.error('❌ Erro ao atualizar perfis:', error)
+      throw new Error('Falha ao atualizar perfis do usuário.')
     }
   }
 }

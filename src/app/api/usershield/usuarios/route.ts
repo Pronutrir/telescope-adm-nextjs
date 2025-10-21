@@ -151,8 +151,7 @@ async function performLogin(loginUrl: string): Promise<string | null> {
 
     if (token) {
       // Salvar token no cache Redis com TTL de 55 minutos (API expira em 60)
-      const ttlSeconds = 55 * 60
-      await tokenCacheService.setToken('usershield', token, ttlSeconds.toString())
+      await tokenCacheService.setToken(token, 'usershield')
       logger.info('✅ Token UserShield salvo no cache (55min TTL)')
     }
 

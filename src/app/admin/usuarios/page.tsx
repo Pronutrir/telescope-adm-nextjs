@@ -18,6 +18,8 @@ import {
 } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 import { useUserShield } from '@/hooks/useUserShield'
+import { UserShieldUser } from '@/services/userShieldService'
+import EditUserModal from '@/components/usuarios/EditUserModal'
 
 /**
  * Página de Gerenciamento de Usuários
@@ -38,6 +40,8 @@ export default function UsuariosPage() {
     const [ mounted, setMounted ] = useState(false)
     const [ searchTerm, setSearchTerm ] = useState('')
     const [ viewMode, setViewMode ] = useState<'grid' | 'list'>('list')
+    const [ editingUser, setEditingUser ] = useState<UserShieldUser | null>(null)
+    const [ isEditModalOpen, setIsEditModalOpen ] = useState(false)
 
     // Hook para gerenciar dados do UserShield
     const { usuarios, loadingUsuarios, errorUsuarios, listarUsuarios } = useUserShield()
@@ -68,13 +72,25 @@ export default function UsuariosPage() {
         setUsuariosFiltrados(filtrados)
     }, [ searchTerm, usuarios ])
 
-    // Função para atualizar dados
+    // Funções de gerenciamento
     const handleRefresh = async () => {
-        try {
-            await listarUsuarios()
-        } catch (error) {
-            console.error('Erro ao atualizar usuários:', error)
-        }
+        await listarUsuarios()
+    }
+
+    const handleEditUser = (user: UserShieldUser) => {
+        setEditingUser(user)
+        setIsEditModalOpen(true)
+    }
+
+    const handleCloseEditModal = () => {
+        setIsEditModalOpen(false)
+        setEditingUser(null)
+    }
+
+    const handleEditSuccess = async () => {
+        await handleRefresh()
+        setIsEditModalOpen(false)
+        setEditingUser(null)
     }
 
     if (!mounted) {
@@ -263,11 +279,11 @@ export default function UsuariosPage() {
                                     viewMode === 'grid' && 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
                                 )}>
                                     {usuariosFiltrados.map((user: any) => (
-                                        viewMode === 'list' ? (
-                                            // List View
-                                            <div
-                                                key={user.idUsuario}
-                                                className={twMerge(
+                                        <React.Fragment key={user.id}>
+                                            {viewMode === 'list' ? (
+                                                // List View
+                                                <div
+                                                    className={twMerge(
                                                     'flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-lg border transition-all hover:shadow-md',
                                                     isDark
                                                         ? 'bg-gray-800/50 border-gray-700 hover:bg-gray-800'
@@ -315,7 +331,7 @@ export default function UsuariosPage() {
                                                 {/* Badges e Info Secundária */}
                                                 <div className="flex flex-wrap items-center gap-2">
                                                     {user.role && (
-                                                        <span className={twMerge(
+                                                        <span key="role" className={twMerge(
                                                             'px-2 py-1 text-xs font-medium rounded-full',
                                                             user.role?.toLowerCase().includes('admin')
                                                                 ? isDark ? 'bg-red-900/50 text-red-200' : 'bg-red-100 text-red-700'
@@ -325,7 +341,7 @@ export default function UsuariosPage() {
                                                         </span>
                                                     )}
                                                     {user.department && (
-                                                        <span className={twMerge(
+                                                        <span key="department" className={twMerge(
                                                             'px-2 py-1 text-xs rounded-full',
                                                             isDark
                                                                 ? 'bg-purple-900/50 text-purple-200'
@@ -335,7 +351,7 @@ export default function UsuariosPage() {
                                                         </span>
                                                     )}
                                                     {user.lastLogin && (
-                                                        <span className={twMerge(
+                                                        <span key="lastLogin" className={twMerge(
                                                             'text-xs',
                                                             isDark ? 'text-gray-400' : 'text-gray-500'
                                                         )}>
@@ -361,7 +377,7 @@ export default function UsuariosPage() {
                                                             </span>
                                                         ))}
                                                         {user.perfis.length > 3 && (
-                                                            <span className={twMerge(
+                                                            <span key="more-badge" className={twMerge(
                                                                 'px-2 py-1 text-xs rounded-md',
                                                                 isDark ? 'text-gray-400' : 'text-gray-500'
                                                             )}>
@@ -374,6 +390,7 @@ export default function UsuariosPage() {
                                                 {/* Ações */}
                                                 <div className="flex gap-2 sm:ml-auto">
                                                     <button
+                                                        onClick={() => handleEditUser(user)}
                                                         className={twMerge(
                                                             'p-2 rounded-lg transition-all',
                                                             isDark
@@ -400,7 +417,6 @@ export default function UsuariosPage() {
                                         ) : (
                                             // Grid View
                                             <div
-                                                key={user.idUsuario}
                                                 className={twMerge(
                                                     'flex flex-col p-4 rounded-lg border transition-all hover:shadow-md',
                                                     isDark
@@ -476,7 +492,7 @@ export default function UsuariosPage() {
                                                                 </span>
                                                             ))}
                                                             {user.perfis.length > 3 && (
-                                                                <span className={twMerge(
+                                                                <span key="more-badge" className={twMerge(
                                                                     'px-2 py-1 text-xs rounded-md',
                                                                     isDark ? 'text-gray-400' : 'text-gray-500'
                                                                 )}>
@@ -490,6 +506,7 @@ export default function UsuariosPage() {
                                                 {/* Ações */}
                                                 <div className="flex gap-2 pt-3 border-t border-border">
                                                     <button
+                                                        onClick={() => handleEditUser(user)}
                                                         className={twMerge(
                                                             'flex-1 flex items-center justify-center gap-2 p-2 rounded-lg transition-all',
                                                             isDark
@@ -515,7 +532,8 @@ export default function UsuariosPage() {
                                                     </button>
                                                 </div>
                                             </div>
-                                        )
+                                        )}
+                                        </React.Fragment>
                                     ))}
                                 </div>
                             )}
@@ -523,6 +541,16 @@ export default function UsuariosPage() {
                     </div>
                 </main>
             </div>
+
+            {/* Modal de Edição de Usuário */}
+            {editingUser && (
+                <EditUserModal
+                    user={editingUser}
+                    isOpen={isEditModalOpen}
+                    onClose={handleCloseEditModal}
+                    onSuccess={handleEditSuccess}
+                />
+            )}
         </div>
     )
 }
