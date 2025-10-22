@@ -66,20 +66,41 @@ export async function GET() {
       }
     }
 
-    // Buscar usuários com o token
-    console.log('Buscando usuários...')
+    // Buscar usuários com o token (com timeout de 60s)
+    console.log('🔍 Buscando usuários na UserShield API...')
     logger.debug('Buscando usuários...')
     const fetchStart = Date.now()
-    let usuariosResponse = await fetch(USERSHIELD_USERS_URL, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${jwtToken}`,
-        'Content-Type': 'application/json'
+    
+    // Criar AbortController para timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 60000) // 60s timeout
+    
+    let usuariosResponse: Response
+    try {
+      usuariosResponse = await fetch(USERSHIELD_USERS_URL, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${jwtToken}`,
+          'Content-Type': 'application/json'
+        },
+        signal: controller.signal
+      })
+      clearTimeout(timeoutId)
+      
+      const fetchTime = Date.now() - fetchStart
+      console.log(`⏱️ [PERF] Fetch usuarios: ${fetchTime}ms`)
+      logger.info(`⏱️ [PERF] Fetch usuarios: ${fetchTime}ms`)
+      
+      if (fetchTime > 10000) {
+        logger.warn(`⚠️ [PERF] API UserShield muito lenta! ${fetchTime}ms - Considere otimização`)
       }
-    })
-    const fetchTime = Date.now() - fetchStart
-    console.log(`⏱️ [PERF] Fetch usuarios: ${fetchTime}ms`)
-    logger.info(`⏱️ [PERF] Fetch usuarios: ${fetchTime}ms`)
+    } catch (error: any) {
+      clearTimeout(timeoutId)
+      if (error.name === 'AbortError') {
+        throw new Error('Timeout: UserShield API não respondeu em 60 segundos')
+      }
+      throw error
+    }
 
     // Se token inválido (401), remover do cache e tentar novo login
     if (usuariosResponse.status === 401) {
@@ -180,7 +201,7 @@ async function performLogin(loginUrl: string): Promise<string | null> {
     }
 
     const data = await response.json()
-    const token = data.jwtToken
+    const token = data.token || data.jwtToken // UserShield retorna "token", não "jwtToken"
 
     if (token) {
       // Salvar token no cache Redis com TTL de 55 minutos (API expira em 60)

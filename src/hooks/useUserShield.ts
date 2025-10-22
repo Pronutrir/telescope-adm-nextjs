@@ -1,11 +1,43 @@
 /**
  * Hook customizado para gerenciar usuários do UserShield
  * Baseado no padrão usado no telescopeContext.tsx
+ * 
+ * Features:
+ * - Cache global de requisições em andamento (previne chamadas duplicadas)
+ * - Controle de inicialização para evitar múltiplas chamadas
+ * - Logs de performance detalhados
  */
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { userShieldService, UserShieldUser, UserShieldProfile, UserShieldRole } from '@/services/userShieldService'
+
+// Cache global de promises em andamento (deduplicação)
+const pendingRequests = new Map<string, Promise<any>>()
+
+// Função helper para cachear requisições
+async function getCachedRequest<T>(
+  key: string,
+  requestFn: () => Promise<T>
+): Promise<T> {
+  // Se já existe uma requisição em andamento, retorna ela
+  if (pendingRequests.has(key)) {
+    console.log(`🔄 [Cache] Requisição duplicada detectada para: ${key}`)
+    return pendingRequests.get(key) as Promise<T>
+  }
+
+  // Cria nova requisição e adiciona ao cache
+  console.log(`🚀 [Cache] Nova requisição iniciada: ${key}`)
+  const promise = requestFn()
+    .finally(() => {
+      // Remove do cache quando completar (sucesso ou erro)
+      pendingRequests.delete(key)
+      console.log(`✅ [Cache] Requisição finalizada: ${key}`)
+    })
+
+  pendingRequests.set(key, promise)
+  return promise
+}
 
 export interface UseUserShieldReturn {
   // Dados
@@ -54,7 +86,7 @@ export function useUserShield(): UseUserShieldReturn {
   const [initialized, setInitialized] = useState(false)
 
   /**
-   * Listar usuários do UserShield (com cache otimizado)
+   * Listar usuários do UserShield (com cache otimizado e deduplicação)
    */
   const listarUsuarios = useCallback(async () => {
     const startTime = Date.now()
@@ -64,23 +96,27 @@ export function useUserShield(): UseUserShieldReturn {
     setErrorUsuarios(null)
     
     try {
-      const fetchStart = Date.now()
-      // Usar API com dados reais da UserShield
-      const response = await fetch('/api/usershield/usuarios', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
+      // Usar cache global para evitar requisições duplicadas
+      const data = await getCachedRequest('usuarios', async () => {
+        const fetchStart = Date.now()
+        // Usar API com dados reais da UserShield
+        const response = await fetch('/api/usershield/usuarios', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        console.log(`⏱️ [PERF Frontend] Fetch API: ${Date.now() - fetchStart}ms`)
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.status}`)
         }
+
+        const parseStart = Date.now()
+        const result = await response.json()
+        console.log(`⏱️ [PERF Frontend] Parse JSON: ${Date.now() - parseStart}ms`)
+        return result
       })
-      console.log(`⏱️ [PERF Frontend] Fetch API: ${Date.now() - fetchStart}ms`)
-
-      if (!response.ok) {
-        throw new Error(`Erro na API: ${response.status}`)
-      }
-
-      const parseStart = Date.now()
-      const data = await response.json()
-      console.log(`⏱️ [PERF Frontend] Parse JSON: ${Date.now() - parseStart}ms`)
       
       if (data.success) {
         const setStateStart = Date.now()
