@@ -60,11 +60,14 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
         // Usuário autenticado - filtrar por roles e visibilidade
         const roleFiltered = filterRoutesByRoles(routes, userRoles)
         availableRoutes = roleFiltered.filter(route => routeVisibility[route.name] !== false)
+    } else if (authLoading) {
+        // Durante loading - não mostrar rotas para evitar "piscar"
+        availableRoutes = []
     } else {
-        // Loading ou não autenticado - rotas públicas básicas
-        const publicRoutes = routes.filter(route =>
-            !route.private ||
-            route.name === 'Dashboard'
+        // Não autenticado - apenas Dashboard público
+        const publicRoutes = routes.filter(route => 
+            !route.private && 
+            (!route.roles || route.roles.length === 0)
         )
         availableRoutes = publicRoutes.filter(route => routeVisibility[route.name] !== false)
     }
@@ -158,7 +161,22 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
             {/* Navigation Menu */}
             <div className="drawer-body px-2 pt-2 overflow-y-auto overflow-x-hidden flex-1 scrollbar-hidden">
                 <ul className="menu p-0 space-y-1">
-                    {mainRoutes.map((route) => {
+                    {/* Loading skeleton durante autenticação */}
+                    {authLoading && (
+                        <>
+                            {[1, 2, 3, 4].map((i) => (
+                                <li key={i} className="animate-pulse">
+                                    <div className={`
+                                        rounded-xl h-12 bg-gray-200 dark:bg-gray-700
+                                        ${sidebarCollapsed ? 'mx-1' : 'mx-2'}
+                                    `} />
+                                </li>
+                            ))}
+                        </>
+                    )}
+                    
+                    {/* Rotas normais quando não está carregando */}
+                    {!authLoading && mainRoutes.map((route) => {
                         const isActive = isRouteActive(route)
                         const hasSubmenu = hasSubmenus(routes, route.name)
                         const submenus = hasSubmenu ? getSubmenus(routes, route.name) : []

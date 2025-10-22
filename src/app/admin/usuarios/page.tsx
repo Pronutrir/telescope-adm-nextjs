@@ -87,7 +87,9 @@ export default function UsuariosPage() {
 
     // Funções de gerenciamento
     const handleRefresh = async () => {
-        await listarUsuarios()
+        console.log('🔄 [Page] handleRefresh chamado - recarregando usuários com FORCE REFRESH...')
+        await listarUsuarios(true) // Force refresh para invalidar cache
+        console.log('✅ [Page] listarUsuarios concluído')
     }
 
     const handleEditUser = (user: UserShieldUser) => {
@@ -101,7 +103,14 @@ export default function UsuariosPage() {
     }
 
     const handleEditSuccess = async () => {
+        console.log('🔄 [Page] handleEditSuccess chamado - aguardando 1s para refresh...')
+        
+        // Aguardar 1 segundo para a API processar completamente
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        console.log('🔄 [Page] Iniciando refresh após delay...')
         await handleRefresh()
+        console.log('✅ [Page] Refresh concluído, fechando modal...')
         setIsEditModalOpen(false)
         setEditingUser(null)
     }

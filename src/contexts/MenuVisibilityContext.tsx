@@ -29,18 +29,6 @@ const DEFAULT_VISIBILITY: Record<string, boolean> = {
     'Dashboard': true,
     'Biblioteca de Componentes': true,
     'Gerenciador de PDFs': true,
-    'Bloqueios': true,
-    'Médicos exclusivos': true,
-    'Evolução Medica': true,
-    'Stopwatch H': true,
-    'Pesquisas': true,
-    'Consultas': true,
-    'Novos Tratamentos': true,
-    'Recepcionistas': true,
-    'Quimio': true,
-    'Médicos': true,
-    'Fila Rápida': true,
-    'Avaliações': true,
     'Usuários': true,
     'Seu Perfil': true
 }

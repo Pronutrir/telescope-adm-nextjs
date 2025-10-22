@@ -15,11 +15,25 @@ import { userShieldService, UserShieldUser, UserShieldProfile, UserShieldRole } 
 // Cache global de promises em andamento (deduplicação)
 const pendingRequests = new Map<string, Promise<any>>()
 
+// Função para invalidar cache
+function invalidateCache(key: string) {
+  if (pendingRequests.has(key)) {
+    pendingRequests.delete(key)
+    console.log(`🗑️ [Cache] Cache invalidado para: ${key}`)
+  }
+}
+
 // Função helper para cachear requisições
 async function getCachedRequest<T>(
   key: string,
-  requestFn: () => Promise<T>
+  requestFn: () => Promise<T>,
+  forceRefresh: boolean = false
 ): Promise<T> {
+  // Se forçar refresh, invalidar cache primeiro
+  if (forceRefresh) {
+    invalidateCache(key)
+  }
+
   // Se já existe uma requisição em andamento, retorna ela
   if (pendingRequests.has(key)) {
     console.log(`🔄 [Cache] Requisição duplicada detectada para: ${key}`)
@@ -51,7 +65,7 @@ export interface UseUserShieldReturn {
   loadingRoles: boolean
   
   // Funções
-  listarUsuarios: () => Promise<void>
+  listarUsuarios: (forceRefresh?: boolean) => Promise<void>
   listarPerfis: () => Promise<void>
   listarRoles: (userName?: string) => Promise<void>
   buscarUsuarios: (searchTerm: string) => Promise<UserShieldUser[]>
@@ -86,17 +100,15 @@ export function useUserShield(): UseUserShieldReturn {
   const [initialized, setInitialized] = useState(false)
 
   /**
-   * Listar usuários do UserShield (com cache otimizado e deduplicação)
+   * Listar usuários do UserShield
    */
-  const listarUsuarios = useCallback(async () => {
+  const listarUsuarios = useCallback(async (forceRefresh: boolean = false) => {
     const startTime = Date.now()
-    console.log('🚀 [PERF Frontend] Iniciando busca de usuários...')
-    
+    console.log('🚀 [useUserShield] Iniciando listarUsuarios...', forceRefresh ? '(FORCE REFRESH)' : '')
     setLoadingUsuarios(true)
     setErrorUsuarios(null)
     
     try {
-      // Usar cache global para evitar requisições duplicadas
       const data = await getCachedRequest('usuarios', async () => {
         const fetchStart = Date.now()
         // Usar API com dados reais da UserShield
@@ -116,23 +128,26 @@ export function useUserShield(): UseUserShieldReturn {
         const result = await response.json()
         console.log(`⏱️ [PERF Frontend] Parse JSON: ${Date.now() - parseStart}ms`)
         return result
-      })
+      }, forceRefresh)
       
       if (data.success) {
         const setStateStart = Date.now()
+        console.log('🔄 [useUserShield] Atualizando estado com novos usuários...')
         setUsuarios(data.result || [])
         console.log(`⏱️ [PERF Frontend] setState: ${Date.now() - setStateStart}ms`)
         console.log(`🏁 [PERF Frontend] TEMPO TOTAL: ${Date.now() - startTime}ms`)
-        console.log('✅ Usuários carregados:', data.result?.length || 0)
+        console.log('✅ [useUserShield] Usuários carregados:', data.result?.length || 0)
+        console.log('📋 [useUserShield] Primeiros 3 usuários:', data.result?.slice(0, 3).map((u: any) => ({ id: u.id, name: u.name, roles: u.roles?.length })))
       } else {
         throw new Error(data.error || 'Erro desconhecido')
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro ao carregar usuários'
       setErrorUsuarios(errorMessage)
-      console.error('Erro ao listar usuários:', error)
+      console.error('❌ [useUserShield] Erro ao listar usuários:', error)
     } finally {
       setLoadingUsuarios(false)
+      console.log('🏁 [useUserShield] listarUsuarios finalizado')
     }
   }, [])
 

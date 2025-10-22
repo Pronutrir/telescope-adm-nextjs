@@ -129,9 +129,16 @@ export default function EditUserModal({ user, isOpen, onClose, onSuccess }: Edit
             setSaving(true)
             setMessage(null)
 
+            console.log('🔄 [EditUserModal] Iniciando salvamento...')
+            console.log('👤 [EditUserModal] Usuário ID:', user.id)
+            console.log('📋 [EditUserModal] Perfis selecionados:', selectedProfiles)
+            console.log('📋 [EditUserModal] Perfis iniciais:', initialProfiles)
+
             // Converter id de string para number
             const userId = parseInt(user.id)
             await userShieldService.atualizarPerfisUsuario(userId, selectedProfiles)
+
+            console.log('✅ [EditUserModal] Salvamento concluído com sucesso!')
 
             setMessage({
                 type: 'success',
@@ -141,11 +148,13 @@ export default function EditUserModal({ user, isOpen, onClose, onSuccess }: Edit
             // Atualizar perfis iniciais
             setInitialProfiles(selectedProfiles)
 
+            console.log('🔄 [EditUserModal] Chamando onSuccess callback...')
             // Chamar callback de sucesso
             onSuccess?.()
 
             // Fechar modal após 1.5s
             setTimeout(() => {
+                console.log('🔄 [EditUserModal] Fechando modal...')
                 onClose()
             }, 1500)
 
