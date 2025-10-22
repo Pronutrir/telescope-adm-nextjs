@@ -253,3 +253,150 @@ export async function PUT(
     )
   }
 }
+
+/**
+ * DELETE /api/usershield/usuarios/[id]
+ * Exclui um usuário pelo ID
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const startTime = Date.now()
+  
+  try {
+    const { id } = await params
+    console.log(`🗑️ [DELETE] Excluindo usuário ID: ${id}`)
+
+    // Obter token do cache Redis
+    let token = await tokenCacheService.getToken('usershield')
+    
+    if (!token) {
+      console.warn('⚠️ Token não encontrado no cache, fazendo login...')
+      
+      // Fazer login para obter novo token
+      const loginResponse = await fetch(`${USERSHIELD_API_URL}/Auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userName: process.env.USERSHIELD_USERNAME || 'User@ADM#0110',
+          password: process.env.USERSHIELD_PASSWORD || '5sdt85f215600k008sdfbn$#sd4'
+        })
+      })
+
+      if (!loginResponse.ok) {
+        throw new Error('Falha ao fazer login no UserShield')
+      }
+
+      const loginData = await loginResponse.json()
+      token = loginData.token || loginData.jwtToken
+
+      if (token) {
+        await tokenCacheService.setToken('usershield', token)
+      }
+    }
+
+    // Fazer DELETE na API UserShield
+    const deleteStart = Date.now()
+    
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s timeout
+    
+    try {
+      const deleteResponse = await fetch(`${USERSHIELD_API_URL}/Usuarios/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        signal: controller.signal
+      })
+      
+      clearTimeout(timeoutId)
+      
+      const deleteTime = Date.now() - deleteStart
+      console.log(`⏱️ [PERF] DELETE UserShield: ${deleteTime}ms`)
+      
+      // Se token expirado (401), tentar com novo login
+      if (deleteResponse.status === 401) {
+        console.log('Token expirado, fazendo novo login...')
+        
+        const loginResponse = await fetch(`${USERSHIELD_API_URL}/Auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userName: process.env.USERSHIELD_USERNAME || 'User@ADM#0110',
+            password: process.env.USERSHIELD_PASSWORD || '5sdt85f215600k008sdfbn$#sd4'
+          })
+        })
+
+        if (!loginResponse.ok) {
+          throw new Error('Falha na reautenticação')
+        }
+
+        const loginData = await loginResponse.json()
+        token = loginData.token || loginData.jwtToken
+        
+        if (token) {
+          await tokenCacheService.setToken('usershield', token)
+        }
+        
+        // Retry delete
+        const retryResponse = await fetch(`${USERSHIELD_API_URL}/Usuarios/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        
+        if (!retryResponse.ok) {
+          const errorText = await retryResponse.text()
+          console.error(`❌ Erro ao excluir usuário (retry): ${retryResponse.status}`, errorText)
+          throw new Error(`Erro ao excluir usuário: ${retryResponse.status}`)
+        }
+        
+        const totalTime = Date.now() - startTime
+        console.log(`✅ [DELETE] Usuário ${id} excluído (com retry) em ${totalTime}ms`)
+        
+        return NextResponse.json({ 
+          success: true, 
+          message: 'Usuário excluído com sucesso'
+        })
+      }
+      
+      if (!deleteResponse.ok) {
+        const errorText = await deleteResponse.text()
+        console.error(`❌ Erro ao excluir usuário: ${deleteResponse.status}`, errorText)
+        throw new Error(`Erro ao excluir usuário: ${deleteResponse.status}`)
+      }
+      
+      const totalTime = Date.now() - startTime
+      console.log(`✅ [DELETE] Usuário ${id} excluído em ${totalTime}ms`)
+      
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Usuário excluído com sucesso'
+      })
+      
+    } catch (error: any) {
+      clearTimeout(timeoutId)
+      if (error.name === 'AbortError') {
+        throw new Error('Timeout: UserShield API não respondeu em 30 segundos')
+      }
+      throw error
+    }
+    
+  } catch (error: any) {
+    const totalTime = Date.now() - startTime
+    console.error(`❌ [DELETE] Erro ao excluir usuário após ${totalTime}ms:`, error)
+    
+    return NextResponse.json(
+      { 
+        error: error.message || 'Erro ao excluir usuário',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
+      { status: 500 }
+    )
+  }
+}

@@ -23,6 +23,7 @@ import { UserShieldUser } from '@/services/userShieldService'
 import EditUserModal from '@/components/usuarios/EditUserModal'
 import ResetPasswordModal from '@/components/usuarios/ResetPasswordModal'
 import AddUserModal from '@/components/usuarios/AddUserModal'
+import DeleteUserModal from '@/components/usuarios/DeleteUserModal'
 
 /**
  * Página de Gerenciamento de Usuários
@@ -48,6 +49,8 @@ export default function UsuariosPage() {
     const [ resetPasswordUser, setResetPasswordUser ] = useState<UserShieldUser | null>(null)
     const [ isResetPasswordOpen, setIsResetPasswordOpen ] = useState(false)
     const [ isAddUserOpen, setIsAddUserOpen ] = useState(false)
+    const [ deleteUser, setDeleteUser ] = useState<UserShieldUser | null>(null)
+    const [ isDeleteModalOpen, setIsDeleteModalOpen ] = useState(false)
 
     // Hook para gerenciar dados do UserShield
     const { usuarios, loadingUsuarios, errorUsuarios, listarUsuarios } = useUserShield()
@@ -121,6 +124,21 @@ export default function UsuariosPage() {
 
     const handleAddUserSuccess = async () => {
         console.log('✅ Usuário criado com sucesso')
+        await handleRefresh()
+    }
+
+    const handleDeleteUser = (user: UserShieldUser) => {
+        setDeleteUser(user)
+        setIsDeleteModalOpen(true)
+    }
+
+    const handleCloseDeleteModal = () => {
+        setIsDeleteModalOpen(false)
+        setDeleteUser(null)
+    }
+
+    const handleDeleteSuccess = async () => {
+        console.log('✅ Usuário excluído com sucesso')
         await handleRefresh()
     }
 
@@ -423,6 +441,7 @@ export default function UsuariosPage() {
                                                         <Key className="w-4 h-4" />
                                                     </button>
                                                     <button
+                                                        onClick={() => handleDeleteUser(user)}
                                                         className={twMerge(
                                                             'p-2 rounded-lg transition-all',
                                                             isDark
@@ -539,6 +558,7 @@ export default function UsuariosPage() {
                                                         <span className="text-xs font-medium">Resetar</span>
                                                     </button>
                                                     <button
+                                                        onClick={() => handleDeleteUser(user)}
                                                         className={twMerge(
                                                             'flex-1 flex items-center justify-center gap-2 p-2 rounded-lg transition-all',
                                                             isDark
@@ -592,6 +612,14 @@ export default function UsuariosPage() {
                 isOpen={isAddUserOpen}
                 onClose={() => setIsAddUserOpen(false)}
                 onSuccess={handleAddUserSuccess}
+            />
+
+            {/* Modal de Exclusão de Usuário */}
+            <DeleteUserModal
+                isOpen={isDeleteModalOpen}
+                onClose={handleCloseDeleteModal}
+                onSuccess={handleDeleteSuccess}
+                user={deleteUser}
             />
         </div>
     )
