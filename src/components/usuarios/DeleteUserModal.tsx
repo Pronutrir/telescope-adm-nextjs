@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { X, Trash2, AlertTriangle, Loader2 } from 'lucide-react'
@@ -62,13 +63,26 @@ export default function DeleteUserModal({ isOpen, onClose, onSuccess, user }: De
         onClose()
     }
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    if (!isOpen || !user) return null
+
+    const modalContent = (
+        <div 
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+            onClick={(e) => {
+                // Fechar ao clicar no backdrop (fora do modal)
+                if (e.target === e.currentTarget && !isDeleting) {
+                    handleClose()
+                }
+            }}
+        >
             <div
                 className={twMerge(
-                    'w-full max-w-md rounded-2xl shadow-2xl border overflow-hidden',
+                    'w-full max-w-md max-h-[90vh] rounded-2xl shadow-2xl border overflow-hidden flex flex-col',
+                    'animate-in zoom-in-95 slide-in-from-bottom-4 duration-200',
                     isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
                 )}
+                onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
                 <div className={twMerge(
@@ -81,7 +95,7 @@ export default function DeleteUserModal({ isOpen, onClose, onSuccess, user }: De
                             isDark ? 'bg-red-900/50' : 'bg-red-100'
                         )}>
                             <AlertTriangle className={twMerge(
-                                'w-6 h-6',
+                                'w-6 h-6 usuarios-alerttriangle-icon',
                                 isDark ? 'text-red-400' : 'text-red-600'
                             )} />
                         </div>
@@ -102,7 +116,7 @@ export default function DeleteUserModal({ isOpen, onClose, onSuccess, user }: De
                                 : 'hover:bg-gray-100 text-gray-500'
                         )}
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-5 h-5 usuarios-close-icon" />
                     </button>
                 </div>
 
@@ -239,12 +253,12 @@ export default function DeleteUserModal({ isOpen, onClose, onSuccess, user }: De
                     >
                         {isDeleting ? (
                             <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <Loader2 className="w-4 h-4 animate-spin usuarios-loader-icon" />
                                 Excluindo...
                             </>
                         ) : (
                             <>
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-4 h-4 usuarios-trash-icon" />
                                 Excluir Usuário
                             </>
                         )}
@@ -253,4 +267,7 @@ export default function DeleteUserModal({ isOpen, onClose, onSuccess, user }: De
             </div>
         </div>
     )
+
+    // Renderizar usando portal no body
+    return createPortal(modalContent, document.body)
 }

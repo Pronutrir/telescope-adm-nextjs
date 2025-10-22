@@ -226,7 +226,7 @@ export default function EditUserModal({ user, isOpen, onClose, onSuccess }: Edit
                                 : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
                         )}
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-5 h-5 usuarios-close-icon" />
                     </button>
                 </div>
 
@@ -246,9 +246,9 @@ export default function EditUserModal({ user, isOpen, onClose, onSuccess }: Edit
                         )}>
                             <div className="flex items-center gap-3">
                                 {message.type === 'success' ? (
-                                    <CheckCircle2 className="w-5 h-5 shrink-0" />
+                                    <CheckCircle2 className="w-5 h-5 shrink-0 usuarios-check-icon" />
                                 ) : (
-                                    <AlertCircle className="w-5 h-5 shrink-0" />
+                                    <AlertCircle className="w-5 h-5 shrink-0 usuarios-alert-icon" />
                                 )}
                                 <p className="text-sm font-medium flex-1">{message.text}</p>
                             </div>
@@ -272,7 +272,7 @@ export default function EditUserModal({ user, isOpen, onClose, onSuccess }: Edit
                     {/* Loading State */}
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-12 gap-4">
-                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                            <Loader2 className="w-8 h-8 animate-spin text-primary usuarios-loader-icon" />
                             <div className="text-center">
                                 <p className={twMerge(
                                     'text-sm font-medium',
@@ -296,7 +296,7 @@ export default function EditUserModal({ user, isOpen, onClose, onSuccess }: Edit
                                     'text-sm font-semibold mb-3 flex items-center gap-2',
                                     isDark ? 'text-gray-300' : 'text-gray-700'
                                 )}>
-                                    <Shield className="w-4 h-4" />
+                                    <Shield className="w-4 h-4 usuarios-shield-icon" />
                                     Perfis Atuais
                                 </h3>
                                 <div className="flex flex-wrap gap-2">
@@ -414,12 +414,12 @@ export default function EditUserModal({ user, isOpen, onClose, onSuccess }: Edit
                     >
                         {saving ? (
                             <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <Loader2 className="w-4 h-4 animate-spin usuarios-loader-icon" />
                                 Salvando...
                             </>
                         ) : (
                             <>
-                                <Save className="w-4 h-4" />
+                                <Save className="w-4 h-4 usuarios-save-icon" />
                                 Salvar Alterações
                             </>
                         )}

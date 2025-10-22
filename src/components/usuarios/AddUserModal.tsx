@@ -210,10 +210,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
                             'p-2 rounded-lg',
                             isDark ? 'bg-blue-500/20' : 'bg-blue-100'
                         )}>
-                            <UserPlus className={twMerge(
-                                'w-5 h-5',
-                                isDark ? 'text-blue-400' : 'text-blue-600'
-                            )} />
+                                                        <UserPlus className="w-5 h-5 usuarios-userplus-icon" />
                         </div>
                         <div>
                             <h2 className={twMerge(
@@ -240,7 +237,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
                                 : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
                         )}
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-5 h-5 usuarios-close-icon" />
                     </button>
                 </div>
 
@@ -253,7 +250,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
                             ? 'bg-blue-900/10 border-blue-800/30 text-blue-200'
                             : 'bg-blue-50 border-blue-200 text-blue-800'
                     )}>
-                        <Shield className="w-5 h-5 shrink-0 mt-0.5" />
+                        <Shield className="w-5 h-5 shrink-0 mt-0.5 usuarios-shield-icon" />
                         <div className="text-sm">
                             <p className="font-medium mb-1">Informações importantes:</p>
                             <p className="opacity-90">
@@ -274,7 +271,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
                             </label>
                             <div className="relative">
                                 <User className={twMerge(
-                                    'absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4',
+                                    'absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 usuarios-user-icon',
                                     isDark ? 'text-gray-400' : 'text-gray-500'
                                 )} />
                                 <input
@@ -327,10 +324,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
                                 Email *
                             </label>
                             <div className="relative">
-                                <Mail className={twMerge(
-                                    'absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4',
-                                    isDark ? 'text-gray-400' : 'text-gray-500'
-                                )} />
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 usuarios-mail-icon" />
                                 <input
                                     type="email"
                                     value={email}
@@ -357,10 +351,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
                                 Senha *
                             </label>
                             <div className="relative">
-                                <Key className={twMerge(
-                                    'absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4',
-                                    isDark ? 'text-gray-400' : 'text-gray-500'
-                                )} />
+                                <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 usuarios-key-icon" />
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     value={password}
@@ -381,9 +372,9 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
                                     className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md hover:bg-gray-700/50"
                                 >
                                     {showPassword ? (
-                                        <EyeOff className="w-4 h-4 text-gray-400" />
+                                        <EyeOff className="w-4 h-4 usuarios-eyeoff-icon" />
                                     ) : (
-                                        <Eye className="w-4 h-4 text-gray-400" />
+                                        <Eye className="w-4 h-4 usuarios-eye-icon" />
                                     )}
                                 </button>
                             </div>
@@ -398,10 +389,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
                                 Confirmar Senha *
                             </label>
                             <div className="relative">
-                                <Key className={twMerge(
-                                    'absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4',
-                                    isDark ? 'text-gray-400' : 'text-gray-500'
-                                )} />
+                                <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 usuarios-key-icon" />
                                 <input
                                     type={showConfirm ? 'text' : 'password'}
                                     value={confirmPassword}
@@ -422,9 +410,9 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
                                     className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md hover:bg-gray-700/50"
                                 >
                                     {showConfirm ? (
-                                        <EyeOff className="w-4 h-4 text-gray-400" />
+                                        <EyeOff className="w-4 h-4 usuarios-eyeoff-icon" />
                                     ) : (
-                                        <Eye className="w-4 h-4 text-gray-400" />
+                                        <Eye className="w-4 h-4 usuarios-eye-icon" />
                                     )}
                                 </button>
                             </div>
@@ -522,7 +510,7 @@ export const AddUserModal: React.FC<AddUserModalProps> = ({
                             'bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50'
                         )}
                     >
-                        {creating && <Loader2 className="w-4 h-4 animate-spin" />}
+                        {creating && <Loader2 className="w-4 h-4 animate-spin usuarios-loader-icon" />}
                         {creating ? 'Criando...' : 'Criar Usuário'}
                     </button>
                 </div>

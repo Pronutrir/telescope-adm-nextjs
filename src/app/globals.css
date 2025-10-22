@@ -1308,7 +1308,27 @@ a:hover .sidebar-icon {
 svg.navbar-bell-icon,
 svg.navbar-message-icon,
 svg.navbar-settings-icon,
-svg.navbar-search-icon {
+svg.navbar-search-icon,
+svg.navbar-refresh-icon,
+svg.usuarios-userplus-icon,
+svg.usuarios-search-icon,
+svg.usuarios-list-icon,
+svg.usuarios-grid-icon,
+svg.usuarios-alert-icon,
+svg.usuarios-mail-icon,
+svg.usuarios-edit-icon,
+svg.usuarios-key-icon,
+svg.usuarios-trash-icon,
+svg.usuarios-close-icon,
+svg.usuarios-shield-icon,
+svg.usuarios-check-icon,
+svg.usuarios-save-icon,
+svg.usuarios-user-icon,
+svg.usuarios-eye-icon,
+svg.usuarios-eyeoff-icon,
+svg.usuarios-alerttriangle-icon,
+svg.usuarios-loader-icon,
+svg.usuarios-refresh-icon {
   stroke: #374151 !important;
   fill: #f3f4f6 !important;
   stroke-width: 1.5 !important;
@@ -1318,7 +1338,27 @@ svg.navbar-search-icon {
 .dark svg.navbar-bell-icon,
 .dark svg.navbar-message-icon,
 .dark svg.navbar-settings-icon,
-.dark svg.navbar-search-icon {
+.dark svg.navbar-search-icon,
+.dark svg.navbar-refresh-icon,
+.dark svg.usuarios-userplus-icon,
+.dark svg.usuarios-search-icon,
+.dark svg.usuarios-list-icon,
+.dark svg.usuarios-grid-icon,
+.dark svg.usuarios-alert-icon,
+.dark svg.usuarios-mail-icon,
+.dark svg.usuarios-edit-icon,
+.dark svg.usuarios-key-icon,
+.dark svg.usuarios-trash-icon,
+.dark svg.usuarios-close-icon,
+.dark svg.usuarios-shield-icon,
+.dark svg.usuarios-check-icon,
+.dark svg.usuarios-save-icon,
+.dark svg.usuarios-user-icon,
+.dark svg.usuarios-eye-icon,
+.dark svg.usuarios-eyeoff-icon,
+.dark svg.usuarios-alerttriangle-icon,
+.dark svg.usuarios-loader-icon,
+.dark svg.usuarios-refresh-icon {
   stroke: #d1d5db !important;
   fill: #374151 !important;
   stroke-width: 1.5 !important;

@@ -177,7 +177,7 @@ export default function UsuariosPage() {
                                 'bg-blue-500 text-white hover:bg-blue-600'
                             )}
                         >
-                            <UserPlus className="w-4 h-4" />
+                            <UserPlus className="w-5 h-5 usuarios-userplus-icon" />
                             <span className="hidden sm:inline">Adicionar Usuário</span>
                             <span className="sm:hidden">Adicionar</span>
                         </button>
@@ -215,14 +215,16 @@ export default function UsuariosPage() {
                                     onClick={handleRefresh}
                                     disabled={loadingUsuarios}
                                     className={twMerge(
-                                        'flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all shrink-0',
-                                        isDark
-                                            ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 disabled:opacity-50'
-                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50'
+                                        'flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium shrink-0',
+                                        'bg-gray-100/80 border-gray-300 hover:bg-gray-200/80 hover:border-blue-500/50',
+                                        'dark:bg-gray-700/80 dark:border-gray-600 dark:hover:bg-gray-600/80 dark:hover:border-blue-400/50',
+                                        'transition-all duration-300',
+                                        'disabled:opacity-50 disabled:cursor-not-allowed'
                                     )}
                                     title="Atualizar lista"
+                                    aria-label="Atualizar lista de usuários"
                                 >
-                                    <RefreshCw className={twMerge('w-4 h-4', loadingUsuarios && 'animate-spin')} />
+                                    <RefreshCw className={twMerge('w-5 h-5 navbar-refresh-icon', loadingUsuarios && 'animate-spin')} />
                                     <span className="hidden sm:inline">Atualizar</span>
                                 </button>
                             </div>
@@ -232,7 +234,7 @@ export default function UsuariosPage() {
                                 {/* Barra de busca */}
                                 <div className="relative flex-1">
                                     <Search className={twMerge(
-                                        'absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4',
+                                        'absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 usuarios-search-icon',
                                         isDark ? 'text-gray-400' : 'text-gray-500'
                                     )} />
                                     <input
@@ -267,7 +269,7 @@ export default function UsuariosPage() {
                                         )}
                                         title="Visualização em lista"
                                     >
-                                        <List className="w-4 h-4" />
+                                        <List className="w-5 h-5 usuarios-list-icon" />
                                     </button>
                                     <button
                                         onClick={() => setViewMode('grid')}
@@ -283,7 +285,7 @@ export default function UsuariosPage() {
                                         )}
                                         title="Visualização em grade"
                                     >
-                                        <Grid className="w-4 h-4" />
+                                        <Grid className="w-5 h-5 usuarios-grid-icon" />
                                     </button>
                                 </div>
                             </div>
@@ -297,7 +299,7 @@ export default function UsuariosPage() {
                                     ? 'bg-red-900/20 border-red-800 text-red-200'
                                     : 'bg-red-50 border-red-200 text-red-700'
                             )}>
-                                <AlertCircle className="w-5 h-5 shrink-0" />
+                                <AlertCircle className="w-5 h-5 shrink-0 usuarios-alert-icon" />
                                 <div>
                                     <p className="font-medium">Erro ao carregar usuários</p>
                                     <p className="text-sm opacity-80">{errorUsuarios}</p>
@@ -352,8 +354,10 @@ export default function UsuariosPage() {
                                                 {/* Avatar e Info Principal */}
                                                 <div className="flex items-center gap-3 flex-1 min-w-0">
                                                     <div className={twMerge(
-                                                        'w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0',
-                                                        isDark ? 'bg-primary/80' : 'bg-primary'
+                                                        'w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0',
+                                                        isDark 
+                                                            ? 'bg-blue-600 text-white' 
+                                                            : 'bg-blue-600 text-white'
                                                     )}>
                                                         {user.name?.charAt(0).toUpperCase() || '?'}
                                                     </div>
@@ -366,7 +370,7 @@ export default function UsuariosPage() {
                                                         </h3>
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <Mail className={twMerge(
-                                                                'w-3 h-3',
+                                                                'w-4 h-4 usuarios-mail-icon',
                                                                 isDark ? 'text-gray-400' : 'text-gray-500'
                                                             )} />
                                                             <p className={twMerge(
@@ -426,7 +430,7 @@ export default function UsuariosPage() {
                                                         )}
                                                         title="Editar usuário"
                                                     >
-                                                        <Edit3 className="w-4 h-4" />
+                                                        <Edit3 className="w-5 h-5 usuarios-edit-icon" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleResetPassword(user)}
@@ -438,7 +442,7 @@ export default function UsuariosPage() {
                                                         )}
                                                         title="Resetar senha"
                                                     >
-                                                        <Key className="w-4 h-4" />
+                                                        <Key className="w-5 h-5 usuarios-key-icon" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteUser(user)}
@@ -450,7 +454,7 @@ export default function UsuariosPage() {
                                                         )}
                                                         title="Excluir usuário"
                                                     >
-                                                        <Trash2 className="w-4 h-4" />
+                                                        <Trash2 className="w-5 h-5 usuarios-trash-icon" />
                                                     </button>
                                                 </div>
                                             </div>
@@ -467,8 +471,10 @@ export default function UsuariosPage() {
                                                 {/* Avatar e Nome */}
                                                 <div className="flex flex-col items-center text-center mb-3">
                                                     <div className={twMerge(
-                                                        'w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl mb-2',
-                                                        isDark ? 'bg-primary/80' : 'bg-primary'
+                                                        'w-16 h-16 rounded-full flex items-center justify-center font-bold text-2xl mb-2',
+                                                        isDark 
+                                                            ? 'bg-blue-600 text-white' 
+                                                            : 'bg-blue-600 text-white'
                                                     )}>
                                                         {user.name?.charAt(0).toUpperCase() || '?'}
                                                     </div>
@@ -541,7 +547,7 @@ export default function UsuariosPage() {
                                                         )}
                                                         title="Editar"
                                                     >
-                                                        <Edit3 className="w-4 h-4" />
+                                                        <Edit3 className="w-5 h-5 usuarios-edit-icon" />
                                                         <span className="text-xs font-medium">Editar</span>
                                                     </button>
                                                     <button
@@ -554,7 +560,7 @@ export default function UsuariosPage() {
                                                         )}
                                                         title="Resetar"
                                                     >
-                                                        <Key className="w-4 h-4" />
+                                                        <Key className="w-5 h-5 usuarios-key-icon" />
                                                         <span className="text-xs font-medium">Resetar</span>
                                                     </button>
                                                     <button
@@ -567,7 +573,7 @@ export default function UsuariosPage() {
                                                         )}
                                                         title="Excluir"
                                                     >
-                                                        <Trash2 className="w-4 h-4" />
+                                                        <Trash2 className="w-5 h-5 usuarios-trash-icon" />
                                                         <span className="text-xs font-medium">Excluir</span>
                                                     </button>
                                                 </div>

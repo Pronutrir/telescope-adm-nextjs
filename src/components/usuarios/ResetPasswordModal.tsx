@@ -217,8 +217,8 @@ export default function ResetPasswordModal({ user, isOpen, onClose, onSuccess }:
                             isDark ? 'bg-yellow-500/20' : 'bg-yellow-100'
                         )}>
                             <Key className={twMerge(
-                                'w-5 h-5',
-                                isDark ? 'text-yellow-400' : 'text-yellow-600'
+                                'w-6 h-6 usuarios-key-icon',
+                                isDark ? 'text-blue-400' : 'text-blue-600'
                             )} />
                         </div>
                         <div>
@@ -246,7 +246,7 @@ export default function ResetPasswordModal({ user, isOpen, onClose, onSuccess }:
                                 : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
                         )}
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-5 h-5 usuarios-close-icon" />
                     </button>
                 </div>
 
@@ -259,7 +259,7 @@ export default function ResetPasswordModal({ user, isOpen, onClose, onSuccess }:
                             ? 'bg-yellow-900/10 border-yellow-800/30 text-yellow-200'
                             : 'bg-yellow-50 border-yellow-200 text-yellow-800'
                     )}>
-                        <Shield className="w-5 h-5 shrink-0 mt-0.5" />
+                        <Shield className="w-5 h-5 shrink-0 mt-0.5 usuarios-shield-icon" />
                         <div className="text-sm">
                             <p className="font-medium mb-1">Atenção:</p>
                             <p className="opacity-90">
@@ -301,7 +301,7 @@ export default function ResetPasswordModal({ user, isOpen, onClose, onSuccess }:
                                         'font-medium text-sm',
                                         isDark ? 'text-white' : 'text-gray-900'
                                     )}>
-                                        <RefreshCw className="w-4 h-4 inline mr-2" />
+                                        <RefreshCw className="w-4 h-4 inline mr-2 usuarios-refresh-icon" />
                                         Senha Padrão (Recomendado)
                                     </div>
                                     <div className={twMerge(
@@ -337,7 +337,7 @@ export default function ResetPasswordModal({ user, isOpen, onClose, onSuccess }:
                                         'font-medium text-sm',
                                         isDark ? 'text-white' : 'text-gray-900'
                                     )}>
-                                        <Key className="w-4 h-4 inline mr-2" />
+                                        <Key className="w-4 h-4 inline mr-2 usuarios-key-icon" />
                                         Senha Personalizada
                                     </div>
                                     <div className={twMerge(
@@ -489,12 +489,12 @@ export default function ResetPasswordModal({ user, isOpen, onClose, onSuccess }:
                     >
                         {resetting ? (
                             <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <Loader2 className="w-4 h-4 animate-spin usuarios-loader-icon" />
                                 Resetando...
                             </>
                         ) : (
                             <>
-                                <Key className="w-4 h-4" />
+                                <Key className="w-4 h-4 usuarios-key-icon" />
                                 Resetar Senha
                             </>
                         )}
