@@ -5,30 +5,18 @@ interface GoogleAnalyticsLoaderProps {
 }
 
 export const GoogleAnalyticsLoader = ({ onLoad }: GoogleAnalyticsLoaderProps) => {
-    const initializeGoogleAnalytics = useCallback(async () => {
-        const apiKey = process.env.NEXT_PUBLIC_GA_API_KEY
-        const clientId = process.env.NEXT_PUBLIC_GA_CLIENT_ID
-
-        if (!apiKey || !clientId) {
-            throw new Error('Chaves de API do Google Analytics não configuradas')
-        }
-
-        await window.gapi.client.init({
-            apiKey,
-            discoveryDocs: [ 'https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta' ],
-            scope: 'https://www.googleapis.com/auth/analytics.readonly'
-        })
-
-        await window.gapi.auth2.init({
-            client_id: clientId,
-            scope: 'https://www.googleapis.com/auth/analytics.readonly'
-        })
-
-        console.log('Google Analytics API inicializada com sucesso')
-    }, [])
-
     const loadGoogleAnalytics = useCallback(async () => {
         try {
+            // Verificar chaves ANTES de tentar carregar qualquer script
+            const apiKey = process.env.NEXT_PUBLIC_GA_API_KEY
+            const clientId = process.env.NEXT_PUBLIC_GA_CLIENT_ID
+
+            if (!apiKey || !clientId) {
+                // 🔇 Silenciosamente falha - não há GA configurado
+                onLoad?.(false)
+                return
+            }
+
             // Verificar se já está carregado
             if (window.gapi) {
                 onLoad?.(true)
@@ -44,10 +32,21 @@ export const GoogleAnalyticsLoader = ({ onLoad }: GoogleAnalyticsLoaderProps) =>
                 // Carregar Google Analytics Data API
                 window.gapi.load('client:auth2', async () => {
                     try {
-                        await initializeGoogleAnalytics()
+                        await window.gapi.client.init({
+                            apiKey,
+                            discoveryDocs: [ 'https://analyticsdata.googleapis.com/$discovery/rest?version=v1beta' ],
+                            scope: 'https://www.googleapis.com/auth/analytics.readonly'
+                        })
+
+                        await window.gapi.auth2.init({
+                            client_id: clientId,
+                            scope: 'https://www.googleapis.com/auth/analytics.readonly'
+                        })
+
+                        console.log('✅ Google Analytics API inicializada com sucesso')
                         onLoad?.(true)
                     } catch (err) {
-                        console.error('Erro ao inicializar Google Analytics:', err)
+                        // Erro silencioso - GA não configurado corretamente
                         onLoad?.(false)
                     }
                 })
@@ -60,10 +59,10 @@ export const GoogleAnalyticsLoader = ({ onLoad }: GoogleAnalyticsLoaderProps) =>
             document.head.appendChild(script)
 
         } catch (err) {
-            console.error('Erro ao carregar Google Analytics:', err)
+            // Erro silencioso - GA não configurado
             onLoad?.(false)
         }
-    }, [ initializeGoogleAnalytics, onLoad ])
+    }, [ onLoad ])
 
     useEffect(() => {
         loadGoogleAnalytics()

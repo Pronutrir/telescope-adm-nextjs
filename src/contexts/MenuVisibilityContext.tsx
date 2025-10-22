@@ -112,17 +112,9 @@ export function MenuVisibilityProvider({ children }: MenuVisibilityProviderProps
     // Salvar no localStorage sempre que houver mudanças
     useEffect(() => {
         if (isLoaded && Object.keys(routeVisibility).length > 0) {
-            // 🐛 DEBUG: Log detalhado para ver quem está mudando
-            console.log('💾 [MenuVisibility] useEffect DISPARADO!')
-            console.log('   📊 Estado atual:', routeVisibility)
-            console.log('   🔢 Total de rotas:', Object.keys(routeVisibility).length)
-            console.log('   ❌ Rotas ocultas:', Object.entries(routeVisibility).filter(([_, v]) => v === false).map(([k]) => k))
-            console.log('   ✅ Rotas visíveis:', Object.entries(routeVisibility).filter(([_, v]) => v === true).map(([k]) => k))
-            console.trace('   📍 Stack trace de quem chamou')
-            
-            // ⚠️ TEMPORARIAMENTE DESABILITADO - Não salvar no localStorage
+            // � Logs de debug removidos para limpar console
+            // Descomentar apenas se precisar debugar visibilidade do menu
             // localStorage.setItem('menuVisibility', JSON.stringify(routeVisibility))
-            console.log('   ⚠️ SAVE DESABILITADO - não salvando no localStorage')
         }
     }, [ routeVisibility, isLoaded ])
 

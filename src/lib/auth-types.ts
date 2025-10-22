@@ -47,6 +47,7 @@ export interface IUser {
   usuario: string
   avatar?: string
   createdAt?: string
+  preferredHomePage?: string  // 🏠 Página inicial preferida do usuário
 }
 
 export interface IAuthLoginResponse extends IUser {

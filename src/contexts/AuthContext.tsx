@@ -36,7 +36,6 @@ const authReducer = (state: IAuthState, action: AuthAction): IAuthState => {
         case 'SET_LOADING':
             return { ...state, isLoading: action.payload }
         case 'SET_USER':
-            debugger;
             return {
                 ...state,
                 user: action.payload,
@@ -98,51 +97,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         hasInitialized.current = true
 
         const initializeAuth = async () => {
-            console.log('🚀 Iniciando verificação de autenticação...')
-
-            // ✅ LIMPEZA FORÇADA DE TOKENS RESIDUAIS DO LOCALSTORAGE (SEGURANÇA)
-            if (typeof window !== 'undefined') {
-                localStorage.removeItem('token')
-                localStorage.removeItem('refreshToken')
-                localStorage.removeItem('telescope_token')
-                console.log('🧹 Tokens removidos do localStorage por segurança')
-            }
-
-            // Verificar se há dados de sessão inconsistentes e limpar se necessário
-            const hasInconsistentData = cleanupService.checkForRemainingData()
-            if (hasInconsistentData) {
-                const token = tokenStorage.getToken()
-                if (!token || !tokenStorage.isTokenValid(token)) {
-                    console.log('🧹 Dados de sessão inconsistentes detectados, limpando...')
-                    cleanupService.clearAuthData()
-                }
-            }
-
-            // ⚠️ IMPORTANTE: session_id é httpOnly, então NÃO aparece em document.cookie!
-            // Vamos SEMPRE tentar buscar do servidor, que vai ler o cookie automaticamente
-            console.log('📡 [DEBUG] Tentando buscar usuário via /api/auth/me (cookie httpOnly enviado automaticamente)...')
+            // ✅ OTIMIZAÇÃO: Remover limpeza desnecessária de localStorage
+            // (já foi feita em carregamentos anteriores)
 
             try {
                 // ✅ Buscar dados do usuário via API (session_id vai automaticamente no cookie httpOnly)
                 const response = await fetch('/api/auth/me', {
-                    credentials: 'include' // ✅ Garantir que cookies sejam enviados
+                    credentials: 'include', // ✅ Garantir que cookies sejam enviados
+                    cache: 'no-store' // ✅ Evitar cache para dados de sessão
                 })
                 
                 if (!response.ok) {
-                    console.log('❌ [DEBUG] API retornou status:', response.status)
                     throw new Error('Sessão inválida ou expirada')
                 }
                 
                 const userData = await response.json()
-                console.log('✅ [DEBUG] Usuário autenticado com sucesso!')
-
                 dispatch({ type: 'SET_USER', payload: userData })
 
             } catch (error) {
-                console.log('❌ [DEBUG] Nenhuma sessão válida encontrada')
-                console.log('❌ Sessão inexistente ou expirada, definindo loading como false')
-                tokenStorage.clearTokens()
-                cleanupService.clearAuthData()
+                // Sessão inexistente ou expirada
                 dispatch({ type: 'SET_LOADING', payload: false })
             }
         }
@@ -219,7 +192,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
             if (!response.jwtToken || !response.refreshToken) {
                 console.error('❌ [LOGIN] API não retornou tokens válidos!')
-                debugger; // 🐛 BREAKPOINT - API não retornou tokens
                 throw new Error('API não retornou tokens de autenticação')
             }
 
@@ -279,41 +251,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     const logout = async () => {
-        console.log('🚪 Iniciando processo de logout...')
+        console.log('🚪 Logout simples - apenas limpando estado local...')
 
+        // ✅ Limpeza mínima e rápida
         try {
-            // Primeiro chama o serviço de logout (que limpa API e storage)
-            await authService.logout()
+            // Limpar apenas dados locais sensíveis (sem API calls pesadas)
+            const sensitiveKeys = ['user', 'authState', 'sessionData']
+            sensitiveKeys.forEach(key => localStorage.removeItem(key))
+            
+            // Limpar sessionStorage
+            sessionStorage.clear()
         } catch (error) {
-            console.error('Erro durante logout da API:', error)
+            console.warn('Erro na limpeza local:', error)
         }
 
-        // Garantir limpeza completa dos tokens
-        tokenStorage.clearTokens()
-
-        // Remover token dos headers de todas as instâncias do Axios
-        axiosConfig.clearAuthToken()
-
-        // Usar serviço de limpeza completa
-        cleanupService.clearAuthData()
-
-        // Limpar estado local da aplicação
+        // ✅ Limpar estado da aplicação
         dispatch({ type: 'LOGOUT' })
 
-        // Verificar se ainda há dados remanescentes
-        const hasRemainingData = cleanupService.checkForRemainingData()
-        if (hasRemainingData) {
-            console.warn('⚠️ Executando limpeza completa devido a dados remanescentes...')
-            await cleanupService.performCompleteCleanup()
-        }
-
-        console.log('✅ Logout completo - redirecionando...')
-
-        // Aguardar um momento para garantir que tudo foi limpo
-        setTimeout(() => {
-            // Redirecionar com replace para não manter histórico
-            window.location.replace('/auth/server-login')
-        }, 100)
+        console.log('✅ Logout local completo')
     }
 
     const updatePassword = async (username: string, newPassword: string): Promise<void> => {

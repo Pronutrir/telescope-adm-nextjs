@@ -18,9 +18,9 @@ export const hasRouteAccess = (route: Route, userRoles: string[]): boolean => {
 
 /**
  * Obtém a primeira rota disponível para o usuário baseada em suas permissões
- * Prioriza rotas com defaultRoute=true, depois a primeira acessível
+ * Prioridade: 1) Preferência do usuário, 2) Dashboard (padrão), 3) Primeira acessível
  */
-export const getFirstAvailableRoute = (user: IUser | null): string => {
+export const getFirstAvailableRoute = (user: IUser | null, preferredHomePage?: string): string => {
   // Se não há usuário, redireciona para login
   if (!user) {
     return '/auth/login'
@@ -42,16 +42,29 @@ export const getFirstAvailableRoute = (user: IUser | null): string => {
     return '/auth/no-access'
   }
 
-  // Tenta encontrar a rota padrão
-  const defaultRoute = accessibleRoutes.find(route => route.defaultRoute === true)
-  if (defaultRoute) {
-    console.log('✅ Rota padrão encontrada:', defaultRoute.layout + defaultRoute.path)
-    return defaultRoute.layout + defaultRoute.path
+  // 🏠 PRIORIDADE 1: Preferência do usuário (se definida e acessível)
+  if (preferredHomePage) {
+    const preferredRoute = accessibleRoutes.find(route => 
+      (route.layout + route.path) === preferredHomePage
+    )
+    if (preferredRoute) {
+      console.log('🏠 Usando página inicial preferida:', preferredHomePage)
+      return preferredHomePage
+    } else {
+      console.warn('⚠️ Página preferida não acessível, usando padrão')
+    }
   }
 
-  // Se não há rota padrão, usa a primeira disponível
+  // 🎯 PRIORIDADE 2: Dashboard (padrão para todos)
+  const dashboardRoute = accessibleRoutes.find(route => route.path === '/dashboard')
+  if (dashboardRoute) {
+    console.log('🎯 Usando Dashboard como página inicial padrão')
+    return dashboardRoute.layout + dashboardRoute.path
+  }
+
+  // 📌 PRIORIDADE 3: Primeira rota acessível
   const firstRoute = accessibleRoutes[0]
-  console.log('✅ Primeira rota disponível:', firstRoute.layout + firstRoute.path)
+  console.log('📌 Usando primeira rota disponível:', firstRoute.layout + firstRoute.path)
   return firstRoute.layout + firstRoute.path
 }
 

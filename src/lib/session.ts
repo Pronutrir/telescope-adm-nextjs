@@ -18,6 +18,7 @@ export interface SessionData {
   permissions: string[]
   perfis?: any[]  // Complete perfil objects from UserShield (id, nomePerfil, statusPerfil, dataRegistro, dataAtualizacao, usuario, roleId)
   requiresPasswordChange?: boolean  // 🔐 Flag indicating if user must change password
+  preferredHomePage?: string  // 🏠 User's preferred home page path (e.g., '/admin/dashboard')
   expiresAt: Date
   ipAddress: string
   userAgent: string
@@ -261,7 +262,37 @@ class ServerSessionManager {
   }
 
   /**
-   * 🔒 Verificar se sessão precisa de renovação
+   * � Obter todas as sessões de um usuário
+   */
+  async getUserSessions(userId: string): Promise<SessionData[]> {
+    try {
+      const userSessionsKey = `user_sessions:${userId}`
+      const sessionIds = await this.redis.smembers(userSessionsKey)
+      
+      const sessions: SessionData[] = []
+      
+      for (const sessionId of sessionIds) {
+        const sessionData = await this.redis.get(`session:${sessionId}`)
+        if (sessionData) {
+          const session = JSON.parse(sessionData) as SessionData
+          sessions.push(session)
+        }
+      }
+      
+      // Ordenar por lastActivity (mais recente primeiro)
+      sessions.sort((a, b) => 
+        new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime()
+      )
+      
+      return sessions
+    } catch (error) {
+      console.error('❌ Erro ao obter sessões do usuário:', error)
+      return []
+    }
+  }
+
+  /**
+   * �🔒 Verificar se sessão precisa de renovação
    */
   async needsRefresh(sessionId: string): Promise<boolean> {
     try {

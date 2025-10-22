@@ -17,7 +17,7 @@ import type { SidebarProps } from '@/types/layout'
 
 const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
     const { sidebarOpen, sidebarCollapsed, toggleSidebar, isMobile, mounted } = useLayout()
-    const { user, isAuthenticated } = useAuth()
+    const { user, isAuthenticated, isLoading: authLoading } = useAuth() // ✅ Adicionar isLoading
     const { routeVisibility, setConfigModalOpen } = useMenuVisibility()
     const pathname = usePathname()
     const [ openMenus, setOpenMenus ] = useState<{ [ key: string ]: boolean }>({})
@@ -47,46 +47,25 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
         return () => observer.disconnect()
     }, [])
 
-    // Filtrar rotas baseado na autenticação e roles do usuário
-    console.log('👤 FULL USER OBJECT:', user)
-    console.log('📦 user?.perfis:', user?.perfis)
-    console.log('📦 user?.roles:', user?.roles)
-    console.log('🔑 user?.tipoUsuario:', user?.tipoUsuario)
+    // ✅ OTIMIZAÇÃO: Processar rotas mesmo durante loading, mas com fallback seguro
+    // Não bloquear renderização com skeleton - melhor UX
     
-    // ✅ CORREÇÃO: Usar perfis diretamente, não roles.perfis
+    // Filtrar rotas baseado na autenticação e roles do usuário
     const userRoles = user?.perfis?.map((perfil) => perfil.nomePerfil).filter(Boolean) ||
         (user?.tipoUsuario ? [ user.tipoUsuario ] : []) ||
-        [ 'default_fullstackdev' ] // fallback para desenvolvimento
-
-    console.log('🔍 User Roles (final):', userRoles)
-    console.log('   📋 Roles extraídos:', userRoles.join(', '))
-    console.log('📊 Total Routes:', routes.length)
-    console.log('👁️ Route Visibility State:', routeVisibility)
+        [] // Vazio durante loading
 
     let availableRoutes: Route[]
-    if (isAuthenticated && user) {
-        // Usuário autenticado - filtrar por roles primeiro
+    if (isAuthenticated && user && !authLoading) {
+        // Usuário autenticado - filtrar por roles e visibilidade
         const roleFiltered = filterRoutesByRoles(routes, userRoles)
-        console.log('✅ After Role Filter:', roleFiltered.length, 'routes')
-        console.log('📋 Role Filtered Routes:', roleFiltered.map(r => r.name))
-        
-        // Depois filtrar por visibilidade usando o contexto
-        // Se routeVisibility não tem a chave, considera visível (true)
-        availableRoutes = roleFiltered.filter(route => {
-            const isVisible = routeVisibility[route.name] !== false
-            console.log(`  - ${route.name}: visibility=${routeVisibility[route.name]} → ${isVisible ? '✅' : '❌'}`)
-            return isVisible
-        })
-        console.log('🎯 Final Available Routes:', availableRoutes.length)
+        availableRoutes = roleFiltered.filter(route => routeVisibility[route.name] !== false)
     } else {
-        // Não autenticado - apenas rotas públicas + algumas básicas
+        // Loading ou não autenticado - rotas públicas básicas
         const publicRoutes = routes.filter(route =>
             !route.private ||
-            route.name === 'Dashboard' ||
-            route.name === 'FlyonUI Cards'
+            route.name === 'Dashboard'
         )
-        // Filtrar por visibilidade usando o contexto
-        // Se routeVisibility não tem a chave, considera visível (true)
         availableRoutes = publicRoutes.filter(route => routeVisibility[route.name] !== false)
     }
 

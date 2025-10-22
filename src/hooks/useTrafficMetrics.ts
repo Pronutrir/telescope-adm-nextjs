@@ -110,7 +110,8 @@ export const useTrafficMetrics = (): UseTrafficMetricsReturn => {
                 })
             }
         } catch (err) {
-            console.warn('Erro ao buscar métricas de tráfego, usando dados de exemplo:', err)
+            // 🔇 Silenciosamente usa dados de exemplo quando GA não está disponível
+            // (evita poluir console com erro esperado em desenvolvimento)
             setError('Erro ao carregar métricas de tráfego')
             
             // Usar dados de exemplo em caso de erro

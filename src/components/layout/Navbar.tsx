@@ -22,24 +22,9 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
         isMobile
     } = useLayout()
 
-    const { user, logout, isLoading } = useAuth()
+    const { user, logout, isLoading: authLoading } = useAuth()
     const [ isLoggingOut, setIsLoggingOut ] = useState(false)
     const [ isDark, setIsDark ] = useState(false)
-
-    debugger; // 🐛 BREAKPOINT - User carregado com sucesso
-
-    // 🐛 DEBUG - Observar carregamento do user
-    useEffect(() => {
-        console.log('👤 [NAVBAR] Estado Auth:', { 
-            user: user ? 'Carregado' : 'null', 
-            isLoading,
-            nomeCompleto: user?.nomeCompleto 
-        })
-        
-        if (!isLoading && user) {
-            debugger; // 🐛 BREAKPOINT - User carregado com sucesso
-        }
-    }, [user, isLoading])
 
     // Detectar tema atual
     useEffect(() => {
@@ -64,9 +49,10 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
 
         setIsLoggingOut(true)
         try {
-            console.log('🚪 Iniciando logout server-side...')
+            console.log('🚪 Iniciando logout otimizado...')
+            const startTime = performance.now()
 
-            // Chama a API server-side para destruir a sessão Redis
+            // ✅ Chama apenas a API server-side para destruir a sessão Redis
             const response = await fetch('/api/auth/session', {
                 method: 'DELETE',
                 headers: {
@@ -75,22 +61,21 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
             })
 
             if (response.ok) {
-                console.log('✅ Sessão server-side destruída com sucesso!')
-
-                // Limpar dados do contexto de autenticação se existir
-                if (logout) {
-                    await logout()
-                }
+                console.log('✅ Sessão server-side destruída!')
+                
+                const endTime = performance.now()
+                console.log(`⚡ Logout concluído em ${(endTime - startTime).toFixed(2)}ms`)
+                
+                // ✅ Redirecionamento imediato
+                window.location.replace('/auth/server-login')
             } else {
                 console.warn('⚠️ Erro ao destruir sessão server-side, mas continuando logout...')
+                // Em caso de erro, ainda assim redirecionar
+                window.location.replace('/auth/server-login')
             }
 
-            // Redirecionar para tela de login server-side
-            console.log('🔄 Redirecionando para login server-side...')
-            window.location.replace('/auth/server-login')
-
         } catch (error) {
-            console.error('❌ Erro no logout server-side:', error)
+            console.error('❌ Erro no logout:', error)
             // Em caso de erro, ainda assim redirecionar para login
             window.location.replace('/auth/server-login')
         } finally {

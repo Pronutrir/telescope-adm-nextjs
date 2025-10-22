@@ -250,6 +250,36 @@ export async function POST(request: NextRequest) {
     // 🔐 NOVO: Verificar se usuário precisa alterar senha
     const requiresPasswordChange = userData?.passUpdate === true
     
+    // 🏠 NOVO: Buscar preferência de página inicial de sessão anterior (se existir)
+    let preferredHomePage = '/admin/dashboard' // padrão
+    try {
+      logger.info(`🏠 [Auth] Buscando sessões anteriores para userId: ${userId}`)
+      const previousSessions = await sessionManager.getUserSessions(userId)
+      logger.info(`🏠 [Auth] Sessões encontradas: ${previousSessions.length}`)
+      
+      if (previousSessions && previousSessions.length > 0) {
+        // Pegar a preferência da sessão mais recente
+        const lastSession = previousSessions[0]
+        logger.info(`🏠 [Auth] Última sessão:`, {
+          userId: lastSession.userId,
+          preferredHomePage: lastSession.preferredHomePage,
+          lastActivity: lastSession.lastActivity
+        })
+        
+        if (lastSession.preferredHomePage) {
+          preferredHomePage = lastSession.preferredHomePage
+          logger.info(`🏠 [Auth] ✅ Preferência anterior encontrada: ${preferredHomePage}`)
+        } else {
+          logger.info(`🏠 [Auth] ⚠️ Sessão existe mas sem preferredHomePage definido`)
+        }
+      } else {
+        logger.info(`🏠 [Auth] Nenhuma sessão anterior encontrada`)
+      }
+    } catch (error) {
+      logger.warn('🏠 [Auth] Erro ao buscar preferência anterior:', error)
+      logger.debug('🏠 [Auth] Usando padrão: /admin/dashboard')
+    }
+    
     // ✅ Criar sessão server-side (dados ficam 100% no servidor)
     const sessionId = await sessionManager.createSession({
       userId: userId,
@@ -259,6 +289,7 @@ export async function POST(request: NextRequest) {
       permissions: userPerfis, // Array de strings para compatibilidade
       perfis: userPerfisCompletos, // 🔥 NOVO: Array completo de objetos
       requiresPasswordChange: requiresPasswordChange, // 🔐 NOVO: Flag de alteração obrigatória
+      preferredHomePage: preferredHomePage, // 🏠 NOVO: Manter preferência ou usar padrão
       ipAddress: clientIP,
       userAgent: userAgent
     })
@@ -275,6 +306,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Login realizado com sucesso',
       requiresPasswordChange: requiresPasswordChange, // 🔐 NOVO: Indicar se precisa alterar senha
+      preferredHomePage: preferredHomePage, // 🏠 NOVO: Retornar preferência para frontend
       user: {
         id: userId,
         email: email,

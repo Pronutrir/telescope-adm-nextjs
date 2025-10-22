@@ -38,7 +38,7 @@ export interface Route {
 
 // Array de todas as rotas da aplicação
 export const routes: Route[] = [
-  // Dashboard - Rota principal
+  // Dashboard - Rota principal (padrão para todos)
   {
     path: '/dashboard',
     name: 'Dashboard',
@@ -46,7 +46,7 @@ export const routes: Route[] = [
     iconColor: 'Primary',
     layout: '/admin',
     private: false,
-    defaultRoute: false,
+    defaultRoute: true,  // ✅ Dashboard é a página inicial padrão
     search: true,
     component: 'Dashboard',
     visible: true,
@@ -75,7 +75,7 @@ export const routes: Route[] = [
     iconColor: 'Warning',
     layout: '/admin',
     private: false,
-    defaultRoute: true,
+    defaultRoute: false,  // ✅ Não é mais a rota padrão
     search: true,
     component: 'GerenciadorPDFs',
     visible: true,

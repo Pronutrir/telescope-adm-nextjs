@@ -45,10 +45,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             requestAnimationFrame(() => {
                 root.style.setProperty('--theme-transition', 'all 0.2s ease-in-out')
             })
-
-            console.log(`🎨 Tema aplicado: ${newTheme}`)
         } catch (error) {
-            console.warn('Erro ao aplicar tema:', error)
+            // Silencioso - erro ao aplicar tema
         }
     }, [])
 
@@ -70,9 +68,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
             setThemeState(initialTheme)
             setMounted(true)
-            console.log(`🎨 Tema inicial sincronizado: ${initialTheme}`)
         } catch (error) {
-            console.warn('Erro ao carregar tema:', error)
+            // Silencioso - erro ao carregar tema
             setThemeState('dark')
             setMounted(true)
         }
@@ -89,14 +86,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                     const newTheme = e.matches ? 'dark' : 'light'
                     setThemeState(newTheme)
                     applyTheme(newTheme)
-                    console.log(`🎨 Tema do sistema alterado para: ${newTheme}`)
                 }
             }
 
             mediaQuery.addEventListener('change', handleChange)
             return () => mediaQuery.removeEventListener('change', handleChange)
         } catch (error) {
-            console.warn('Erro ao configurar listener de tema:', error)
+            // Silencioso - erro ao configurar listener
         }
     }, [ mounted ])
 
@@ -105,9 +101,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             setThemeState(newTheme)
             applyTheme(newTheme)
             localStorage.setItem('telescope-theme', newTheme)
-            console.log(`🎨 Tema alterado para: ${newTheme}`)
         } catch (error) {
-            console.warn('Erro ao alterar tema:', error)
+            // Silencioso - erro ao alterar tema
         }
     }, [ applyTheme ])
 

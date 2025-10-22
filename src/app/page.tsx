@@ -12,10 +12,35 @@ export default function Home() {
 
     useEffect(() => {
         if (!isLoading && user) {
-            // Redireciona para a primeira rota disponível baseada nas permissões do usuário
-            const targetRoute = getFirstAvailableRoute(user)
-            console.log('🔀 Redirecionando usuário para:', targetRoute)
-            router.push(targetRoute)
+            // Buscar preferência de página inicial do usuário
+            const fetchUserPreference = async () => {
+                try {
+                    const response = await fetch('/api/auth/me')
+                    if (response.ok) {
+                        const data = await response.json()
+                        const preferredHomePage = data.preferredHomePage
+                        
+                        // Redireciona para a primeira rota disponível baseada nas permissões
+                        // Prioriza preferredHomePage se existir
+                        const targetRoute = getFirstAvailableRoute(user, preferredHomePage)
+                        console.log('🔀 Redirecionando usuário para:', targetRoute)
+                        router.push(targetRoute)
+                    } else {
+                        // Se falhar ao buscar preferência, usa rota padrão
+                        const targetRoute = getFirstAvailableRoute(user)
+                        console.log('🔀 Redirecionando usuário para:', targetRoute)
+                        router.push(targetRoute)
+                    }
+                } catch (error) {
+                    console.error('Erro ao buscar preferência:', error)
+                    // Em caso de erro, usa rota padrão
+                    const targetRoute = getFirstAvailableRoute(user)
+                    console.log('🔀 Redirecionando usuário para:', targetRoute)
+                    router.push(targetRoute)
+                }
+            }
+            
+            fetchUserPreference()
         }
     }, [ user, isLoading, router ])
 

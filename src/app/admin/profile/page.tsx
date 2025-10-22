@@ -11,6 +11,7 @@ import {
     UserInfoCard,
     UserAvatarUpload
 } from '@/components/profile'
+import { HomePageSelector } from '@/components/profile/HomePageSelector'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useLayout } from '@/contexts/LayoutContext'
@@ -22,7 +23,8 @@ import {
     Lock, 
     Clock, 
     Info,
-    Camera
+    Camera,
+    Home
 } from 'lucide-react'
 
 interface Activity {
@@ -39,7 +41,7 @@ const UserProfilePage = () => {
     const { isMobile } = useLayout()
     const { showSuccess, showError } = useNotifications()
     const [ isLoading, setIsLoading ] = useState(false)
-    const [ activeTab, setActiveTab ] = useState<'profile' | 'info' | 'security' | 'permissions' | 'activity' | 'avatar'>('profile')
+    const [ activeTab, setActiveTab ] = useState<'profile' | 'info' | 'security' | 'permissions' | 'activity' | 'avatar' | 'preferences'>('profile')
     const [ activities, setActivities ] = useState<Activity[]>([])
     const [ loadingActivities, setLoadingActivities ] = useState(false)
 
@@ -190,6 +192,7 @@ const UserProfilePage = () => {
         { id: 'avatar' as const, label: 'Foto de Perfil', icon: Camera },
         { id: 'info' as const, label: 'Informações', icon: Info },
         { id: 'permissions' as const, label: 'Permissões', icon: Shield },
+        { id: 'preferences' as const, label: 'Preferências', icon: Home },
         { id: 'security' as const, label: 'Segurança', icon: Lock },
         { id: 'activity' as const, label: 'Atividades', icon: Clock }
     ]
@@ -292,6 +295,10 @@ const UserProfilePage = () => {
                             isDark={isDark}
                             isLoading={isLoading}
                         />
+                    )}
+
+                    {activeTab === 'preferences' && (
+                        <HomePageSelector />
                     )}
 
                     {activeTab === 'security' && user && (

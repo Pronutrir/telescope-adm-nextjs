@@ -169,6 +169,7 @@ const ServerSideLoginPage: React.FC = () => {
                 if (response.ok && data.success) {
                     console.log('✅ Login server-side bem-sucedido!')
                     console.log('👤 Usuário:', data.user)
+                    console.log('🏠 [Login] preferredHomePage recebido:', data.preferredHomePage)
 
                     // 🔐 NOVO: Verificar se usuário precisa alterar senha
                     if (data.requiresPasswordChange === true) {
@@ -195,10 +196,12 @@ const ServerSideLoginPage: React.FC = () => {
                         duration: 3000
                     })
 
-                    // ✅ Usar window.location.href para forçar reload completo
-                    // Isso garante que o cookie session_id seja lido corretamente
+                    // ✅ Redirecionar para página preferida do usuário ou Dashboard (padrão)
+                    // A lógica de priorização já está implementada em getFirstAvailableRoute()
+                    const preferredPage = data.preferredHomePage || '/admin/dashboard'
+                    
                     setTimeout(() => {
-                        window.location.href = '/admin/gerenciador-pdfs'
+                        window.location.href = preferredPage
                     }, 1500)
                 } else {
                     console.error('❌ Erro no login:', data)
