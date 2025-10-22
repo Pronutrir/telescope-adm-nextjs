@@ -22,6 +22,9 @@ export async function middleware(request: NextRequest) {
   // ✅ Rotas públicas que não precisam de autenticação
   const publicRoutes = ['/auth/login', '/auth/server-login', '/auth/recovery', '/test-pdf', '/webhook-monitor']
   
+  // 🔐 Rota especial: Alteração de senha obrigatória (requer sessão ativa)
+  const passwordChangeRoute = '/auth/alterar-senha'
+  
   // ✅ Rotas de API que não precisam de middleware (tratadas pelos route handlers)
   const apiRoutes = ['/api/auth/session', '/api/auth/me', '/api/auth/logout', '/api/health']
   const isApiRoute = apiRoutes.some(route => pathname.startsWith(route))
@@ -32,6 +35,16 @@ export async function middleware(request: NextRequest) {
 
   // ✅ Obter session ID do cookie (server-side session)
   const sessionId = request.cookies.get('session_id')?.value
+  
+  // 🔐 Verificar rota de alteração de senha obrigatória (requer sessão ativa)
+  if (pathname === passwordChangeRoute) {
+    if (!sessionId) {
+      console.log(`🔒 [Middleware] Acesso negado a alteração de senha - sem session_id`)
+      return NextResponse.redirect(new URL('/auth/server-login', request.url))
+    }
+    // Permitir acesso com sessão válida
+    return NextResponse.next()
+  }
   
   // ✅ Verificar se é uma rota pública primeiro
   if (publicRoutes.includes(pathname)) {
@@ -56,7 +69,8 @@ export async function middleware(request: NextRequest) {
     
     // ✅ Middleware apenas verifica SE o cookie existe
     // A validação da sessão no Redis é feita pelo AuthContext via /api/auth/me
-    // Isso evita chamadas síncronas ao Redis no Edge Runtime
+    // O redirecionamento para alteração de senha é feito no frontend após o login
+    // para garantir que a senha anterior esteja disponível no sessionStorage
   }
 
   // ✅ Redirecionar raiz para login se não estiver logado, ou gerenciador de PDFs se estiver

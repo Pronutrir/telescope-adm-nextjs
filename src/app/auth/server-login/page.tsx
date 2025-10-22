@@ -170,6 +170,25 @@ const ServerSideLoginPage: React.FC = () => {
                     console.log('✅ Login server-side bem-sucedido!')
                     console.log('👤 Usuário:', data.user)
 
+                    // 🔐 NOVO: Verificar se usuário precisa alterar senha
+                    if (data.requiresPasswordChange === true) {
+                        console.warn('⚠️ Usuário precisa alterar senha (passUpdate=true)')
+                        
+                        // Salvar senha temporariamente para não precisar digitar novamente
+                        sessionStorage.setItem('temp_password', values.Password)
+                        
+                        notify.warning('Você precisa alterar sua senha antes de continuar.', {
+                            title: 'Alteração de Senha Obrigatória',
+                            duration: 2000
+                        })
+
+                        // Redirecionar para página de alteração obrigatória de senha
+                        setTimeout(() => {
+                            window.location.href = '/auth/alterar-senha'
+                        }, 500)
+                        return
+                    }
+
                     // Usar o sistema global de notificações
                     notify.success('Login realizado com sucesso! Redirecionando...', {
                         title: 'Sucesso',

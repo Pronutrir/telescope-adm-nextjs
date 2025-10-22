@@ -17,6 +17,7 @@ export interface SessionData {
   token?: string  // JWT token from UserShield API
   permissions: string[]
   perfis?: any[]  // Complete perfil objects from UserShield (id, nomePerfil, statusPerfil, dataRegistro, dataAtualizacao, usuario, roleId)
+  requiresPasswordChange?: boolean  // 🔐 Flag indicating if user must change password
   expiresAt: Date
   ipAddress: string
   userAgent: string
@@ -177,6 +178,36 @@ class ServerSessionManager {
       return true
     } catch (error) {
       console.error('❌ Erro ao renovar sessão:', error)
+      return false
+    }
+  }
+
+  /**
+   * 🔐 Atualizar dados parciais da sessão
+   */
+  async updateSession(sessionId: string, updates: Partial<SessionData>): Promise<boolean> {
+    try {
+      const session = await this.getSession(sessionId)
+      if (!session) {
+        console.error(`❌ Sessão não encontrada para atualização: ${sessionId}`)
+        return false
+      }
+
+      // ✅ Mesclar atualizações
+      const updatedSession = { ...session, ...updates }
+      updatedSession.lastActivity = new Date()
+
+      // ✅ Salvar sessão atualizada
+      await this.redis.setex(
+        `session:${sessionId}`,
+        this.config.sessionDuration,
+        JSON.stringify(updatedSession)
+      )
+
+      console.log(`✅ Sessão atualizada: ${sessionId}`)
+      return true
+    } catch (error) {
+      console.error('❌ Erro ao atualizar sessão:', error)
       return false
     }
   }

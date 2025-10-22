@@ -31,7 +31,14 @@ export async function POST(request: NextRequest) {
 
     // 3. Obter dados do body
     const body = await request.json()
-    const { idUsuario, password, newPassword } = body
+    const { password, newPassword } = body
+    
+    // 🔐 NOVO: Buscar idUsuario da sessão se não foi fornecido
+    let { idUsuario } = body
+    if (!idUsuario) {
+      idUsuario = session.userId
+      console.log('🔍 [UpdatePassword] ID do usuário obtido da sessão:', idUsuario)
+    }
 
     console.log('📥 [UpdatePassword] Dados recebidos:', { 
       idUsuario, 
@@ -135,7 +142,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 9. Retornar sucesso
+    // 9. Remover flag de alteração obrigatória da sessão
+    console.log('🔐 [UpdatePassword] Removendo flag requiresPasswordChange da sessão')
+    await sessionManager.updateSession(sessionId, {
+      requiresPasswordChange: false
+    })
+    
+    // 10. Retornar sucesso
     console.log('✅ [UpdatePassword] Senha alterada com sucesso')
 
     return NextResponse.json({

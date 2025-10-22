@@ -58,7 +58,8 @@ export async function GET(request: NextRequest) {
       email: sessionData.email,
       roles: sessionData.permissions || [],  // Mantém por compatibilidade
       permissions: sessionData.permissions || [],  // Mantém por compatibilidade
-      perfis: perfis  // ✅ NOVO: Array completo com metadata (id, statusPerfil, dataRegistro, dataAtualizacao, usuario, roleId)
+      perfis: perfis,  // ✅ NOVO: Array completo com metadata (id, statusPerfil, dataRegistro, dataAtualizacao, usuario, roleId)
+      requiresPasswordChange: sessionData.requiresPasswordChange || false  // 🔐 Flag de alteração obrigatória
     })
 
   } catch (error) {

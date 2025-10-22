@@ -247,6 +247,9 @@ export async function POST(request: NextRequest) {
     // 🔥 NOVO: Extrair token JWT da resposta UserShield
     const jwtToken = userData?.jwtToken || userData?.token || null
     
+    // 🔐 NOVO: Verificar se usuário precisa alterar senha
+    const requiresPasswordChange = userData?.passUpdate === true
+    
     // ✅ Criar sessão server-side (dados ficam 100% no servidor)
     const sessionId = await sessionManager.createSession({
       userId: userId,
@@ -255,17 +258,23 @@ export async function POST(request: NextRequest) {
       token: jwtToken, // 🔥 NOVO: Salvar token JWT para chamadas autenticadas
       permissions: userPerfis, // Array de strings para compatibilidade
       perfis: userPerfisCompletos, // 🔥 NOVO: Array completo de objetos
+      requiresPasswordChange: requiresPasswordChange, // 🔐 NOVO: Flag de alteração obrigatória
       ipAddress: clientIP,
       userAgent: userAgent
     })
+    
+    if (requiresPasswordChange) {
+      logger.warn(`⚠️ [Auth] Usuário ${email} precisa alterar senha (passUpdate=true)`)
+    }
 
     // ✅ Log de sucesso
-  logger.info(`✅ [Auth] Login OK: ${email} | IP: ${clientIP} | Session: ${sessionId} | Perfis: ${userPerfis.join(', ')}`)
+    logger.info(`✅ [Auth] Login OK: ${email} | IP: ${clientIP} | Session: ${sessionId} | Perfis: ${userPerfis.join(', ')} | PassUpdate: ${requiresPasswordChange}`)
 
     // ✅ Criar response com dados do usuário
     const response = NextResponse.json({
       success: true,
       message: 'Login realizado com sucesso',
+      requiresPasswordChange: requiresPasswordChange, // 🔐 NOVO: Indicar se precisa alterar senha
       user: {
         id: userId,
         email: email,
