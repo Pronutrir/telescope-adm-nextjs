@@ -1,15 +1,7 @@
 import {
   BarChart3,
-  Shield,
-  Users,
-  Hospital,
-  AlarmClock,
-  MessageSquare,
-  Star,
   UserPlus,
   User,
-  MessageCircle,
-  Stethoscope,
   Layout,
   FileText
 } from 'lucide-react'

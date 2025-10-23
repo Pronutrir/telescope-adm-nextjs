@@ -494,11 +494,11 @@ const GerenciadorPDFsPage = () => {
             isLoadingPages: true
         })
 
-        // Carregar detalhes reais do PDF via proxy Next.js
+        // Carregar detalhes reais do PDF via API route local
         try {
             console.log('📡 Carregando detalhes do PDF:', pdf.id)
 
-            const response = await fetch(`/pdf-api/Pdfs/${pdf.id}/details`, {
+            const response = await fetch(`/api/pdfs/details/${pdf.id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
