@@ -2,6 +2,7 @@
 
 # ================================================
 # Telescope ADM - Production Docker Image
+# Construído para AMD64 (servidor de produção)
 # ================================================
 
 FROM node:20-alpine AS base

@@ -84,7 +84,7 @@ export const LineChart: React.FC<LineChartProps> = ({
                                         return `${context[ 0 ].label}`
                                     },
                                     label: (context: TooltipItem<'line'>) => {
-                                        return `Visitas: ${context.parsed.y.toLocaleString('pt-BR')}`
+                                        return `Visitas: ${(context.parsed.y ?? 0).toLocaleString('pt-BR')}`
                                     }
                                 }
                             }
