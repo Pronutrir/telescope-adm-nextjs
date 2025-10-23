@@ -140,13 +140,12 @@ const GerenciadorPDFsPage = () => {
             dataUpload: formatDateDDMMAAAA(),
             hash: Math.random().toString(36).substring(2, 8).toUpperCase()
         }))
-    }, [])
-
-    // Carregar PDFs na inicialização
-    useEffect(() => {
-        console.log('📡 [GerenciadorPDFsPage] Efeito loadPDFs disparado')
+        
+        // Carregar PDFs apenas na montagem inicial
+        console.log('📡 [GerenciadorPDFsPage] Carregando PDFs inicial')
         loadPDFs()
-    }, [ loadPDFs ])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const handleSearch = useCallback(async (term: string) => {
         console.log('🔍 [GerenciadorPDFsPage] Executando busca:', term)

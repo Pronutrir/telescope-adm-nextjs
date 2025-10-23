@@ -316,12 +316,13 @@ export async function POST(request: NextRequest) {
     })
 
     // ✅ DEFINIR COOKIE session_id (httpOnly e secure)
+    // ⚠️ IMPORTANTE: maxAge deve ser igual à SESSION_DURATION para evitar 401
     response.cookies.set('session_id', sessionId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7 // 7 dias
+      maxAge: 4 * 60 * 60 // 4 horas (mesmo tempo da sessão no Redis)
     })
 
     logger.debug(`🍪 [Auth] Cookie session_id definido: ${sessionId}`)

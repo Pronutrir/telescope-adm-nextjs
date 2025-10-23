@@ -36,11 +36,22 @@ const UploadGerenciadorPDFsPage = () => {
 
     // Estados para composição do nome dos arquivos
     const [ nomeComposicao, setNomeComposicao ] = useState<NomeComposicao>({
+        setor: '',
         cdPessoaFisica: '',
         numeroAtendimento: '',
         dataUpload: '', // Será preenchido no useEffect
         hash: ''
     })
+
+    // Lista de setores disponíveis
+    const setores = [
+        { nome: 'Autorização', sigla: 'AU' },
+        { nome: 'Prescrição', sigla: 'PR' },
+        { nome: 'Fatura Conta', sigla: 'FC' },
+        { nome: 'Sadt', sigla: 'SA' },
+        { nome: 'Guia', sigla: 'GU' },
+        { nome: 'Espelho Conta', sigla: 'EC' }
+    ]
 
     const [ dragActive, setDragActive ] = useState(false)
     const [ validationErrors, setValidationErrors ] = useState<Record<string, string>>({})
@@ -139,6 +150,10 @@ const UploadGerenciadorPDFsPage = () => {
         if (uploadState.files.length === 0) return
 
         // Validar parâmetros de composição
+        if (!nomeComposicao.setor.trim()) {
+            setError('Setor é obrigatório')
+            return
+        }
         if (!nomeComposicao.cdPessoaFisica.trim()) {
             setError('Código da Pessoa Física é obrigatório')
             return
@@ -228,6 +243,24 @@ const UploadGerenciadorPDFsPage = () => {
             if (pendingFiles.length > 0) {
                 setSuccess(true)
                 setUploadedFiles(pendingFiles.map(f => f.customName))
+                
+                // Limpar campos e arquivos após sucesso
+                setTimeout(() => {
+                    setUploadState({
+                        files: [],
+                        isUploading: false,
+                        overallProgress: 0
+                    })
+                    setNomeComposicao({
+                        setor: '',
+                        cdPessoaFisica: '',
+                        numeroAtendimento: '',
+                        dataUpload: formatDateDDMMAAAA(),
+                        hash: Math.random().toString(36).substring(2, 8).toUpperCase()
+                    })
+                    setSuccess(false)
+                    setUploadedFiles([])
+                }, 3000) // Espera 3 segundos para o usuário ver a mensagem de sucesso
             }
 
         } catch (error) {
@@ -324,107 +357,181 @@ const UploadGerenciadorPDFsPage = () => {
                         <FileText className="h-5 w-5 text-blue-500 pdf-icon" />
                         <h2 className="text-lg font-semibold">Parâmetros de Composição do Nome</h2>
                     </div>
-                    <p className={twMerge(
-                        'text-sm mb-4',
-                        isDark ? 'text-gray-400' : 'text-gray-600'
+                    <div className={twMerge(
+                        'rounded-lg p-4 mb-4',
+                        isDark ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'
                     )}>
-                        Os arquivos serão nomeados no formato: <code className={twMerge(
-                            'px-1 py-0.5 rounded text-xs',
-                            isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
-                        )}>cdPessoa_numAtendimento_DDMMAAAA_hash.pdf</code>
-                    </p>
+                        <p className={twMerge(
+                            'text-sm font-medium mb-2',
+                            isDark ? 'text-blue-400' : 'text-blue-700'
+                        )}>
+                            📋 Preview do Nome do Arquivo:
+                        </p>
+                        <code className={twMerge(
+                            'text-sm px-3 py-2 rounded block font-mono break-all',
+                            isDark ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-800'
+                        )}>
+                            {(() => {
+                                const setorSelecionado = setores.find(s => s.nome === nomeComposicao.setor)
+                                const siglaSetor = setorSelecionado?.sigla || (nomeComposicao.setor ? nomeComposicao.setor.substring(0, 2).toUpperCase() : 'XX')
+                                const cdPessoa = nomeComposicao.cdPessoaFisica || 'codigo'
+                                const numAtend = nomeComposicao.numeroAtendimento || 'atendimento'
+                                const data = nomeComposicao.dataUpload || 'DDMMAAAA'
+                                const hash = nomeComposicao.hash || 'HASH'
+                                
+                                return `${siglaSetor}_${cdPessoa}_${numAtend}_${data}_${hash}.pdf`
+                            })()}
+                        </code>
+                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Primeira linha: Setor (destaque) */}
+                    <div className="space-y-2 mb-6">
+                        <label className={twMerge(
+                            'text-sm font-semibold flex items-center gap-2',
+                            isDark ? 'text-blue-400' : 'text-blue-600'
+                        )}>
+                            📁 Setor *
+                        </label>
+                        <select
+                            value={nomeComposicao.setor}
+                            onChange={(e) => setNomeComposicao(prev => ({
+                                ...prev,
+                                setor: e.target.value
+                            }))}
+                            className={twMerge(
+                                'w-full px-4 py-3 rounded-lg border-2 transition-all text-base font-medium',
+                                isDark 
+                                    ? 'bg-gray-800 border-gray-600 text-white focus:border-blue-500 hover:border-gray-500' 
+                                    : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 hover:border-gray-400',
+                                'focus:outline-none focus:ring-2 focus:ring-blue-500/20'
+                            )}
+                            required
+                        >
+                            <option value="">Selecione o setor do documento</option>
+                            {setores.map((setor) => (
+                                <option key={setor.sigla} value={setor.nome}>
+                                    {setor.nome} ({setor.sigla})
+                                </option>
+                            ))}
+                        </select>
+                        <p className={twMerge(
+                            'text-xs mt-1',
+                            isDark ? 'text-gray-500' : 'text-gray-600'
+                        )}>
+                            A sigla será usada no nome do arquivo
+                        </p>
+                    </div>
+
+                    {/* Segunda linha: Dados do Paciente */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Código Pessoa Física *</label>
+                            <label className="text-sm font-medium flex items-center gap-1">
+                                👤 Código Pessoa Física *
+                            </label>
                             <Input
                                 type="text"
                                 placeholder="Ex: 123456"
                                 value={nomeComposicao.cdPessoaFisica}
-                                onChange={(e) => setNomeComposicao(prev => ({
-                                    ...prev,
-                                    cdPessoaFisica: e.target.value
-                                }))}
-                                className={twMerge(
-                                    'w-full',
-                                    isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
-                                )}
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Número Atendimento *</label>
-                            <Input
-                                type="text"
-                                placeholder="Ex: ATD001"
-                                value={nomeComposicao.numeroAtendimento}
-                                onChange={(e) => setNomeComposicao(prev => ({
-                                    ...prev,
-                                    numeroAtendimento: e.target.value
-                                }))}
-                                className={twMerge(
-                                    'w-full',
-                                    isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
-                                )}
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Data Upload</label>
-                            <Input
-                                type="text"
-                                value={nomeComposicao.dataUpload}
                                 onChange={(e) => {
-                                    // Permitir apenas números e máximo 8 dígitos
-                                    const value = e.target.value.replace(/\D/g, '').slice(0, 8)
+                                    const value = e.target.value.replace(/\D/g, '')
                                     setNomeComposicao(prev => ({
                                         ...prev,
-                                        dataUpload: value
+                                        cdPessoaFisica: value
                                     }))
                                 }}
                                 className={twMerge(
                                     'w-full',
                                     isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
                                 )}
-                                placeholder="DDMMAAAA"
-                                maxLength={8}
+                                required
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Hash</label>
+                            <label className="text-sm font-medium flex items-center gap-1">
+                                🏥 Número Atendimento *
+                            </label>
                             <Input
                                 type="text"
-                                value={nomeComposicao.hash}
-                                onChange={(e) => setNomeComposicao(prev => ({
-                                    ...prev,
-                                    hash: e.target.value.toUpperCase()
-                                }))}
+                                placeholder="Ex: 001"
+                                value={nomeComposicao.numeroAtendimento}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/\D/g, '')
+                                    setNomeComposicao(prev => ({
+                                        ...prev,
+                                        numeroAtendimento: value
+                                    }))
+                                }}
                                 className={twMerge(
                                     'w-full',
                                     isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
                                 )}
-                                placeholder="Ex: ABC123"
-                                maxLength={8}
+                                required
                             />
                         </div>
                     </div>
 
-                    {/* Preview do nome */}
+                    {/* Terceira linha: Metadados (Data e Hash) - Gerados automaticamente */}
                     <div className={twMerge(
-                        'mt-4 p-3 rounded-md border',
-                        isDark ? 'bg-gray-800/50 border-gray-600' : 'bg-gray-100 border-gray-200'
+                        'rounded-lg p-4 border-2 border-dashed',
+                        isDark ? 'bg-gray-800/30 border-gray-600' : 'bg-gray-50 border-gray-300'
                     )}>
-                        <div className="text-sm">
-                            <span className="font-medium">Preview do nome:</span>
-                            <code className={twMerge(
-                                'ml-2 px-2 py-1 rounded text-xs',
-                                isDark ? 'bg-gray-700 text-gray-300' : 'bg-white text-gray-700'
-                            )}>
-                                {nomeComposicao.cdPessoaFisica || 'cdPessoa'}_{nomeComposicao.numeroAtendimento || 'numAtendimento'}_{nomeComposicao.dataUpload}_{nomeComposicao.hash || 'hash'}.pdf
-                            </code>
+                        <p className={twMerge(
+                            'text-xs font-medium mb-3 flex items-center gap-1',
+                            isDark ? 'text-gray-400' : 'text-gray-600'
+                        )}>
+                            <span>🔒</span> Campos gerados automaticamente
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className={twMerge(
+                                    'text-sm font-medium flex items-center gap-1',
+                                    isDark ? 'text-gray-400' : 'text-gray-600'
+                                )}>
+                                    📅 Data Upload
+                                </label>
+                                <Input
+                                    type="text"
+                                    value={nomeComposicao.dataUpload}
+                                    readOnly
+                                    className={twMerge(
+                                        'w-full cursor-not-allowed',
+                                        isDark ? 'bg-gray-700/50 border-gray-600 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'
+                                    )}
+                                    placeholder="DDMMAAAA"
+                                />
+                                <p className={twMerge(
+                                    'text-xs',
+                                    isDark ? 'text-gray-500' : 'text-gray-500'
+                                )}>
+                                    Gerada automaticamente no formato DDMMAAAA
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className={twMerge(
+                                    'text-sm font-medium flex items-center gap-1',
+                                    isDark ? 'text-gray-400' : 'text-gray-600'
+                                )}>
+                                    🔖 Hash Único
+                                </label>
+                                <Input
+                                    type="text"
+                                    value={nomeComposicao.hash}
+                                    readOnly
+                                    className={twMerge(
+                                        'w-full cursor-not-allowed font-mono',
+                                        isDark ? 'bg-gray-700/50 border-gray-600 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'
+                                    )}
+                                    placeholder="XXXXXX"
+                                />
+                                <p className={twMerge(
+                                    'text-xs',
+                                    isDark ? 'text-gray-500' : 'text-gray-500'
+                                )}>
+                                    Código único gerado automaticamente
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>

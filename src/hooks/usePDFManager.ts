@@ -22,6 +22,8 @@ interface UsePDFManagerReturn {
 }
 
 export const usePDFManager = (): UsePDFManagerReturn => {
+    // IMPORTANTE: O carregamento inicial é feito no componente pai (page.tsx)
+    // para evitar conflitos com o sistema de busca
     const [pdfs, setPdfs] = useState<PDFItem[]>([])
     const [filteredPdfs, setFilteredPdfs] = useState<PDFItem[]>([])
     const [isLoading, setIsLoading] = useState(true) // Iniciar como loading para evitar flash
@@ -165,11 +167,6 @@ export const usePDFManager = (): UsePDFManagerReturn => {
     const clearError = useCallback(() => {
         setError(null)
     }, [])
-
-    // Carregar PDFs na inicialização
-    useEffect(() => {
-        loadPDFs()
-    }, [loadPDFs])
 
     // Calcular navegação de páginas
     const hasNextPage = currentPage < totalPages

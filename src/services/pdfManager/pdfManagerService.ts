@@ -170,7 +170,7 @@ export class PDFManagerService {
         pageSize = 10
       } = params
       
-      const url = `/api/test-search?searchTerm=${encodeURIComponent(searchTerm)}&page=${page}&pageSize=${pageSize}`
+      const url = `/api/pdfs/buscar?query=${encodeURIComponent(searchTerm)}&page=${page}&limit=${pageSize}`
       
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 segundos timeout
@@ -346,6 +346,7 @@ export class PDFManagerService {
     files: Array<{
       file: File
       nomeComposicao: {
+        setor: string
         cdPessoaFisica: string
         numeroAtendimento: string
         dataUpload: string
@@ -354,15 +355,28 @@ export class PDFManagerService {
     }>
   ): Promise<any> {
     try {
+      // Lista de setores com siglas
+      const setores = [
+        { nome: 'Autorização', sigla: 'AU' },
+        { nome: 'Prescrição', sigla: 'PR' },
+        { nome: 'Conta', sigla: 'CO' },
+        { nome: 'Sadt', sigla: 'SA' },
+        { nome: 'Guia', sigla: 'GU' }
+      ]
+
       const formData = new FormData()
       
       // Adicionar todos os arquivos ao FormData
       files.forEach((fileData, index) => {
         const { file, nomeComposicao } = fileData
         
-        // Compor o nome do arquivo com hash único
+        // Obter sigla do setor
+        const setorSelecionado = setores.find(s => s.nome === nomeComposicao.setor)
+        const siglaSetor = setorSelecionado?.sigla || nomeComposicao.setor.substring(0, 2).toUpperCase()
+        
+        // Compor o nome do arquivo com hash único e sigla do setor
         const uniqueHash = `${nomeComposicao.hash}${index.toString().padStart(2, '0')}`
-        const nomeComposto = `${nomeComposicao.cdPessoaFisica}_${nomeComposicao.numeroAtendimento}_${nomeComposicao.dataUpload}_${uniqueHash}.pdf`
+        const nomeComposto = `${siglaSetor}_${nomeComposicao.cdPessoaFisica}_${nomeComposicao.numeroAtendimento}_${nomeComposicao.dataUpload}_${uniqueHash}.pdf`
         
         // Criar um novo arquivo com o nome composto
         const renamedFile = new File([file], nomeComposto, { type: file.type })
@@ -404,6 +418,7 @@ export class PDFManagerService {
   static async uploadPDF(
     file: File, 
     nomeComposicao: {
+      setor: string
       cdPessoaFisica: string
       numeroAtendimento: string
       dataUpload: string

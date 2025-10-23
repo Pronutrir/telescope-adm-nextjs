@@ -161,6 +161,7 @@ export interface UploadState {
 
 // Interface para composição do nome dos arquivos
 export interface NomeComposicao {
+  setor: string;
   cdPessoaFisica: string;
   numeroAtendimento: string;
   dataUpload: string;
