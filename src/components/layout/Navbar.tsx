@@ -22,7 +22,7 @@ const Navbar: React.FC<NavbarProps> = ({ className = '' }) => {
         isMobile
     } = useLayout()
 
-    const { user, logout, isLoading: authLoading } = useAuth()
+    const { user, logout: _logout, isLoading: _authLoading } = useAuth()
     const [ isLoggingOut, setIsLoggingOut ] = useState(false)
     const [ isDark, setIsDark ] = useState(false)
 

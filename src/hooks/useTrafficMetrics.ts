@@ -109,7 +109,7 @@ export const useTrafficMetrics = (): UseTrafficMetricsReturn => {
                     conversionRate: 3.2
                 })
             }
-        } catch (err) {
+        } catch {
             // 🔇 Silenciosamente usa dados de exemplo quando GA não está disponível
             // (evita poluir console com erro esperado em desenvolvimento)
             setError('Erro ao carregar métricas de tráfego')

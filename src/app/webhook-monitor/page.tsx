@@ -175,7 +175,7 @@ const WebhookMonitor = () => {
             } else {
                 setTooltipSide('right')
             }
-        } catch (_) {
+        } catch {
             setTooltipSide('right')
         }
         setTooltipVisivel(id)

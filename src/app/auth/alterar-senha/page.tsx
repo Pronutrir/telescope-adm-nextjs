@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import Image from 'next/image'
 import { useNotifications } from '@/contexts/NotificationContext'
 
 // 🎨 Detecção de Tema (Dark/Light) - igual ao server-login
@@ -45,7 +44,7 @@ const passwordSchema = Yup.object({
 })
 
 const AlterarSenhaPage: React.FC = () => {
-    const router = useRouter()
+    const _router = useRouter()
     const isDark = useThemeDetection()
     const [isLoading, setIsLoading] = useState(false)
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)

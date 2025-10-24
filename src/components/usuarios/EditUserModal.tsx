@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useTheme } from '@/contexts/ThemeContext'
 import {
@@ -46,13 +46,7 @@ export default function EditUserModal({ user, isOpen, onClose, onSuccess }: Edit
         setMounted(true)
     }, [])
 
-    useEffect(() => {
-        if (isOpen) {
-            loadData()
-        }
-    }, [isOpen, user.id])
-
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         try {
             setLoading(true)
             setMessage(null)
@@ -103,7 +97,13 @@ export default function EditUserModal({ user, isOpen, onClose, onSuccess }: Edit
         } finally {
             setLoading(false)
         }
-    }
+    }, [user.id])
+
+    useEffect(() => {
+        if (isOpen) {
+            loadData()
+        }
+    }, [isOpen, user.id, loadData])
 
     const handleToggleProfile = (profileId: number) => {
         setSelectedProfiles(prev => {

@@ -19,7 +19,7 @@ interface IServerLoginForm {
 }
 
 const ServerSideLoginPage: React.FC = () => {
-    const router = useRouter()
+    const _router = useRouter()
     const [ isLoading, setIsLoading ] = useState(false)
     const [ isDark, setIsDark ] = useState(false)
     const notify = useNotify()

@@ -4,14 +4,8 @@ import React from 'react'
 import {
     User,
     Mail,
-    Phone,
-    MapPin,
     Calendar,
-    Shield,
-    Building2,
-    Clock,
-    CheckCircle,
-    XCircle
+    Shield
 } from 'lucide-react'
 
 /**

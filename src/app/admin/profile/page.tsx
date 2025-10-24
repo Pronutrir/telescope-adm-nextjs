@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { PageWrapper } from '@/components/layout'
 import { 
     UserProfileHeader,
@@ -43,7 +43,6 @@ const UserProfilePage = () => {
     const [ isLoading, setIsLoading ] = useState(false)
     const [ activeTab, setActiveTab ] = useState<'profile' | 'info' | 'security' | 'permissions' | 'activity' | 'avatar' | 'preferences'>('profile')
     const [ activities, setActivities ] = useState<Activity[]>([])
-    const [ loadingActivities, setLoadingActivities ] = useState(false)
 
     // Debug: verificar estado de autenticação
     useEffect(() => {
@@ -54,27 +53,24 @@ const UserProfilePage = () => {
         })
     }, [user, isAuthenticated, authLoading])
 
-    // Carregar atividades quando a aba for acessada
-    useEffect(() => {
-        if (activeTab === 'activity' && user?.id && activities.length === 0) {
-            loadActivities()
-        }
-    }, [activeTab, user?.id])
-
-    const loadActivities = async () => {
+    const loadActivities = useCallback(async () => {
         if (!user?.id) return
         
         try {
-            setLoadingActivities(true)
             const result = await UserProfileService.getUserActivities(user.id)
             setActivities(result.activities)
         } catch (error) {
             console.error('Erro ao carregar atividades:', error)
             // Manter array vazio em caso de erro
-        } finally {
-            setLoadingActivities(false)
         }
-    }
+    }, [user?.id])
+
+    // Carregar atividades quando a aba for acessada
+    useEffect(() => {
+        if (activeTab === 'activity' && user?.id && activities.length === 0) {
+            loadActivities()
+        }
+    }, [activeTab, user?.id, activities.length, loadActivities])
 
     const handleAvatarUpload = async (file: File) => {
         try {

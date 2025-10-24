@@ -45,7 +45,7 @@ export const GoogleAnalyticsLoader = ({ onLoad }: GoogleAnalyticsLoaderProps) =>
 
                         console.log('✅ Google Analytics API inicializada com sucesso')
                         onLoad?.(true)
-                    } catch (err) {
+                    } catch {
                         // Erro silencioso - GA não configurado corretamente
                         onLoad?.(false)
                     }
@@ -58,7 +58,7 @@ export const GoogleAnalyticsLoader = ({ onLoad }: GoogleAnalyticsLoaderProps) =>
 
             document.head.appendChild(script)
 
-        } catch (err) {
+        } catch {
             // Erro silencioso - GA não configurado
             onLoad?.(false)
         }

@@ -57,7 +57,7 @@ const validationSchema = Yup.object({
 
 export const UserSecuritySettings: React.FC<UserSecuritySettingsProps> = ({
     onChangePassword,
-    user,
+    user: _user,
     isDark = false
 }) => {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)

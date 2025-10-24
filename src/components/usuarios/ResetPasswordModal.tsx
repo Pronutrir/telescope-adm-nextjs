@@ -38,7 +38,7 @@ export default function ResetPasswordModal({ user, isOpen, onClose, onSuccess }:
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
     const [resetting, setResetting] = useState(false)
-    const [generatedPassword, setGeneratedPassword] = useState<string | null>(null)
+    const [_generatedPassword, setGeneratedPassword] = useState<string | null>(null)
     const [mounted, setMounted] = useState(false)
 
     // Garantir que está no cliente

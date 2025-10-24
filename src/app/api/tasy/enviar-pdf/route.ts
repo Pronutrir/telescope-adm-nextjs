@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Limpar e converter contaPaciente para número inteiro
-        let numeroContaLimpo = String(contaPaciente)
+        const numeroContaLimpo = String(contaPaciente)
             .replace(/[\[\]]/g, '') // Remove colchetes
             .replace(/[^\d]/g, '')   // Remove caracteres não numéricos
             .trim()

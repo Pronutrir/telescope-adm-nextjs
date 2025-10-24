@@ -16,7 +16,7 @@
 
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+// import userEvent from '@testing-library/user-event'
 import { useRouter } from 'next/navigation'
 import ServerSideLoginPage from '../page'
 

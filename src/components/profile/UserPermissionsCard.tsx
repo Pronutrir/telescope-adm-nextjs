@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState } from 'react'
-import { StatsCard } from '@/components/ui/StatsCard'
 import { Button } from '@/components/ui/Button'
 import { Shield, Eye, X, Info } from 'lucide-react'
 
@@ -86,11 +85,11 @@ export const UserPermissionsCard: React.FC<UserPermissionsCardProps> = ({
     }
 
     // Cores baseadas no número de permissões
-    const getPermissionColor = () => {
-        if (permissionCount >= 10) return 'success'
-        if (permissionCount >= 5) return 'warning'
-        return 'info'
-    }
+    // const getPermissionColor = () => {
+    //     if (permissionCount >= 10) return 'success'
+    //     if (permissionCount >= 5) return 'warning'
+    //     return 'info'
+    // }
 
     // Modal de permissões
     const PermissionsModal = () => {
