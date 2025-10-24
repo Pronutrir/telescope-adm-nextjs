@@ -510,100 +510,146 @@ button:not([class*="bg-"]):not([class*="glass-"]) {
 /* Ícones SVG modernos - cor padrão mais escura para tema claro */
 svg {
     color: rgb(51 65 85) !important;
-    fill: rgb(51 65 85) !important;
+    fill: none !important;
+    stroke: rgb(51 65 85) !important;
+    stroke-width: 2 !important;
 }
 
 .fill-current {
-    fill: rgb(51 65 85) !important;
+    fill: none !important;
+    stroke: rgb(51 65 85) !important;
+    stroke-width: 2 !important;
 }
 
 /* Ícones coloridos - cor específica mais escura */
 .icon-colored,
 .icon-colored svg {
-    color: rgb(59 130 246) !important;
-    fill: rgb(59 130 246) !important;
+    color: rgb(75 85 99) !important;  /* Cinza escuro para melhor contraste */
+    fill: none !important;
+    stroke: rgb(75 85 99) !important;
+    stroke-width: 2 !important;
 }
 
 /* Ícones com cores específicas por contexto */
 .icon-primary,
 .icon-primary svg {
-    color: rgb(59 130 246) !important;
-    fill: rgb(59 130 246) !important;
+    color: rgb(37 99 235) !important;  /* Azul mais escuro */
+    fill: none !important;
+    stroke: rgb(37 99 235) !important;
+    stroke-width: 2 !important;
 }
 
 .icon-success,
 .icon-success svg {
-    color: rgb(22 163 74) !important;
-    fill: currentColor !important;
+    color: rgb(21 128 61) !important;  /* Verde mais escuro */
+    fill: none !important;
+    stroke: rgb(21 128 61) !important;
+    stroke-width: 2 !important;
 }
 
 .icon-warning,
 .icon-warning svg {
-    color: rgb(217 119 6) !important;
-    fill: currentColor !important;
+    color: rgb(180 83 9) !important;  /* Âmbar mais escuro */
+    fill: none !important;
+    stroke: rgb(180 83 9) !important;
+    stroke-width: 2 !important;
 }
 
 .icon-error,
 .icon-error svg {
-    color: rgb(220 38 38) !important;
-    fill: currentColor !important;
+    color: rgb(185 28 28) !important;  /* Vermelho mais escuro */
+    fill: none !important;
+    stroke: rgb(185 28 28) !important;
+    stroke-width: 2 !important;
+}
+
+.icon-info,
+.icon-info svg {
+    color: rgb(37 99 235) !important;  /* Azul mais escuro */
+    fill: none !important;
+    stroke: rgb(37 99 235) !important;
+    stroke-width: 2 !important;
 }
 
 /* Ícones de status com cores vibrantes mas com contraste */
 .icon-status-online {
     color: #16a34a !important;
+    fill: none !important;
+    stroke: #16a34a !important;
+    stroke-width: 2 !important;
     /* Verde mais escuro */
 }
 
 .icon-status-offline {
     color: #dc2626 !important;
+    fill: none !important;
+    stroke: #dc2626 !important;
+    stroke-width: 2 !important;
     /* Vermelho mais escuro */
 }
 
 .icon-status-warning {
     color: #d97706 !important;
+    fill: none !important;
+    stroke: #d97706 !important;
+    stroke-width: 2 !important;
     /* Âmbar mais escuro */
 }
 
 .icon-status-info {
     color: rgb(59 130 246) !important;
+    fill: none !important;
+    stroke: rgb(59 130 246) !important;
+    stroke-width: 2 !important;
     /* Azul mais escuro */
 }
 
 /* Ícones de navegação coloridos - cores mais escuras para tema claro */
 .icon-nav-dashboard {
     color: rgb(59 130 246) !important;
-    fill: rgb(59 130 246) !important;
+    fill: none !important;
+    stroke: rgb(59 130 246) !important;
+    stroke-width: 2 !important;
     /* Azul dashboard */
 }
 
 .icon-nav-users {
     color: rgb(147 51 234) !important;
-    fill: rgb(147 51 234) !important;
+    fill: none !important;
+    stroke: rgb(147 51 234) !important;
+    stroke-width: 2 !important;
     /* Roxo usuários */
 }
 
 .icon-nav-analytics {
     color: rgb(6 182 212) !important;
-    fill: rgb(6 182 212) !important;
+    fill: none !important;
+    stroke: rgb(6 182 212) !important;
+    stroke-width: 2 !important;
     /* Ciano analytics */
 }
 
 .icon-nav-settings {
     color: rgb(75 85 99) !important;
-    fill: rgb(75 85 99) !important;
+    fill: none !important;
+    stroke: rgb(75 85 99) !important;
+    stroke-width: 2 !important;
     /* Cinza configurações */
 }
 
 .icon-nav-reports {
     color: rgb(22 163 74) !important;
-    fill: rgb(22 163 74) !important;
+    fill: none !important;
+    stroke: rgb(22 163 74) !important;
+    stroke-width: 2 !important;
     /* Verde relatórios */
 }
 
 .icon-nav-notifications {
     color: rgb(217 119 6) !important;
-    fill: rgb(217 119 6) !important;
+    fill: none !important;
+    stroke: rgb(217 119 6) !important;
+    stroke-width: 2 !important;
     /* Âmbar notificações */
 }
 
@@ -737,90 +783,146 @@ textarea::placeholder {
 /* Forçar cores sofisticadas para ícones SVG no tema escuro */
 .dark svg {
     color: rgb(var(--color-foreground)) !important;
-    fill: currentColor;
+    fill: none !important;
+    stroke: rgb(var(--color-foreground)) !important;
+    stroke-width: 2 !important;
 }
 
 .dark .fill-current {
-    fill: rgb(var(--color-foreground)) !important;
+    fill: none !important;
+    stroke: rgb(var(--color-foreground)) !important;
+    stroke-width: 2 !important;
 }
 
 /* Ícones coloridos no tema escuro - mantém cores originais */
 .dark .icon-colored,
 .dark .icon-colored svg {
     color: inherit !important;
-    fill: currentColor !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
 }
 
 /* Ícones com cores específicas por contexto - tema escuro */
 .dark .icon-primary,
 .dark .icon-primary svg {
     color: rgb(var(--outer-space-700)) !important;
+    fill: none !important;
+    stroke: rgb(var(--outer-space-700)) !important;
+    stroke-width: 2 !important;
 }
 
 .dark .icon-success,
 .dark .icon-success svg {
     color: rgb(var(--licorice-700)) !important;
+    fill: none !important;
+    stroke: rgb(var(--licorice-700)) !important;
+    stroke-width: 2 !important;
 }
 
 .dark .icon-warning,
 .dark .icon-warning svg {
     color: rgb(var(--caput-mortuum-700)) !important;
+    fill: none !important;
+    stroke: rgb(var(--caput-mortuum-700)) !important;
+    stroke-width: 2 !important;
 }
 
 .dark .icon-error,
 .dark .icon-error svg {
     color: rgb(var(--caput-mortuum-600)) !important;
+    fill: none !important;
+    stroke: rgb(var(--caput-mortuum-600)) !important;
+    stroke-width: 2 !important;
+}
+
+.dark .icon-info,
+.dark .icon-info svg {
+    color: rgb(var(--outer-space-600)) !important;
+    fill: none !important;
+    stroke: rgb(var(--outer-space-600)) !important;
+    stroke-width: 2 !important;
 }
 
 /* Ícones de status no tema escuro - cores mais vibrantes para contraste */
 .dark .icon-status-online {
     color: #4ade80 !important;
+    fill: none !important;
+    stroke: #4ade80 !important;
+    stroke-width: 2 !important;
     /* Verde mais claro */
 }
 
 .dark .icon-status-offline {
     color: #f87171 !important;
+    fill: none !important;
+    stroke: #f87171 !important;
+    stroke-width: 2 !important;
     /* Vermelho mais claro */
 }
 
 .dark .icon-status-warning {
     color: #fbbf24 !important;
+    fill: none !important;
+    stroke: #fbbf24 !important;
+    stroke-width: 2 !important;
     /* Âmbar mais claro */
 }
 
 .dark .icon-status-info {
     color: rgb(var(--outer-space-700)) !important;
+    fill: none !important;
+    stroke: rgb(var(--outer-space-700)) !important;
+    stroke-width: 2 !important;
     /* Outer space claro */
 }
 
 /* Ícones de navegação no tema escuro - cores ajustadas */
 .dark .icon-nav-dashboard {
     color: #60a5fa !important;
+    fill: none !important;
+    stroke: #60a5fa !important;
+    stroke-width: 2 !important;
     /* Azul mais claro */
 }
 
 .dark .icon-nav-users {
     color: #a78bfa !important;
+    fill: none !important;
+    stroke: #a78bfa !important;
+    stroke-width: 2 !important;
     /* Roxo mais claro */
 }
 
 .dark .icon-nav-analytics {
     color: #22d3ee !important;
+    fill: none !important;
+    stroke: #22d3ee !important;
+    stroke-width: 2 !important;
     /* Ciano mais claro */
 }
 
 .dark .icon-nav-settings {
     color: rgb(var(--outer-space-600)) !important;
+    fill: none !important;
+    stroke: rgb(var(--outer-space-600)) !important;
+    stroke-width: 2 !important;
     /* Outer space médio */
 }
 
 .dark .icon-nav-reports {
     color: #34d399 !important;
+    fill: none !important;
+    stroke: #34d399 !important;
+    stroke-width: 2 !important;
     /* Verde mais claro */
 }
 
 .dark .icon-nav-notifications {
     color: #fbbf24 !important;
+    fill: none !important;
+    stroke: #fbbf24 !important;
+    stroke-width: 2 !important;
     /* Âmbar mais claro */
 }
 

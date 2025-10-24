@@ -19,35 +19,31 @@ const typeIcons = {
     info: Info
 }
 
-// 🎨 Classes de cor para cada tipo
+// 🎨 Classes de cor para cada tipo (ícones agora usam classes globais)
 const getTypeStyles = (type: Notification[ 'type' ], isDark: boolean) => {
     const styles = {
         success: {
             container: isDark
                 ? 'bg-green-900/95 border-green-600/60 text-green-50 shadow-xl shadow-green-900/20'
                 : 'bg-green-50/95 border-green-300/60 text-green-900 shadow-xl shadow-green-500/10',
-            icon: isDark ? 'text-green-300' : 'text-green-700',
             closeButton: isDark ? 'text-green-200 hover:text-green-50' : 'text-green-600 hover:text-green-800'
         },
         error: {
             container: isDark
                 ? 'bg-red-900/95 border-red-600/60 text-red-50 shadow-xl shadow-red-900/20'
                 : 'bg-red-50/95 border-red-300/60 text-red-900 shadow-xl shadow-red-500/10',
-            icon: isDark ? 'text-red-300' : 'text-red-700',
             closeButton: isDark ? 'text-red-200 hover:text-red-50' : 'text-red-600 hover:text-red-800'
         },
         warning: {
             container: isDark
                 ? 'bg-yellow-900/90 border-yellow-700/50 text-yellow-100'
                 : 'bg-yellow-50 border-yellow-200 text-yellow-800',
-            icon: isDark ? 'text-yellow-400' : 'text-yellow-600',
             closeButton: isDark ? 'text-yellow-300 hover:text-yellow-100' : 'text-yellow-500 hover:text-yellow-700'
         },
         info: {
             container: isDark
                 ? 'bg-blue-900/90 border-blue-700/50 text-blue-100'
                 : 'bg-blue-50 border-blue-200 text-blue-800',
-            icon: isDark ? 'text-blue-400' : 'text-blue-600',
             closeButton: isDark ? 'text-blue-300 hover:text-blue-100' : 'text-blue-500 hover:text-blue-700'
         }
     }
@@ -118,7 +114,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                 <div className="flex items-start space-x-3">
                     {/* Ícone */}
                     <div className="flex-shrink-0 mt-0.5">
-                        <Icon className={`h-6 w-6 ${typeStyles.icon}`} />
+                        <Icon className={`h-6 w-6 icon-${notification.type}`} />
                     </div>
 
                     {/* Conteúdo */}
@@ -172,7 +168,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
               `}
                             aria-label="Fechar notificação"
                         >
-                            <X className="h-4 w-4" />
+                            <X className={`h-4 w-4 icon-${notification.type}`} />
                         </button>
                     )}
                 </div>

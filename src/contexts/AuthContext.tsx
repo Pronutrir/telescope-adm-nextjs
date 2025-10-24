@@ -87,6 +87,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     })
     const hasInitialized = React.useRef(false) // ✅ Prevenir execuções duplicadas
 
+    // 🔄 Verificar sessão periodicamente
+    useEffect(() => {
+        // Só verificar se já está autenticado
+        if (!state.isAuthenticated || !state.user) return
+
+        const checkSession = async () => {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    credentials: 'include',
+                    cache: 'no-store'
+                })
+                
+                if (!response.ok) {
+                    console.warn('⚠️ [AuthContext] Sessão expirada durante uso')
+                    dispatch({ type: 'LOGOUT' })
+                }
+            } catch (error) {
+                console.error('❌ [AuthContext] Erro ao verificar sessão:', error)
+                dispatch({ type: 'LOGOUT' })
+            }
+        }
+
+        // ⚡ Verificar a cada 5 minutos
+        const intervalId = setInterval(checkSession, 5 * 60 * 1000)
+
+        return () => clearInterval(intervalId)
+    }, [state.isAuthenticated, state.user])
+
     // Verificar se o usuário já está logado ao carregar a aplicação
     useEffect(() => {
         // ✅ Prevenir múltiplas execuções (React Strict Mode)
@@ -132,12 +160,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
 
         const handleVisibilityChange = () => {
-            // Quando a aba fica oculta, verificar se a sessão ainda é válida
-            if (document.hidden) {
-                const token = tokenStorage.getToken()
-                if (!token || !tokenStorage.isTokenValid(token)) {
-                    cleanupService.clearAuthData()
-                }
+            // Quando a aba fica visível novamente, verificar sessão
+            if (!document.hidden && state.isAuthenticated && state.user) {
+                console.log('👁️ [AuthContext] Aba visível - verificando sessão...')
+                fetch('/api/auth/me', {
+                    credentials: 'include',
+                    cache: 'no-store'
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            console.warn('⚠️ [AuthContext] Sessão expirada ao retornar')
+                            dispatch({ type: 'LOGOUT' })
+                        }
+                    })
+                    .catch(() => {
+                        console.error('❌ [AuthContext] Erro ao verificar sessão')
+                        dispatch({ type: 'LOGOUT' })
+                    })
             }
         }
 

@@ -103,6 +103,7 @@ const UnificadosGerenciadorPDFsPage = () => {
         isLoading: boolean
         isSending: boolean
         isSearching: boolean
+        isManualEntry: boolean
     }>({
         isOpen: false,
         searchTerm: '',
@@ -110,7 +111,8 @@ const UnificadosGerenciadorPDFsPage = () => {
         selectedConta: '',
         isLoading: false,
         isSending: false,
-        isSearching: false
+        isSearching: false,
+        isManualEntry: false
     })
 
     // Ref para debounce da busca
@@ -355,7 +357,6 @@ const UnificadosGerenciadorPDFsPage = () => {
 
     // Funções para o modal TASY
     const openTasyModal = (pdf: UnifiedPDFItem) => {
-        console.log('🔓 Abrindo modal TASY para:', pdf.fileName)
 
         setTasyModal(prev => ({
             ...prev,
@@ -366,14 +367,14 @@ const UnificadosGerenciadorPDFsPage = () => {
             selectedConta: '',
             isLoading: false,
             isSearching: false,
-            isSending: false
+            isSending: false,
+            isManualEntry: false
         }))
 
         // Extrair número de atendimento do nome do arquivo
         const numeroAtendimento = extractAtendimentoFromFileName(pdf.fileName)
 
         if (numeroAtendimento) {
-            console.log('✅ Número de atendimento extraído:', numeroAtendimento)
             notify.info('🔍 Buscando conta do paciente...', {
                 title: 'Processando',
                 duration: 3000
@@ -381,7 +382,6 @@ const UnificadosGerenciadorPDFsPage = () => {
             // Buscar automaticamente a conta do paciente
             searchContasPaciente(numeroAtendimento)
         } else {
-            console.warn('⚠️ Não foi possível extrair número de atendimento do nome do arquivo:', pdf.fileName)
             notify.error('Número de atendimento não encontrado no nome do arquivo', {
                 title: 'Erro de Processamento',
                 duration: 5000,
@@ -438,7 +438,8 @@ const UnificadosGerenciadorPDFsPage = () => {
             selectedConta: '',
             isLoading: false,
             isSearching: false,
-            isSending: false
+            isSending: false,
+            isManualEntry: false
         }))
     }
 
@@ -478,6 +479,19 @@ const UnificadosGerenciadorPDFsPage = () => {
         }
     }
 
+    // Função auxiliar para verificar se há contas válidas no array
+    const hasValidAccounts = (contas: Array<{numeroAtendimento: string, contaPaciente: string, displayText: string}>) => {
+        return contas.length > 0 && contas.some(conta => 
+            conta.contaPaciente && 
+            String(conta.contaPaciente).trim() !== '' &&
+            conta.contaPaciente !== 'undefined' &&
+            conta.contaPaciente !== 'null' &&
+            conta.contaPaciente !== '[]' &&
+            conta.contaPaciente !== 'null' &&
+            conta.contaPaciente !== '{}'
+        )
+    }
+
     const searchContasPaciente = async (termo: string) => {
         if (!termo.trim()) {
             setTasyModal(prev => ({
@@ -506,14 +520,18 @@ const UnificadosGerenciadorPDFsPage = () => {
             // Trabalhar com um único número de atendimento
             const numeroAtendimento = termo.trim()
 
-            console.log('🔍 Buscando conta para atendimento:', numeroAtendimento)
-
             const response = await fetch(`/api/tasy/conta-paciente?numeroAtendimento=${numeroAtendimento}`, {
                 signal: abortControllerRef.current.signal
             })
 
             if (response.ok) {
                 const data = await response.json()
+                
+                // Log para debug da resposta da API
+                console.log('🔍 [TASY DEBUG] Resposta completa da API:', data)
+                console.log('🔍 [TASY DEBUG] Tipo de contasPaciente:', typeof data.contasPaciente)
+                console.log('🔍 [TASY DEBUG] É array?:', Array.isArray(data.contasPaciente))
+                console.log('🔍 [TASY DEBUG] Valor de contasPaciente:', data.contasPaciente)
 
                 // Preparar estrutura para múltiplas contas
                 const contasEncontradas: Array<{
@@ -524,60 +542,153 @@ const UnificadosGerenciadorPDFsPage = () => {
 
                 // Verificar se a API retorna múltiplas contas em um array
                 if (Array.isArray(data.contasPaciente)) {
-                    // Caso: array de contas [2549371, 2614471]
-                    data.contasPaciente.forEach((conta: string | number) => {
-                        contasEncontradas.push({
-                            numeroAtendimento: data.numeroAtendimento,
-                            contaPaciente: String(conta),
-                            displayText: `Atend: ${data.numeroAtendimento} → Conta: ${conta}`
+                    console.log('🔍 [TASY DEBUG] Array detectado, tamanho:', data.contasPaciente.length)
+                    console.log('🔍 [TASY DEBUG] Conteúdo do array:', data.contasPaciente)
+                    
+                    // Se o array está vazio, não processar nada
+                    if (data.contasPaciente.length === 0) {
+                        console.log('⚠️ [TASY DEBUG] Array está vazio - nenhuma conta para processar')
+                        // contasEncontradas permanece vazio
+                    } else {
+                        // Filtrar apenas contas válidas (não vazias, não null, não undefined)
+                        const contasValidas = data.contasPaciente.filter((conta: any) => {
+                            const contaStr = String(conta).trim()
+                            const isValid = conta !== null && 
+                                           conta !== undefined && 
+                                           conta !== '' && 
+                                           contaStr !== '' &&
+                                           contaStr !== '[]' &&
+                                           contaStr !== 'null' &&
+                                           contaStr !== '{}'
+                            console.log(`🔍 [TASY DEBUG] Validando conta "${conta}": ${isValid}`)
+                            return isValid
                         })
-                    })
-                } else if (data.contaPaciente) {
-                    // Caso: uma única conta direta
+                        
+                        console.log('🔍 [TASY DEBUG] Contas válidas após filtro:', contasValidas)
+                        
+                        // Caso: array de contas válidas [2549371, 2614471]
+                        contasValidas.forEach((conta: string | number) => {
+                            contasEncontradas.push({
+                                numeroAtendimento: data.numeroAtendimento,
+                                contaPaciente: String(conta),
+                                displayText: `Atend: ${data.numeroAtendimento} → Conta: ${conta}`
+                            })
+                        })
+                    }
+                } else if (data.contaPaciente && 
+                          String(data.contaPaciente).trim() !== '' &&
+                          data.contaPaciente !== '[]' &&
+                          data.contaPaciente !== 'null' &&
+                          data.contaPaciente !== '{}') {
+                    console.log('🔍 [TASY DEBUG] Conta única detectada:', data.contaPaciente)
+                    // Caso: uma única conta direta e válida
                     contasEncontradas.push({
                         numeroAtendimento: data.numeroAtendimento,
                         contaPaciente: String(data.contaPaciente),
                         displayText: `Atend: ${data.numeroAtendimento} → Conta: ${data.contaPaciente}`
                     })
+                } else {
+                    console.log('🔍 [TASY DEBUG] Nenhuma estrutura válida de conta encontrada')
+                }
+
+                // Log do resultado do processamento
+                console.log('🔍 [TASY DEBUG] Contas válidas encontradas:', contasEncontradas.length)
+                console.log('🔍 [TASY DEBUG] Lista de contas processadas:', contasEncontradas)
+                console.log('🔍 [TASY DEBUG] Há contas realmente válidas?:', hasValidAccounts(contasEncontradas))
+                
+                // Log de divergência entre array length e validação
+                if (contasEncontradas.length > 0 && !hasValidAccounts(contasEncontradas)) {
+                    console.warn('⚠️ [TASY DEBUG] DIVERGÊNCIA: Array tem elementos mas nenhuma conta válida!')
+                    console.warn('⚠️ [TASY DEBUG] Contas inválidas:', contasEncontradas.map(c => c.contaPaciente))
+                }
+
+                // Verificar se nenhuma conta válida foi encontrada (usar a função de validação)
+                if (!hasValidAccounts(contasEncontradas)) {
+                    console.log('⚠️ [TASY DEBUG] Ativando modo manual - nenhuma conta válida encontrada')
+                    setTasyModal(prev => ({
+                        ...prev,
+                        contasPaciente: [],
+                        selectedConta: '',
+                        isSearching: false,
+                        isManualEntry: true
+                    }))
+
+                    notify.warning(
+                        `Nenhuma conta encontrada para o atendimento ${numeroAtendimento}. Por favor, informe manualmente o número da conta do paciente.`,
+                        {
+                            title: 'Conta Não Encontrada',
+                            duration: 8000,
+                            actions: [
+                                {
+                                    label: 'Entendi',
+                                    onClick: () => { },
+                                    variant: 'primary'
+                                },
+                                {
+                                    label: 'Tentar novamente',
+                                    onClick: () => searchContasPaciente(numeroAtendimento),
+                                    variant: 'ghost'
+                                }
+                            ]
+                        }
+                    )
+                    return
                 }
 
                 setTasyModal(prev => ({
                     ...prev,
                     contasPaciente: contasEncontradas,
                     selectedConta: contasEncontradas.length === 1 ? contasEncontradas[ 0 ].contaPaciente : '', // Auto-selecionar apenas se for uma única conta
-                    isSearching: false
+                    isSearching: false,
+                    isManualEntry: false
                 }))
 
-                if (contasEncontradas.length === 1) {
-                    notify.success(`Conta encontrada: ${contasEncontradas[ 0 ].contaPaciente}`, {
-                        title: 'Busca Concluída',
-                        duration: 4000
-                    })
+                // Só mostrar notificação de sucesso se realmente há contas válidas
+                if (hasValidAccounts(contasEncontradas)) {
+                    if (contasEncontradas.length === 1) {
+                        notify.success(`Conta encontrada: ${contasEncontradas[ 0 ].contaPaciente}`, {
+                            title: 'Busca Concluída',
+                            duration: 4000
+                        })
+                    } else {
+                        notify.success(`${contasEncontradas.length} contas encontradas para seleção`, {
+                            title: 'Múltiplas Contas',
+                            duration: 4000
+                        })
+                    }
                 } else {
-                    notify.success(`${contasEncontradas.length} contas encontradas para seleção`, {
-                        title: 'Múltiplas Contas',
-                        duration: 4000
-                    })
+                    console.warn('⚠️ [TASY DEBUG] Não mostrando notificação de sucesso - nenhuma conta válida')
                 }
             } else {
-                console.warn(`⚠️ Conta não encontrada para atendimento: ${numeroAtendimento}`)
+                console.warn(`⚠️ Resposta não OK da API para atendimento: ${numeroAtendimento}, status: ${response.status}`)
 
                 setTasyModal(prev => ({
                     ...prev,
                     contasPaciente: [],
                     selectedConta: '',
-                    isSearching: false
+                    isSearching: false,
+                    isManualEntry: true  // Ativar modo manual quando API retorna erro
                 }))
 
-                notify.error(`Nenhuma conta encontrada para o atendimento: ${numeroAtendimento}`, {
-                    title: 'Conta Não Encontrada',
-                    duration: 6000,
-                    actions: [ {
-                        label: 'Tentar novamente',
-                        onClick: () => searchContasPaciente(numeroAtendimento),
-                        variant: 'primary'
-                    } ]
-                })
+                notify.warning(
+                    `Nenhuma conta encontrada para o atendimento ${numeroAtendimento}. Por favor, informe manualmente o número da conta do paciente.`,
+                    {
+                        title: 'Conta Não Encontrada',
+                        duration: 8000,
+                        actions: [
+                            {
+                                label: 'Entendi',
+                                onClick: () => { },
+                                variant: 'primary'
+                            },
+                            {
+                                label: 'Tentar novamente',
+                                onClick: () => searchContasPaciente(numeroAtendimento),
+                                variant: 'ghost'
+                            }
+                        ]
+                    }
+                )
             }
 
         } catch (error) {
@@ -592,25 +703,50 @@ const UnificadosGerenciadorPDFsPage = () => {
                 ...prev,
                 contasPaciente: [],
                 selectedConta: '',
-                isSearching: false
+                isSearching: false,
+                isManualEntry: true  // Ativar modo manual em caso de erro
             }))
-            notify.error('Erro ao buscar conta do paciente', {
-                title: 'Erro de Conexão',
-                duration: 6000,
-                actions: [ {
-                    label: 'Tentar novamente',
-                    onClick: () => tasyModal.selectedPdf && openTasyModal(tasyModal.selectedPdf),
-                    variant: 'primary'
-                } ]
-            })
+            notify.warning(
+                'Erro ao buscar conta do paciente. Por favor, informe manualmente o número da conta.',
+                {
+                    title: 'Erro de Conexão',
+                    duration: 8000,
+                    actions: [
+                        {
+                            label: 'Inserir manualmente',
+                            onClick: () => { },
+                            variant: 'primary'
+                        },
+                        {
+                            label: 'Tentar novamente',
+                            onClick: () => tasyModal.selectedPdf && openTasyModal(tasyModal.selectedPdf),
+                            variant: 'ghost'
+                        }
+                    ]
+                }
+            )
         }
     }
 
     const sendPdfToTasy = async () => {
         if (!tasyModal.selectedConta || !tasyModal.selectedPdf) return
 
-        const contaSelecionada = tasyModal.contasPaciente.find(c => c.contaPaciente === tasyModal.selectedConta)
-        if (!contaSelecionada) return
+        // Verificar se a conta foi selecionada da lista ou inserida manualmente
+        let contaSelecionada = tasyModal.contasPaciente.find(c => c.contaPaciente === tasyModal.selectedConta)
+        
+        // Se não foi encontrada na lista (conta manual), criar estrutura artificial
+        if (!contaSelecionada) {
+            // Usar o número de atendimento extraído do arquivo ou do campo de busca
+            const numeroAtendimento = extractAtendimentoFromFileName(tasyModal.selectedPdf.fileName) || tasyModal.searchTerm
+            
+            contaSelecionada = {
+                numeroAtendimento: numeroAtendimento || '',
+                contaPaciente: tasyModal.selectedConta,
+                displayText: `Atend: ${numeroAtendimento || 'Manual'} → Conta: ${tasyModal.selectedConta} (Manual)`
+            }
+            
+            console.log('💡 Usando conta inserida manualmente:', contaSelecionada)
+        }
 
         setTasyModal(prev => ({ ...prev, isSending: true }))
 
@@ -1499,7 +1635,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                     </div>
 
                     {/* Select de Conta Encontrada */}
-                    {tasyModal.contasPaciente.length > 0 && (
+                    {hasValidAccounts(tasyModal.contasPaciente) && (
                         <div className="space-y-2">
                             <label className={twMerge(
                                 'block text-sm font-medium',
@@ -1552,6 +1688,49 @@ const UnificadosGerenciadorPDFsPage = () => {
                         </div>
                     )}
 
+                    {/* Campo de entrada manual para número da conta - quando não há resultados */}
+                    {tasyModal.isManualEntry && (
+                        <div className="space-y-2">
+                            <label className={twMerge(
+                                'block text-sm font-medium',
+                                isDark ? 'text-gray-300' : 'text-gray-700'
+                            )}>
+                                Número da Conta Médica (Entrada Manual)
+                            </label>
+                            
+                            <div className={twMerge(
+                                'text-xs p-3 rounded border mb-3',
+                                isDark ? 'bg-orange-900/20 border-orange-700 text-orange-300' : 'bg-orange-50 border-orange-200 text-orange-700'
+                            )}>
+                                ℹ️ Nenhuma conta foi encontrada automaticamente. Digite o número da conta médica manualmente.
+                            </div>
+
+                            <input
+                                type="text"
+                                value={tasyModal.selectedConta}
+                                onChange={(e) => {
+                                    const value = e.target.value.trim()
+                                    // Permitir apenas números
+                                    if (value === '' || /^\d+$/.test(value)) {
+                                        setTasyModal(prev => ({ ...prev, selectedConta: value }))
+                                    }
+                                }}
+                                placeholder="Digite o número da conta (apenas números, ex: 2692870)"
+                                className={twMerge(
+                                    'w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20',
+                                    isDark ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                )}
+                                disabled={tasyModal.isSending}
+                            />
+                            <p className={twMerge(
+                                'text-xs',
+                                isDark ? 'text-gray-400' : 'text-gray-500'
+                            )}>
+                                Informe o número da conta médica conforme disponível no sistema TASY
+                            </p>
+                        </div>
+                    )}
+
                     {/* Conta Selecionada */}
                     {tasyModal.selectedConta && (
                         <div className={twMerge(
@@ -1562,7 +1741,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                                 'text-sm font-medium mb-2',
                                 isDark ? 'text-purple-300' : 'text-purple-700'
                             )}>
-                                Conta Médica Selecionada
+                                Conta Médica {tasyModal.isManualEntry ? 'Inserida Manualmente' : 'Selecionada'}
                             </h4>
                             <div className="flex items-center gap-2">
                                 <Database className="w-4 h-4 text-purple-500 pdf-icon" />
@@ -1570,7 +1749,10 @@ const UnificadosGerenciadorPDFsPage = () => {
                                     'font-mono text-sm',
                                     isDark ? 'text-purple-300' : 'text-purple-700'
                                 )}>
-                                    {tasyModal.contasPaciente.find(c => c.contaPaciente === tasyModal.selectedConta)?.displayText}
+                                    {tasyModal.isManualEntry 
+                                        ? `Conta: ${tasyModal.selectedConta} (Manual)` 
+                                        : tasyModal.contasPaciente.find(c => c.contaPaciente === tasyModal.selectedConta)?.displayText
+                                    }
                                 </span>
                             </div>
                         </div>

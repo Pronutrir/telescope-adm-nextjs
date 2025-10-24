@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import { getServiceUrl } from '@/config/env'
 
-const TASY_API_BASE = `${getServiceUrl('APITASY')}/api/`
+const TASY_API_BASE = getServiceUrl('APITASY') // Já inclui /api/ no final
 
 export async function POST(request: NextRequest) {
     try {
@@ -23,28 +23,49 @@ export async function POST(request: NextRequest) {
             )
         }
 
-    logger.info(`📤 [TASY] Enviando PDF - Conta: ${contaPaciente}, Arquivo: ${nomeArquivo}`)
+        // Limpar e converter contaPaciente para número inteiro
+        let numeroContaLimpo = String(contaPaciente)
+            .replace(/[\[\]]/g, '') // Remove colchetes
+            .replace(/[^\d]/g, '')   // Remove caracteres não numéricos
+            .trim()
+
+        if (!numeroContaLimpo) {
+            return NextResponse.json(
+                { error: 'Número da conta do paciente inválido' },
+                { status: 400 }
+            )
+        }
+
+        const numeroContaInt = parseInt(numeroContaLimpo)
+        if (isNaN(numeroContaInt)) {
+            return NextResponse.json(
+                { error: 'Número da conta do paciente deve ser um número válido' },
+                { status: 400 }
+            )
+        }
+
+        logger.info(`📤 [TASY] Enviando PDF - Conta: ${numeroContaInt}, Arquivo: ${nomeArquivo}`)
 
         // Criar AbortController para timeout manual
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 segundos
 
         try {
-            const response = await fetch(
-                `${TASY_API_BASE}v2/ContaPaciente/UploadAnexoContaPaciente`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'accept': '*/*',
-                        'Content-Type': 'application/json-patch+json; x-api-version=2.0',
-                    },
-                    body: JSON.stringify({
-                        numero_Conta_Paciente: contaPaciente,
-                        textoAnexo: textoAnexo
-                    }),
-                    signal: controller.signal
-                }
-            )
+            const url = `${TASY_API_BASE}v2/ContaPaciente/UploadAnexoContaPaciente`
+            logger.info(`🌐 [TASY] URL de envio: ${url}`)
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'accept': '*/*',
+                    'Content-Type': 'application/json-patch+json; x-api-version=2.0',
+                },
+                body: JSON.stringify({
+                    numero_Conta_Paciente: numeroContaInt,
+                    textoAnexo: textoAnexo
+                }),
+                signal: controller.signal
+            })
 
             // Limpar timeout se a requisição foi bem-sucedida
             clearTimeout(timeoutId)
@@ -68,7 +89,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             message: 'PDF enviado com sucesso para o TASY',
-            contaPaciente,
+            contaPaciente: numeroContaInt,
             nomeArquivo,
             tasyResponse: result
         })

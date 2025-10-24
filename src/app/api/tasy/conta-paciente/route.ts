@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import { getServiceUrl } from '@/config/env'
 
-const TASY_API_BASE = `${getServiceUrl('APITASY')}/api/`
+const TASY_API_BASE = getServiceUrl('APITASY') // Já inclui /api/ no final
 
 export async function GET(request: NextRequest) {
     try {
@@ -16,24 +16,24 @@ export async function GET(request: NextRequest) {
             )
         }
 
-    logger.info(`🔍 [TASY] Conta paciente para atendimento: ${numeroAtendimento}`)
+        logger.info(`🔍 [TASY] Buscando conta para atendimento: ${numeroAtendimento}`)
 
         // Criar AbortController para timeout manual
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 segundos
 
         try {
-            const response = await fetch(
-                `${TASY_API_BASE}v2/ContaPaciente/GetContaPaciente?Numero_Atendimento=${numeroAtendimento}`,
-                {
-                    method: 'GET',
-                    headers: {
-                        'accept': '*/*',
-                        'Content-Type': 'application/json',
-                    },
-                    signal: controller.signal
-                }
-            )
+            const url = `${TASY_API_BASE}/v2/ContaPaciente/GetContaPaciente?Numero_Atendimento=${numeroAtendimento}`
+            logger.info(`🌐 [TASY] URL completa: ${url}`)
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'accept': '*/*',
+                    'Content-Type': 'application/json',
+                },
+                signal: controller.signal
+            })
 
             // Limpar timeout se a requisição foi bem-sucedida
             clearTimeout(timeoutId)
@@ -47,24 +47,7 @@ export async function GET(request: NextRequest) {
             }
 
             const contaPaciente = await response.text() // A API retorna apenas o número como string
-        
-        // Simular múltiplas contas para alguns números específicos (para teste)
-        // Em produção, isso viria da API real
-        if (numeroAtendimento === '350991') {
-            logger.debug(`✅ [TASY] Múltiplas contas ${numeroAtendimento}: [2549371, 2614471]`)
-            return NextResponse.json({
-                numeroAtendimento,
-                contasPaciente: ['2549371', '2614471'] // Array de contas
-            })
-        } else if (numeroAtendimento === '350992') {
-            logger.debug(`✅ [TASY] Múltiplas contas ${numeroAtendimento}: [2549887, 2539471, 2651234]`)
-            return NextResponse.json({
-                numeroAtendimento,
-                contasPaciente: ['2549887', '2539471', '2651234'] // Array de contas
-            })
-        }
-        
-    logger.info(`✅ [TASY] Conta única: ${contaPaciente}`)
+
 
         return NextResponse.json({
             numeroAtendimento,

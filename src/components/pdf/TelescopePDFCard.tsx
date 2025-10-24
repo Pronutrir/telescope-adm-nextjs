@@ -479,6 +479,13 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
                         <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between">
                                 <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm text-emphasis font-semibold mb-1 leading-tight break-words" style={{
+                                        wordWrap: 'break-word',
+                                        overflowWrap: 'break-word',
+                                        hyphens: 'auto'
+                                    }}>
+                                        {pdf.title}
+                                    </h3>
                                     <p className="text-body-sm text-muted mb-3 line-clamp-2 leading-relaxed">
                                         {pdf.description || pdf.fileName}
                                     </p>
@@ -563,12 +570,19 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
                         />
                     </div>
 
-                    {/* Descrição com padding adequado para não sobrepor o ícone */}
+                    {/* Título e Descrição com padding adequado para não sobrepor o ícone */}
                     <div className={twMerge(
                         "pr-20", // 80px de padding direito para não sobrepor o ícone de 64px
                         isSelectionMode && "pl-8"
                     )}>
-                        <p className="text-body-sm text-muted line-clamp-3 leading-snug break-words" style={{
+                        <h3 className="text-sm text-emphasis font-semibold mb-2 leading-tight break-words" style={{
+                            wordWrap: 'break-word',
+                            overflowWrap: 'break-word',
+                            hyphens: 'auto'
+                        }}>
+                            {pdf.title}
+                        </h3>
+                        <p className="text-body-sm text-muted line-clamp-2 leading-snug break-words" style={{
                             wordWrap: 'break-word',
                             overflowWrap: 'break-word',
                             hyphens: 'auto'
