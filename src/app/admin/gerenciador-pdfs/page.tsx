@@ -220,6 +220,42 @@ const GerenciadorPDFsPage = () => {
             return
         }
 
+        // Extrair dados do primeiro PDF selecionado
+        const firstPdfId = selectionOrder[0] || Array.from(selectedForMerge)[0]
+        const firstPdf = filteredPdfs.find(p => p.id === firstPdfId)
+        
+        if (firstPdf) {
+            // Padrões de nome de arquivo:
+            // 1. Com prefixo: UNI_cdPessoa_numAtend_DDMMAAAA_hash.pdf
+            // 2. Sem prefixo: cdPessoa_numAtend_DDMMAAAA_hash.pdf
+            const fileName = firstPdf.fileName.replace('.pdf', '')
+            const parts = fileName.split('_')
+            
+            let cdPessoa = ''
+            let numAtend = ''
+            let dataUpload = ''
+            let hash = ''
+            
+            if (parts.length >= 4) {
+                // Se começa com prefixo (UNI, AU, ES, etc.), pular o primeiro elemento
+                const hasPrefix = parts[0].length <= 3 && parts[0].match(/^[A-Z]+$/)
+                const startIndex = hasPrefix ? 1 : 0
+                
+                cdPessoa = parts[startIndex] || ''
+                numAtend = parts[startIndex + 1] || ''
+                dataUpload = parts[startIndex + 2] || ''
+                hash = parts[startIndex + 3] || ''
+            }
+            
+            // Preencher campos do modal
+            setNomeComposicao({
+                cdPessoaFisica: cdPessoa,
+                numeroAtendimento: numAtend,
+                dataUpload: dataUpload,
+                hash: hash
+            })
+        }
+
         // Abrir modal de composição do nome
         setShowCompositionModal(true)
     }

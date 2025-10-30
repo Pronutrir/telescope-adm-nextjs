@@ -215,20 +215,52 @@ const UnificadosGerenciadorPDFsPage = () => {
             pages: []
         })
 
-        // Carregar páginas do PDF
+        // Carregar detalhes reais do PDF via API route local (mesma implementação da página principal)
         try {
-            const pages = await PDFService.getPDFPages(pdf.fileName)
+            const response = await fetch(`/api/pdfs/details/${pdf.id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+
+            if (!response.ok) {
+                throw new Error(`Erro na API: ${response.status} ${response.statusText}`)
+            }
+
+            const pdfDetails = await response.json()
+
+            // Gerar páginas baseado no pageCount real do PDF
+            const realPages = Array.from({ length: pdfDetails.pageCount }, (_, i) => ({
+                pageNumber: i + 1,
+                selected: true,
+                thumbnail: undefined
+            }))
+
             setEditState(prev => ({
                 ...prev,
-                pages,
+                pages: realPages,
                 isLoadingPages: false
             }))
         } catch (error) {
-            console.error('Erro ao carregar páginas do PDF:', error)
+            const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+            console.error('❌ Erro ao carregar detalhes do PDF:', error)
+
+            // Fallback: usar número de páginas padrão em caso de erro
+            const fallbackPages = Array.from({ length: 1 }, (_, i) => ({
+                pageNumber: i + 1,
+                selected: true,
+                thumbnail: undefined
+            }))
+
             setEditState(prev => ({
                 ...prev,
+                pages: fallbackPages,
                 isLoadingPages: false
             }))
+
+            // Mostrar erro ao usuário
+            alert(`Erro ao carregar detalhes do PDF: ${errorMessage}`)
         }
     }
 
