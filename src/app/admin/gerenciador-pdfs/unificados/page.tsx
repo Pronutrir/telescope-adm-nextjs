@@ -540,8 +540,33 @@ const UnificadosGerenciadorPDFsPage = () => {
                     displayText: string
                 }> = []
 
+                // 🆕 Verificar se contaPaciente é uma string que contém array: "[2549371, 2614471]"
+                if (typeof data.contaPaciente === 'string' && data.contaPaciente.trim().startsWith('[')) {
+                    console.log('🔍 [TASY DEBUG] Array em formato string detectado:', data.contaPaciente)
+                    
+                    try {
+                        // Remover colchetes e dividir por vírgula
+                        const contasArray = data.contaPaciente
+                            .replace(/[\[\]]/g, '') // Remove [ e ]
+                            .split(',') // Divide por vírgula
+                            .map((c: string) => c.trim()) // Remove espaços
+                            .filter((c: string) => c && c !== '' && c !== 'null' && c !== 'undefined') // Filtra vazios
+                        
+                        console.log('🔍 [TASY DEBUG] Contas extraídas do array string:', contasArray)
+                        
+                        contasArray.forEach((conta: string) => {
+                            contasEncontradas.push({
+                                numeroAtendimento: data.numeroAtendimento,
+                                contaPaciente: conta,
+                                displayText: `Atend: ${data.numeroAtendimento} → Conta: ${conta}`
+                            })
+                        })
+                    } catch (parseError) {
+                        console.error('❌ [TASY DEBUG] Erro ao parsear array string:', parseError)
+                    }
+                }
                 // Verificar se a API retorna múltiplas contas em um array
-                if (Array.isArray(data.contasPaciente)) {
+                else if (Array.isArray(data.contasPaciente)) {
                     console.log('🔍 [TASY DEBUG] Array detectado, tamanho:', data.contasPaciente.length)
                     console.log('🔍 [TASY DEBUG] Conteúdo do array:', data.contasPaciente)
                     
