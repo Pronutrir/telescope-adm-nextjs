@@ -147,6 +147,11 @@ export async function POST(request: NextRequest) {
       // Produção - usar UserShield real
   logger.info('🌍 [Auth] Usando UserShield API para: ' + email)
       userShieldAuth = await authenticateWithUserShield(email, password)
+      
+      // 🐞 DEBUG: Log da resposta do login
+      if (userShieldAuth.success && userShieldAuth.data) {
+        logger.info(`🔐 [Auth] Login UserShield OK - jwtToken: ${userShieldAuth.data.jwtToken ? 'Presente' : 'AUSENTE'}`)
+      }
     }
     
     if (!userShieldAuth.success) {
@@ -190,9 +195,23 @@ export async function POST(request: NextRequest) {
           logger.info(`✅ [Auth] Dados completos obtidos`)
           logger.info(`📊 [Auth] Roles encontrados: ${userDataResponse?.roles?.length || 0} itens`)
           
+          // 🔥 PRESERVAR jwtToken do login antes de mesclar
+          const originalJwtToken = userData?.jwtToken || userData?.token
+          const originalRefreshToken = userData?.refreshToken
+          
           // Mesclar dados completos com userData
           userData = { ...userData, ...userDataResponse }
+          
+          // 🔥 RESTAURAR tokens originais (não sobrescrever com null)
+          if (originalJwtToken && !userData.jwtToken) {
+            userData.jwtToken = originalJwtToken
+          }
+          if (originalRefreshToken && !userData.refreshToken) {
+            userData.refreshToken = originalRefreshToken
+          }
+          
           logger.info(`🔀 [Auth] userData mesclado, roles finais: ${userData?.roles?.length || 0}`)
+          logger.info(`🔐 [Auth] Token preservado: ${userData.jwtToken ? 'Sim' : 'Não'}`)
         } else {
           const errorText = await userDetailsResponse.text()
           logger.warn(`⚠️ [Auth] Falha ao buscar dados completos: ${userDetailsResponse.status}`)
@@ -247,7 +266,21 @@ export async function POST(request: NextRequest) {
     // 🔥 NOVO: Extrair token JWT da resposta UserShield
     const jwtToken = userData?.jwtToken || userData?.token || null
     
-    // 🔐 NOVO: Verificar se usuário precisa alterar senha
+    // 🐞 DEBUG: Log do token extraído
+    logger.info(`🔐 [Auth] Token JWT extraído: ${jwtToken ? 'Sim (' + jwtToken.substring(0, 20) + '...)' : 'NÃO ENCONTRADO'}`)
+    logger.debug(`🔐 [Auth] userData keys: ${Object.keys(userData || {}).join(', ')}`)
+    
+    // 🐞 DEBUG: Log dos campos de token
+    if (!jwtToken) {
+      logger.warn(`⚠️ [Auth] Token não encontrado! Verificando campos disponíveis:`)
+      logger.warn(`⚠️ [Auth] userData.jwtToken: ${userData?.jwtToken}`)
+      logger.warn(`⚠️ [Auth] userData.token: ${userData?.token}`)
+      logger.warn(`⚠️ [Auth] userData.access_token: ${userData?.access_token}`)
+      logger.warn(`⚠️ [Auth] userData.accessToken: ${userData?.accessToken}`)
+      logger.warn(`⚠️ [Auth] Resposta completa UserShield:`, JSON.stringify(userData, null, 2))
+    }
+    
+    // �🔐 NOVO: Verificar se usuário precisa alterar senha
     const requiresPasswordChange = userData?.passUpdate === true
     
     // 🏠 NOVO: Buscar preferência de página inicial de sessão anterior (se existir)

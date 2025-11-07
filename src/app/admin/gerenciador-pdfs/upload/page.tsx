@@ -20,7 +20,7 @@ import {
 import { twMerge } from 'tailwind-merge'
 import { UploadFileInfo, UploadState, NomeComposicao } from '@/types/pdf'
 import { PDFManagerService } from '@/services/pdfManager/pdfManagerService'
-
+import { AutocompletePessoa } from '@/components/ui/AutocompletePessoa'
 const UploadGerenciadorPDFsPage = () => {
     // 🎯 STEP 1: ANÁLISE - Contextos obrigatórios conforme AGENT-CONTEXT
     const { isDark } = useTheme()
@@ -37,7 +37,7 @@ const UploadGerenciadorPDFsPage = () => {
     // Estados para composição do nome dos arquivos
     const [ nomeComposicao, setNomeComposicao ] = useState<NomeComposicao>({
         setor: '',
-        cdPessoaFisica: '',
+        nomeCompleto: '',
         numeroAtendimento: '',
         dataUpload: '', // Será preenchido no useEffect
         hash: ''
@@ -154,8 +154,8 @@ const UploadGerenciadorPDFsPage = () => {
             setError('Setor é obrigatório')
             return
         }
-        if (!nomeComposicao.cdPessoaFisica.trim()) {
-            setError('Código da Pessoa Física é obrigatório')
+        if (!nomeComposicao.nomeCompleto.trim()) {
+            setError('Nome Completo é obrigatório')
             return
         }
         if (!nomeComposicao.numeroAtendimento.trim()) {
@@ -253,7 +253,7 @@ const UploadGerenciadorPDFsPage = () => {
                     })
                     setNomeComposicao({
                         setor: '',
-                        cdPessoaFisica: '',
+                        nomeCompleto: '',
                         numeroAtendimento: '',
                         dataUpload: formatDateDDMMAAAA(),
                         hash: Math.random().toString(36).substring(2, 8).toUpperCase()
@@ -374,12 +374,14 @@ const UploadGerenciadorPDFsPage = () => {
                             {(() => {
                                 const setorSelecionado = setores.find(s => s.nome === nomeComposicao.setor)
                                 const siglaSetor = setorSelecionado?.sigla || (nomeComposicao.setor ? nomeComposicao.setor.substring(0, 2).toUpperCase() : 'XX')
-                                const cdPessoa = nomeComposicao.cdPessoaFisica || 'codigo'
+                                const nomeFormatado = nomeComposicao.nomeCompleto 
+                                    ? nomeComposicao.nomeCompleto.trim().replace(/\s+/g, '_')
+                                    : 'nome_completo'
                                 const numAtend = nomeComposicao.numeroAtendimento || 'atendimento'
                                 const data = nomeComposicao.dataUpload || 'DDMMAAAA'
                                 const hash = nomeComposicao.hash || 'HASH'
                                 
-                                return `${siglaSetor}_${cdPessoa}_${numAtend}_${data}_${hash}.pdf`
+                                return `${siglaSetor}_${nomeFormatado}_${numAtend}_${data}_${hash}.pdf`
                             })()}
                         </code>
                     </div>
@@ -426,23 +428,18 @@ const UploadGerenciadorPDFsPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium flex items-center gap-1">
-                                👤 Código Pessoa Física *
+                                👤 Nome Completo *
                             </label>
-                            <Input
-                                type="text"
-                                placeholder="Ex: 123456"
-                                value={nomeComposicao.cdPessoaFisica}
-                                onChange={(e) => {
-                                    const value = e.target.value.replace(/\D/g, '')
+                            <AutocompletePessoa
+                                value={nomeComposicao.nomeCompleto}
+                                onChange={(nome, pessoa) => {
                                     setNomeComposicao(prev => ({
                                         ...prev,
-                                        cdPessoaFisica: value
+                                        nomeCompleto: nome,
+                                        cdPessoaFisica: pessoa?.id
                                     }))
                                 }}
-                                className={twMerge(
-                                    'w-full',
-                                    isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
-                                )}
+                                placeholder="Digite o nome para buscar..."
                                 required
                             />
                         </div>

@@ -162,7 +162,8 @@ export interface UploadState {
 // Interface para composição do nome dos arquivos
 export interface NomeComposicao {
   setor: string;
-  cdPessoaFisica: string;
+  nomeCompleto: string;
+  cdPessoaFisica?: string; // Código da pessoa física selecionada (string conforme API TASY)
   numeroAtendimento: string;
   dataUpload: string;
   hash: string;

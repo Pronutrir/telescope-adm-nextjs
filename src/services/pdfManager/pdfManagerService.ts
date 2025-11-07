@@ -347,7 +347,7 @@ export class PDFManagerService {
       file: File
       nomeComposicao: {
         setor: string
-        cdPessoaFisica: string
+        nomeCompleto: string
         numeroAtendimento: string
         dataUpload: string
         hash: string
@@ -374,9 +374,12 @@ export class PDFManagerService {
         const setorSelecionado = setores.find(s => s.nome === nomeComposicao.setor)
         const siglaSetor = setorSelecionado?.sigla || nomeComposicao.setor.substring(0, 2).toUpperCase()
         
+        // Formatar nome completo (substituir espaços por underscores)
+        const nomeFormatado = nomeComposicao.nomeCompleto.trim().replace(/\s+/g, '_')
+        
         // Compor o nome do arquivo com hash único e sigla do setor
         const uniqueHash = `${nomeComposicao.hash}${index.toString().padStart(2, '0')}`
-        const nomeComposto = `${siglaSetor}_${nomeComposicao.cdPessoaFisica}_${nomeComposicao.numeroAtendimento}_${nomeComposicao.dataUpload}_${uniqueHash}.pdf`
+        const nomeComposto = `${siglaSetor}_${nomeFormatado}_${nomeComposicao.numeroAtendimento}_${nomeComposicao.dataUpload}_${uniqueHash}.pdf`
         
         // Criar um novo arquivo com o nome composto
         const renamedFile = new File([file], nomeComposto, { type: file.type })
@@ -419,7 +422,7 @@ export class PDFManagerService {
     file: File, 
     nomeComposicao: {
       setor: string
-      cdPessoaFisica: string
+      nomeCompleto: string
       numeroAtendimento: string
       dataUpload: string
       hash: string
