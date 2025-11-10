@@ -3,7 +3,8 @@ import {
   UserPlus,
   User,
   Layout,
-  FileText
+  FileText,
+  BarChart2
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -72,6 +73,20 @@ export const routes: Route[] = [
     component: 'GerenciadorPDFs',
     visible: true,
     roles: ['default_fullstackdev', 'Administrador']
+  },
+
+  // Power BI - Dashboards e Relatórios
+  {
+    path: '/powerbi',
+    name: 'Power BI',
+    icon: BarChart2,
+    iconColor: 'Success',
+    layout: '/admin',
+    private: false,
+    search: true,
+    component: 'PowerBI',
+    visible: true,
+    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
   },
 
   // Usuários

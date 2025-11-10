@@ -69,6 +69,8 @@
     "next": "^15.5.4",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.54",
+    "powerbi-client": "^2.23.9",
+    "powerbi-client-react": "^2.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hot-toast": "^2.6.0",

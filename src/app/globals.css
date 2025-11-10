@@ -1912,3 +1912,43 @@ body {
 .theme-loading-hidden.theme-loaded {
   visibility: visible;
 }
+/* =========================================
+   POWER BI EMBEDDED STYLES
+   ========================================= */
+
+/* Estilos para Power BI Embedded */
+.powerbi-report {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.powerbi-report iframe {
+  width: 100% !important;
+  height: 100% !important;
+  border: none;
+}
+
+/* Theme support para Power BI */
+.powerbi-report.dark-theme iframe {
+  background-color: #1e1e1e;
+}
+
+.powerbi-report.light-theme iframe {
+  background-color: #ffffff;
+}
+
+/* Loading overlay */
+.powerbi-report-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}

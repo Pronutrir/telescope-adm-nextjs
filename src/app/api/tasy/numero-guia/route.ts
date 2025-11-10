@@ -16,14 +16,14 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        logger.info(`🔍 [TASY] Buscando conta para atendimento: ${numeroAtendimento}`)
+        logger.info(`🔍 [TASY] Buscando número da guia para atendimento: ${numeroAtendimento}`)
 
         // Criar AbortController para timeout manual
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 segundos
 
         try {
-            const url = `${TASY_API_BASE}/v2/ContaPaciente/GetContaPaciente?Numero_Atendimento=${numeroAtendimento}`
+            const url = `${TASY_API_BASE}/v2/ContaPaciente/GetAtendimentoCategoriaConvenio?Numero_Atendimento=${numeroAtendimento}`
             logger.info(`🌐 [TASY] URL completa: ${url}`)
             
             const response = await fetch(url, {
@@ -41,41 +41,49 @@ export async function GET(request: NextRequest) {
             if (!response.ok) {
                 logger.error('❌ [TASY] Erro API:', response.status, response.statusText)
                 return NextResponse.json(
-                    { error: 'Erro ao buscar conta do paciente' },
+                    { error: 'Erro ao buscar número da guia' },
                     { status: response.status }
                 )
             }
 
-            const data = await response.json() // A API retorna um array de objetos
+            const data = await response.json() // A API retorna um objeto ou array
 
             logger.info('✅ [TASY] Resposta recebida:', data)
 
-            // Verificar se é um array e pegar o primeiro item
+            // Verificar se é um array e pegar o primeiro item, ou se é um objeto direto
+            let guiaInfo = null
+            
             if (Array.isArray(data) && data.length > 0) {
-                const contaInfo = data[0]
-                const numeroContaInterno = contaInfo.nR_INTERNO_CONTA
+                guiaInfo = data[0]
+            } else if (data && typeof data === 'object' && !Array.isArray(data)) {
+                guiaInfo = data
+            }
 
-                if (!numeroContaInterno) {
-                    logger.warn('⚠️ [TASY] nR_INTERNO_CONTA não encontrado na resposta')
+            if (guiaInfo) {
+                const numeroGuia = guiaInfo.nR_DOC_CONVENIO
+
+                if (!numeroGuia) {
+                    logger.warn('⚠️ [TASY] nR_DOC_CONVENIO não encontrado na resposta')
+                    logger.warn('⚠️ [TASY] Campos disponíveis:', Object.keys(guiaInfo))
                     return NextResponse.json(
-                        { error: 'Conta não encontrada' },
+                        { error: 'Número da guia não encontrado' },
                         { status: 404 }
                     )
                 }
 
                 return NextResponse.json({
                     numeroAtendimento,
-                    contaPaciente: String(numeroContaInterno),
+                    numeroGuia: String(numeroGuia),
                 })
             }
 
             // Se não houver resultados
-            logger.warn('⚠️ [TASY] Nenhuma conta encontrada para o atendimento')
+            logger.warn('⚠️ [TASY] Nenhuma guia encontrada para o atendimento')
             return NextResponse.json(
-                { error: 'Conta não encontrada' },
+                { error: 'Guia não encontrada' },
                 { status: 404 }
             )
-        
+            
         } catch (fetchError) {
             // Limpar timeout em caso de erro
             clearTimeout(timeoutId)
@@ -83,7 +91,7 @@ export async function GET(request: NextRequest) {
             if (fetchError instanceof Error && fetchError.name === 'AbortError') {
                 logger.error('❌ [TASY] Timeout na API')
                 return NextResponse.json(
-                    { error: 'Timeout ao buscar conta do paciente' },
+                    { error: 'Timeout ao buscar número da guia' },
                     { status: 408 }
                 )
             }
@@ -92,7 +100,7 @@ export async function GET(request: NextRequest) {
         }
 
     } catch (error) {
-    logger.error('❌ [TASY] Erro ao buscar conta paciente:', error)
+        logger.error('❌ [TASY] Erro ao buscar número da guia:', error)
         return NextResponse.json(
             { error: 'Erro interno do servidor' },
             { status: 500 }

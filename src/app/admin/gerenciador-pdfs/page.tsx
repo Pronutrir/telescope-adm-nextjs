@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { SortableTelescopePDFList } from '@/components/pdf/SortableTelescopePDFList'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useNotifications } from '@/contexts/NotificationContext'
 // import { useLayout } from '@/contexts/LayoutContext'
 import {
     Search,
@@ -32,6 +33,7 @@ const GerenciadorPDFsPage = () => {
 
     const router = useRouter()
     const { isDark } = useTheme()
+    const { showSuccess, showError, showWarning } = useNotifications()
     // const { isMobile } = useLayout()
 
     const {
@@ -77,11 +79,12 @@ const GerenciadorPDFsPage = () => {
     // Estados para modal de composição do nome
     const [ showCompositionModal, setShowCompositionModal ] = useState(false)
     const [ nomeComposicao, setNomeComposicao ] = useState({
-        cdPessoaFisica: '',
+        numeroGuia: '',
         numeroAtendimento: '',
         dataUpload: '',
         hash: ''
     })
+    const [ isLoadingGuia, setIsLoadingGuia ] = useState(false)
 
     // Função para formatar data no formato DDMMAAAA
     const formatDateDDMMAAAA = (date: Date = new Date()): string => {
@@ -205,6 +208,62 @@ const GerenciadorPDFsPage = () => {
     }
 
     /**
+     * Função para extrair número de atendimento do nome do arquivo
+     */
+    const extractAtendimentoFromFileName = (fileName: string): string => {
+        // Remove extensão .pdf
+        const nameWithoutExt = fileName.replace('.pdf', '')
+        
+        // Tenta extrair o primeiro grupo de números do nome do arquivo
+        // Pode estar no formato: 123456_nome.pdf ou nome_123456.pdf
+        const numberMatch = nameWithoutExt.match(/(\d{5,})/)
+        
+        if (numberMatch) {
+            return numberMatch[1]
+        }
+        
+        return ''
+    }
+
+    /**
+     * Função para buscar número da guia automaticamente
+     */
+    const buscarNumeroGuia = async (numeroAtendimento: string) => {
+        if (!numeroAtendimento) {
+            console.warn('⚠️ Número de atendimento não fornecido')
+            return
+        }
+
+        setIsLoadingGuia(true)
+
+        try {
+            console.log(`🔍 Buscando número da guia para atendimento: ${numeroAtendimento}`)
+            
+            const response = await fetch(`/api/tasy/numero-guia?numeroAtendimento=${numeroAtendimento}`)
+            
+            if (response.ok) {
+                const data = await response.json()
+                console.log('✅ Número da guia encontrado:', data.numeroGuia)
+                
+                setNomeComposicao(prev => ({
+                    ...prev,
+                    numeroGuia: data.numeroGuia
+                }))
+
+                showSuccess(`Número da guia encontrado: ${data.numeroGuia}`)
+            } else {
+                console.warn(`⚠️ Guia não encontrada para o atendimento: ${numeroAtendimento}`)
+                showWarning(`Nenhuma guia encontrada para o atendimento ${numeroAtendimento}. Por favor, informe manualmente.`)
+            }
+        } catch (error) {
+            console.error('❌ Erro ao buscar número da guia:', error)
+            showError('Erro ao buscar número da guia. Por favor, informe manualmente.')
+        } finally {
+            setIsLoadingGuia(false)
+        }
+    }
+
+    /**
      * Função para abrir modal de composição de nome antes da unificação
      */
     const handleMergePDFs = async () => {
@@ -249,11 +308,19 @@ const GerenciadorPDFsPage = () => {
             
             // Preencher campos do modal
             setNomeComposicao({
-                cdPessoaFisica: cdPessoa,
+                numeroGuia: '', // Será buscado automaticamente
                 numeroAtendimento: numAtend,
                 dataUpload: dataUpload,
                 hash: hash
             })
+
+            // Buscar número da guia automaticamente se houver número de atendimento
+            if (numAtend) {
+                // Aguardar um pouco para o modal abrir antes de buscar
+                setTimeout(() => {
+                    buscarNumeroGuia(numAtend)
+                }, 500)
+            }
         }
 
         // Abrir modal de composição do nome
@@ -265,18 +332,18 @@ const GerenciadorPDFsPage = () => {
      */
     const handleConfirmMerge = async () => {
         // Validar composição do nome
-        if (!nomeComposicao.cdPessoaFisica.trim()) {
-            alert('Código da Pessoa Física é obrigatório')
+        if (!nomeComposicao.numeroGuia.trim()) {
+            showWarning('Número da Guia é obrigatório')
             return
         }
 
         if (!nomeComposicao.numeroAtendimento.trim()) {
-            alert('Número do Atendimento é obrigatório')
+            showWarning('Número do Atendimento é obrigatório')
             return
         }
 
         if (!nomeComposicao.dataUpload.trim() || nomeComposicao.dataUpload.length !== 8) {
-            alert('Data deve estar no formato DDMMAAAA (8 dígitos)')
+            showWarning('Data deve estar no formato DDMMAAAA (8 dígitos)')
             return
         }
 
@@ -286,7 +353,7 @@ const GerenciadorPDFsPage = () => {
         const year = parseInt(nomeComposicao.dataUpload.substring(4, 8))
 
         if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2100) {
-            alert('Data inválida. Use o formato DDMMAAAA com uma data válida.')
+            showWarning('Data inválida. Use o formato DDMMAAAA com uma data válida.')
             return
         }
 
@@ -310,7 +377,7 @@ const GerenciadorPDFsPage = () => {
             })
 
             // Gerar nome composto para o arquivo unificado com prefixo UNI_
-            const nomeComposto = `UNI_${nomeComposicao.cdPessoaFisica}_${nomeComposicao.numeroAtendimento}_${nomeComposicao.dataUpload}_${nomeComposicao.hash}`
+            const nomeComposto = `UNI_${nomeComposicao.numeroGuia}_${nomeComposicao.numeroAtendimento}_${nomeComposicao.dataUpload}_${nomeComposicao.hash}`
 
             setMergeProgress({
                 show: true,
@@ -488,7 +555,7 @@ const GerenciadorPDFsPage = () => {
 
         if (!pdf.url || pdf.url === '#') {
             console.error('❌ URL do PDF não disponível:', pdf)
-            alert('URL do PDF não está disponível para visualização.')
+            showError('URL do PDF não está disponível para visualização.')
             return
         }
 
@@ -498,7 +565,7 @@ const GerenciadorPDFsPage = () => {
             window.open(pdf.url, '_blank', 'noopener,noreferrer')
         } catch (error) {
             console.error('❌ Erro ao abrir PDF:', error)
-            alert('Erro ao tentar abrir o PDF. Verifique se você tem acesso ao SharePoint.')
+            showError('Erro ao tentar abrir o PDF. Verifique se você tem acesso ao SharePoint.')
         }
     }
 
@@ -583,7 +650,7 @@ const GerenciadorPDFsPage = () => {
             }))
 
             // Mostrar erro ao usuário
-            alert(`Erro ao carregar detalhes do PDF: ${errorMessage}`)
+            showError(`Erro ao carregar detalhes do PDF: ${errorMessage}`)
         }
     }
 
@@ -648,7 +715,7 @@ const GerenciadorPDFsPage = () => {
             })
 
             if (response.ok) {
-                alert('PDF editado com sucesso!')
+                showSuccess('PDF editado com sucesso!')
                 closeEditModal()
                 // Recarregar lista
                 refreshPDFs()
@@ -657,7 +724,7 @@ const GerenciadorPDFsPage = () => {
             }
         } catch (error) {
             console.error('Erro ao salvar PDF:', error)
-            alert('Erro ao salvar as alterações. Tente novamente.')
+            showError('Erro ao salvar as alterações. Tente novamente.')
         } finally {
             setEditState(prev => ({ ...prev, isLoading: false }))
         }
@@ -1328,33 +1395,56 @@ const GerenciadorPDFsPage = () => {
                         'text-sm',
                         isDark ? 'text-gray-400' : 'text-gray-600'
                     )}>
-                        Os arquivos serão nomeados no formato: <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">UNI_cdPessoa_numAtendimento_DDMMAAAA_hash.pdf</code>
+                        Os arquivos serão nomeados no formato: <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">UNI_numeroGuia_numAtendimento_DDMMAAAA_hash.pdf</code>
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Código Pessoa Física *</label>
-                            <Input
-                                type="text"
-                                placeholder="Ex: 123456"
-                                value={nomeComposicao.cdPessoaFisica}
-                                onChange={(e) => setNomeComposicao(prev => ({
-                                    ...prev,
-                                    cdPessoaFisica: e.target.value
-                                }))}
-                                className={twMerge(
-                                    'w-full',
-                                    isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
-                                )}
-                                required
-                            />
+                            <label className="text-sm font-medium">Número da Guia *</label>
+                            <div className="flex gap-2">
+                                <Input
+                                    type="text"
+                                    placeholder="Ex: 123456"
+                                    value={nomeComposicao.numeroGuia}
+                                    onChange={(e) => setNomeComposicao(prev => ({
+                                        ...prev,
+                                        numeroGuia: e.target.value
+                                    }))}
+                                    className={twMerge(
+                                        'w-full',
+                                        isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
+                                    )}
+                                    required
+                                    disabled={isLoadingGuia}
+                                />
+                                <Button
+                                    onClick={() => buscarNumeroGuia(nomeComposicao.numeroAtendimento)}
+                                    disabled={!nomeComposicao.numeroAtendimento || isLoadingGuia}
+                                    className={twMerge(
+                                        'px-3 whitespace-nowrap',
+                                        isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'
+                                    )}
+                                >
+                                    {isLoadingGuia ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        '🔍 Buscar'
+                                    )}
+                                </Button>
+                            </div>
+                            <p className={twMerge(
+                                'text-xs',
+                                isDark ? 'text-gray-500' : 'text-gray-500'
+                            )}>
+                                💡 Será buscado automaticamente com base no atendimento
+                            </p>
                         </div>
 
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Número Atendimento *</label>
                             <Input
                                 type="text"
-                                placeholder="Ex: ATD001"
+                                placeholder="Ex: 337120"
                                 value={nomeComposicao.numeroAtendimento}
                                 onChange={(e) => setNomeComposicao(prev => ({
                                     ...prev,
@@ -1420,7 +1510,7 @@ const GerenciadorPDFsPage = () => {
                                 'ml-2 px-2 py-1 rounded text-xs',
                                 isDark ? 'bg-gray-700 text-gray-300' : 'bg-white text-gray-700'
                             )}>
-                                UNI_{nomeComposicao.cdPessoaFisica || 'cdPessoa'}_{nomeComposicao.numeroAtendimento || 'numAtendimento'}_{nomeComposicao.dataUpload}_{nomeComposicao.hash || 'hash'}.pdf
+                                UNI_{nomeComposicao.numeroGuia || 'numeroGuia'}_{nomeComposicao.numeroAtendimento || 'numAtendimento'}_{nomeComposicao.dataUpload}_{nomeComposicao.hash || 'hash'}.pdf
                             </code>
                         </div>
                     </div>
@@ -1437,13 +1527,13 @@ const GerenciadorPDFsPage = () => {
                             onClick={handleConfirmMerge}
                             disabled={
                                 isMerging ||
-                                !nomeComposicao.cdPessoaFisica.trim() ||
+                                !nomeComposicao.numeroGuia.trim() ||
                                 !nomeComposicao.numeroAtendimento.trim()
                             }
                             className={twMerge(
                                 'inline-flex items-center gap-2',
                                 (isMerging ||
-                                    !nomeComposicao.cdPessoaFisica.trim() ||
+                                    !nomeComposicao.numeroGuia.trim() ||
                                     !nomeComposicao.numeroAtendimento.trim())
                                     ? 'cursor-not-allowed opacity-50'
                                     : isDark
