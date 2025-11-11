@@ -17,7 +17,9 @@ import {
     Edit3,
     FolderOpen,
     Send,
-    Database
+    Database,
+    RefreshCw,
+    AlertCircle
 } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 import { UnifiedPDFItem, ViewMode, PDFEditState, PDFItem } from '@/types/pdf'
@@ -25,11 +27,21 @@ import PDFManagerService, { SharePointPdfItem } from '@/services/pdfManager/pdfM
 import PDFService from '@/services/pdf/pdfService'
 import { useNotify } from '@/contexts/NotificationContext'
 import { TelescopePDFCard } from '@/components/pdf/TelescopePDFCard'
+import { getNasStatus } from '@/app/actions/pdfs'
 
 const UnificadosGerenciadorPDFsPage = () => {
     const { isDark } = useTheme()
     useLayout() // mantido para reatividade de layout; sem destructuring para evitar unused var
     const notify = useNotify()
+
+    // Estado para status do NAS
+    const [ nasStatus, setNasStatus ] = useState<{
+        status: 'online' | 'offline' | 'error' | 'loading'
+        message?: string
+        details?: any
+    }>({
+        status: 'loading'
+    })
 
     // Função para converter SharePointPdfItem para UnifiedPDFItem
     const mapToUnifiedPDFItem = (item: SharePointPdfItem): UnifiedPDFItem => {
@@ -164,6 +176,21 @@ const UnificadosGerenciadorPDFsPage = () => {
         setMounted(true)
         loadUnifiedPdfs()
     }, [ loadUnifiedPdfs ])
+
+    // Buscar status do NAS
+    useEffect(() => {
+        const checkNasStatus = async () => {
+            const status = await getNasStatus()
+            setNasStatus(status)
+        }
+
+        checkNasStatus()
+
+        // Atualizar a cada 30 segundos
+        const interval = setInterval(checkNasStatus, 30000)
+
+        return () => clearInterval(interval)
+    }, [])
 
     const filteredPdfs = unifiedPdfs.filter(pdf =>
         pdf.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -943,9 +970,9 @@ const UnificadosGerenciadorPDFsPage = () => {
     return (
         <PageWrapper maxWidth="full" spacing="xl">
             <div className="w-full space-y-8">
-                {/* Header com botão à esquerda */}
+                {/* Header com botão à esquerda e status NAS à direita */}
                 <div className="space-y-4">
-                    <div className="flex items-center justify-start mb-4">
+                    <div className="flex items-center justify-between mb-4">
                         <Button
                             onClick={() => window.history.back()}
                             className="bg-purple-500 hover:bg-purple-600 text-white"
@@ -953,6 +980,47 @@ const UnificadosGerenciadorPDFsPage = () => {
                             <ArrowLeft className="w-4 h-4 mr-2 pdf-icon" />
                             Voltar para Biblioteca
                         </Button>
+
+                        <div className="flex items-center gap-3">
+                            {/* Botão de Atualizar */}
+                            <Button
+                                onClick={() => {
+                                    loadUnifiedPdfs()
+                                    getNasStatus().then(setNasStatus)
+                                }}
+                                disabled={isLoading}
+                                className={twMerge(
+                                    'flex items-center gap-2',
+                                    isDark 
+                                        ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                                        : 'bg-blue-500 hover:bg-blue-600 text-white'
+                                )}
+                            >
+                                <RefreshCw className={twMerge(
+                                    'w-4 h-4 pdf-icon',
+                                    isLoading && 'animate-spin'
+                                )} />
+                                {isLoading ? 'Atualizando...' : 'Atualizar'}
+                            </Button>
+
+                            {/* Status do NAS - Canto Superior Direito */}
+                            {nasStatus.status !== 'loading' && (
+                                <div className={twMerge(
+                                    'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all',
+                                    nasStatus.status === 'online' && (isDark ? 'bg-green-900/30 text-green-400 border border-green-800/50' : 'bg-green-50 text-green-700 border border-green-200'),
+                                    nasStatus.status === 'offline' && (isDark ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-800/50' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'),
+                                    nasStatus.status === 'error' && (isDark ? 'bg-red-900/30 text-red-400 border border-red-800/50' : 'bg-red-50 text-red-700 border border-red-200')
+                                )}>
+                                    <Database className="w-3 h-3" />
+                                    <span>
+                                        NAS: {nasStatus.status === 'online' ? '🟢 Online' : nasStatus.status === 'offline' ? '🟡 Offline' : '🔴 Erro'}
+                                    </span>
+                                    {nasStatus.message && (
+                                        <span className="opacity-70">• {nasStatus.message}</span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div className="text-center">
@@ -965,7 +1033,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                     </div>
 
                     <p className={twMerge(
-                        'text-lg',
+                        'text-lg text-center',
                         isDark ? 'text-gray-300' : 'text-muted-foreground'
                     )}>
                         {isLoading ? 'Carregando...' : `${filteredPdfs.length} documento${filteredPdfs.length > 1 ? 's' : ''} unificado${filteredPdfs.length > 1 ? 's' : ''} disponív${filteredPdfs.length > 1 ? 'eis' : 'el'}`}
@@ -1815,6 +1883,29 @@ const UnificadosGerenciadorPDFsPage = () => {
                         </div>
                     )}
 
+                    {/* Aviso sobre status do NAS */}
+                    {nasStatus.status !== 'online' && (
+                        <div className={twMerge(
+                            'p-3 rounded-lg border text-sm',
+                            isDark 
+                                ? 'bg-red-900/20 border-red-700 text-red-300' 
+                                : 'bg-red-50 border-red-200 text-red-700'
+                        )}>
+                            <div className="flex items-center gap-2">
+                                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                <div>
+                                    <strong>NAS Offline:</strong> O servidor NAS está {nasStatus.status === 'offline' ? 'offline' : 'com erro'}. 
+                                    O envio para TASY está desabilitado até que a conexão seja restabelecida.
+                                    {nasStatus.message && (
+                                        <div className="text-xs mt-1 opacity-80">
+                                            Motivo: {nasStatus.message}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Botões de Ação */}
                     <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-600">
                         <Button
@@ -1826,8 +1917,9 @@ const UnificadosGerenciadorPDFsPage = () => {
                         </Button>
                         <Button
                             onClick={sendPdfToTasy}
-                            disabled={!tasyModal.selectedConta || tasyModal.isSending}
-                            className="bg-purple-600 hover:bg-purple-700 text-white"
+                            disabled={!tasyModal.selectedConta || tasyModal.isSending || nasStatus.status !== 'online'}
+                            className="bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={nasStatus.status !== 'online' ? 'NAS offline - Envio desabilitado' : ''}
                         >
                             {tasyModal.isSending ? (
                                 <>

@@ -273,7 +273,7 @@ export const AutocompletePessoa: React.FC<AutocompletePessoaProps> = ({
             ? 'bg-gray-800 border-gray-700 text-gray-400'
             : 'bg-white border-gray-200 text-gray-600'
         )}>
-          Nenhuma pessoa encontrada com "{searchTerm}"
+          Nenhuma pessoa encontrada com {searchTerm}
         </div>
       )}
 
