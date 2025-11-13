@@ -50,22 +50,28 @@ export async function GET(request: NextRequest) {
 
             logger.info('✅ [TASY] Resposta recebida:', data)
 
-            // Verificar se é um array e pegar o primeiro item
+            // Verificar se é um array com resultados
             if (Array.isArray(data) && data.length > 0) {
-                const contaInfo = data[0]
-                const numeroContaInterno = contaInfo.nR_INTERNO_CONTA
+                // Extrair todas as contas do array
+                const contas = data
+                    .map((item: any) => item.numerO_CONTA)
+                    .filter((conta: any) => conta !== null && conta !== undefined)
+                    .map(String)
 
-                if (!numeroContaInterno) {
-                    logger.warn('⚠️ [TASY] nR_INTERNO_CONTA não encontrado na resposta')
+                if (contas.length === 0) {
+                    logger.warn('⚠️ [TASY] Nenhuma conta válida encontrada na resposta')
                     return NextResponse.json(
                         { error: 'Conta não encontrada' },
                         { status: 404 }
                     )
                 }
 
+                logger.info(`✅ [TASY] ${contas.length} conta(s) encontrada(s):`, contas)
+
+                // Retornar array de contas
                 return NextResponse.json({
                     numeroAtendimento,
-                    contaPaciente: String(numeroContaInterno),
+                    contasPaciente: contas,
                 })
             }
 

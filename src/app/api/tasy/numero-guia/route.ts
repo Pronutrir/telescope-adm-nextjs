@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 segundos
 
         try {
-            const url = `${TASY_API_BASE}/v2/ContaPaciente/GetAtendimentoCategoriaConvenio?Numero_Atendimento=${numeroAtendimento}`
+            const url = `${TASY_API_BASE}/v2/ContaPaciente/GetContaPaciente?Numero_Atendimento=${numeroAtendimento}`
             logger.info(`🌐 [TASY] URL completa: ${url}`)
             
             const response = await fetch(url, {
@@ -46,34 +46,33 @@ export async function GET(request: NextRequest) {
                 )
             }
 
-            const data = await response.json() // A API retorna um objeto ou array
+            const data = await response.json() // A API retorna um array
 
             logger.info('✅ [TASY] Resposta recebida:', data)
 
-            // Verificar se é um array e pegar o primeiro item, ou se é um objeto direto
-            let guiaInfo = null
-            
+            // Verificar se é um array com resultados
             if (Array.isArray(data) && data.length > 0) {
-                guiaInfo = data[0]
-            } else if (data && typeof data === 'object' && !Array.isArray(data)) {
-                guiaInfo = data
-            }
+                const primeiraGuia = data[0]
+                
+                // Tentar nR_GUIA_PRINC_CONV primeiro, depois nR_GUIA_PRINC
+                const numeroGuia = primeiraGuia.nR_GUIA_PRINC_CONV || primeiraGuia.nR_GUIA_PRINC
+                const numeroProtocolo = primeiraGuia.numerO_PROTOCOLO
 
-            if (guiaInfo) {
-                const numeroGuia = guiaInfo.nR_DOC_CONVENIO
-
-                if (!numeroGuia) {
-                    logger.warn('⚠️ [TASY] nR_DOC_CONVENIO não encontrado na resposta')
-                    logger.warn('⚠️ [TASY] Campos disponíveis:', Object.keys(guiaInfo))
+                if (!numeroGuia && !numeroProtocolo) {
+                    logger.warn('⚠️ [TASY] Número da guia e protocolo não encontrados na resposta')
+                    logger.warn('⚠️ [TASY] Campos disponíveis:', Object.keys(primeiraGuia))
                     return NextResponse.json(
-                        { error: 'Número da guia não encontrado' },
+                        { error: 'Número da guia e protocolo não encontrados' },
                         { status: 404 }
                     )
                 }
 
+                logger.info(`✅ [TASY] Dados encontrados - Guia: ${numeroGuia || 'N/A'}, Protocolo: ${numeroProtocolo || 'N/A'}`)
+
                 return NextResponse.json({
                     numeroAtendimento,
-                    numeroGuia: String(numeroGuia),
+                    numeroGuia: numeroGuia ? String(numeroGuia) : null,
+                    numeroProtocolo: numeroProtocolo ? String(numeroProtocolo) : null,
                 })
             }
 

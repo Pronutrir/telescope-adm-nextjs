@@ -603,80 +603,25 @@ const UnificadosGerenciadorPDFsPage = () => {
                     displayText: string
                 }> = []
 
-                // 🆕 Verificar se contaPaciente é uma string que contém array: "[2549371, 2614471]"
-                if (typeof data.contaPaciente === 'string' && data.contaPaciente.trim().startsWith('[')) {
-                    console.log('🔍 [TASY DEBUG] Array em formato string detectado:', data.contaPaciente)
-                    
-                    try {
-                        // Remover colchetes e dividir por vírgula
-                        const contasArray = data.contaPaciente
-                            .replace(/[\[\]]/g, '') // Remove [ e ]
-                            .split(',') // Divide por vírgula
-                            .map((c: string) => c.trim()) // Remove espaços
-                            .filter((c: string) => c && c !== '' && c !== 'null' && c !== 'undefined') // Filtra vazios
-                        
-                        console.log('🔍 [TASY DEBUG] Contas extraídas do array string:', contasArray)
-                        
-                        contasArray.forEach((conta: string) => {
-                            contasEncontradas.push({
-                                numeroAtendimento: data.numeroAtendimento,
-                                contaPaciente: conta,
-                                displayText: `Atend: ${data.numeroAtendimento} → Conta: ${conta}`
-                            })
-                        })
-                    } catch (parseError) {
-                        console.error('❌ [TASY DEBUG] Erro ao parsear array string:', parseError)
-                    }
-                }
-                // Verificar se a API retorna múltiplas contas em um array
-                else if (Array.isArray(data.contasPaciente)) {
+                // Verificar se a API retorna múltiplas contas em um array de objetos
+                if (Array.isArray(data.contasPaciente)) {
                     console.log('🔍 [TASY DEBUG] Array detectado, tamanho:', data.contasPaciente.length)
                     console.log('🔍 [TASY DEBUG] Conteúdo do array:', data.contasPaciente)
                     
-                    // Se o array está vazio, não processar nada
                     if (data.contasPaciente.length === 0) {
                         console.log('⚠️ [TASY DEBUG] Array está vazio - nenhuma conta para processar')
-                        // contasEncontradas permanece vazio
                     } else {
-                        // Filtrar apenas contas válidas (não vazias, não null, não undefined)
-                        const contasValidas = data.contasPaciente.filter((conta: any) => {
-                            const contaStr = String(conta).trim()
-                            const isValid = conta !== null && 
-                                           conta !== undefined && 
-                                           conta !== '' && 
-                                           contaStr !== '' &&
-                                           contaStr !== '[]' &&
-                                           contaStr !== 'null' &&
-                                           contaStr !== '{}'
-                            console.log(`🔍 [TASY DEBUG] Validando conta "${conta}": ${isValid}`)
-                            return isValid
-                        })
-                        
-                        console.log('🔍 [TASY DEBUG] Contas válidas após filtro:', contasValidas)
-                        
-                        // Caso: array de contas válidas [2549371, 2614471]
-                        contasValidas.forEach((conta: string | number) => {
-                            contasEncontradas.push({
-                                numeroAtendimento: data.numeroAtendimento,
-                                contaPaciente: String(conta),
-                                displayText: `Atend: ${data.numeroAtendimento} → Conta: ${conta}`
-                            })
+                        // Processar cada conta do array
+                        data.contasPaciente.forEach((conta: any) => {
+                            if (conta.contaPaciente) {
+                                contasEncontradas.push({
+                                    numeroAtendimento: data.numeroAtendimento,
+                                    contaPaciente: conta.contaPaciente,
+                                    displayText: `Atend: ${data.numeroAtendimento} → Conta: ${conta.contaPaciente}`
+                                })
+                            }
                         })
                     }
-                } else if (data.contaPaciente && 
-                          String(data.contaPaciente).trim() !== '' &&
-                          data.contaPaciente !== '[]' &&
-                          data.contaPaciente !== 'null' &&
-                          data.contaPaciente !== '{}') {
-                    console.log('🔍 [TASY DEBUG] Conta única detectada:', data.contaPaciente)
-                    // Caso: uma única conta direta e válida
-                    contasEncontradas.push({
-                        numeroAtendimento: data.numeroAtendimento,
-                        contaPaciente: String(data.contaPaciente),
-                        displayText: `Atend: ${data.numeroAtendimento} → Conta: ${data.contaPaciente}`
-                    })
-                } else {
-                    console.log('🔍 [TASY DEBUG] Nenhuma estrutura válida de conta encontrada')
                 }
 
                 // Log do resultado do processamento

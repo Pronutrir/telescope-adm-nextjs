@@ -80,6 +80,7 @@ const GerenciadorPDFsPage = () => {
     const [ showCompositionModal, setShowCompositionModal ] = useState(false)
     const [ nomeComposicao, setNomeComposicao ] = useState({
         numeroGuia: '',
+        numeroProtocolo: '',
         numeroAtendimento: '',
         dataUpload: '',
         hash: ''
@@ -237,27 +238,36 @@ const GerenciadorPDFsPage = () => {
         setIsLoadingGuia(true)
 
         try {
-            console.log(`🔍 Buscando número da guia para atendimento: ${numeroAtendimento}`)
+            console.log(`🔍 Buscando número da guia e protocolo para atendimento: ${numeroAtendimento}`)
             
             const response = await fetch(`/api/tasy/numero-guia?numeroAtendimento=${numeroAtendimento}`)
             
             if (response.ok) {
                 const data = await response.json()
-                console.log('✅ Número da guia encontrado:', data.numeroGuia)
+                console.log('✅ Dados encontrados:', data)
                 
                 setNomeComposicao(prev => ({
                     ...prev,
-                    numeroGuia: data.numeroGuia
+                    numeroGuia: data.numeroGuia || '',
+                    numeroProtocolo: data.numeroProtocolo || ''
                 }))
 
-                showSuccess(`Número da guia encontrado: ${data.numeroGuia}`)
+                const mensagens = []
+                if (data.numeroGuia) mensagens.push(`Guia: ${data.numeroGuia}`)
+                if (data.numeroProtocolo) mensagens.push(`Protocolo: ${data.numeroProtocolo}`)
+                
+                if (mensagens.length > 0) {
+                    showSuccess(mensagens.join(' | '))
+                } else {
+                    showWarning('Dados encontrados mas sem número de guia ou protocolo')
+                }
             } else {
-                console.warn(`⚠️ Guia não encontrada para o atendimento: ${numeroAtendimento}`)
-                showWarning(`Nenhuma guia encontrada para o atendimento ${numeroAtendimento}. Por favor, informe manualmente.`)
+                console.warn(`⚠️ Dados não encontrados para o atendimento: ${numeroAtendimento}`)
+                showWarning(`Nenhum dado encontrado para o atendimento ${numeroAtendimento}. Por favor, informe manualmente.`)
             }
         } catch (error) {
-            console.error('❌ Erro ao buscar número da guia:', error)
-            showError('Erro ao buscar número da guia. Por favor, informe manualmente.')
+            console.error('❌ Erro ao buscar dados:', error)
+            showError('Erro ao buscar dados. Por favor, informe manualmente.')
         } finally {
             setIsLoadingGuia(false)
         }
@@ -285,8 +295,8 @@ const GerenciadorPDFsPage = () => {
         
         if (firstPdf) {
             // Padrões de nome de arquivo:
-            // 1. Com prefixo: UNI_cdPessoa_numAtend_DDMMAAAA_hash.pdf
-            // 2. Sem prefixo: cdPessoa_numAtend_DDMMAAAA_hash.pdf
+            // 1. Com prefixo: UNI_numeroGuia_numeroProtocolo_numAtend_DDMMAAAA_hash.pdf
+            // 2. Sem prefixo: numeroGuia_numeroProtocolo_numAtend_DDMMAAAA_hash.pdf
             const fileName = firstPdf.fileName.replace('.pdf', '')
             const parts = fileName.split('_')
             
@@ -309,6 +319,7 @@ const GerenciadorPDFsPage = () => {
             // Preencher campos do modal
             setNomeComposicao({
                 numeroGuia: '', // Será buscado automaticamente
+                numeroProtocolo: '', // Será buscado automaticamente
                 numeroAtendimento: numAtend,
                 dataUpload: dataUpload,
                 hash: hash
@@ -377,7 +388,7 @@ const GerenciadorPDFsPage = () => {
             })
 
             // Gerar nome composto para o arquivo unificado com prefixo UNI_
-            const nomeComposto = `UNI_${nomeComposicao.numeroGuia}_${nomeComposicao.numeroAtendimento}_${nomeComposicao.dataUpload}_${nomeComposicao.hash}`
+            const nomeComposto = `UNI_${nomeComposicao.numeroGuia}_${nomeComposicao.numeroProtocolo}_${nomeComposicao.numeroAtendimento}_${nomeComposicao.dataUpload}_${nomeComposicao.hash}`
 
             setMergeProgress({
                 show: true,
@@ -1395,7 +1406,7 @@ const GerenciadorPDFsPage = () => {
                         'text-sm',
                         isDark ? 'text-gray-400' : 'text-gray-600'
                     )}>
-                        Os arquivos serão nomeados no formato: <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">UNI_numeroGuia_numAtendimento_DDMMAAAA_hash.pdf</code>
+                        Os arquivos serão nomeados no formato: <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">UNI_numeroGuia_numeroProtocolo_numAtendimento_DDMMAAAA_hash.pdf</code>
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1437,6 +1448,30 @@ const GerenciadorPDFsPage = () => {
                                 isDark ? 'text-gray-500' : 'text-gray-500'
                             )}>
                                 💡 Será buscado automaticamente com base no atendimento
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Número do Protocolo</label>
+                            <Input
+                                type="text"
+                                placeholder="Ex: 789012"
+                                value={nomeComposicao.numeroProtocolo}
+                                onChange={(e) => setNomeComposicao(prev => ({
+                                    ...prev,
+                                    numeroProtocolo: e.target.value
+                                }))}
+                                className={twMerge(
+                                    'w-full',
+                                    isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
+                                )}
+                                disabled={isLoadingGuia}
+                            />
+                            <p className={twMerge(
+                                'text-xs',
+                                isDark ? 'text-gray-500' : 'text-gray-500'
+                            )}>
+                                💡 Será buscado automaticamente junto com a guia
                             </p>
                         </div>
 
@@ -1510,7 +1545,7 @@ const GerenciadorPDFsPage = () => {
                                 'ml-2 px-2 py-1 rounded text-xs',
                                 isDark ? 'bg-gray-700 text-gray-300' : 'bg-white text-gray-700'
                             )}>
-                                UNI_{nomeComposicao.numeroGuia || 'numeroGuia'}_{nomeComposicao.numeroAtendimento || 'numAtendimento'}_{nomeComposicao.dataUpload}_{nomeComposicao.hash || 'hash'}.pdf
+                                UNI_{nomeComposicao.numeroGuia || 'numeroGuia'}_{nomeComposicao.numeroProtocolo || 'numeroProtocolo'}_{nomeComposicao.numeroAtendimento || 'numAtendimento'}_{nomeComposicao.dataUpload}_{nomeComposicao.hash || 'hash'}.pdf
                             </code>
                         </div>
                     </div>
