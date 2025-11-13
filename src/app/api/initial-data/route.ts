@@ -77,8 +77,12 @@ export async function GET() {
 
         // Buscar dados da API externa - URL específica para sinais vitais
         const sinaisVitaisUrl = process.env.NODE_ENV === 'development' 
-            ? process.env.DEV_SINAIS_VITAIS_URL || 'https://localhost:44326/api/v1/SinaisVitaisMonitoracaoGeral/GetAlertaSinaisVitaisPaciente'
+            ? process.env.DEV_SINAIS_VITAIS_URL
             : `${requireApiBaseUrl()}/apitasy/api/v1/SinaisVitaisMonitoracaoGeral/GetAlertaSinaisVitaisPaciente`
+        
+        if (!sinaisVitaisUrl) {
+            throw new Error('DEV_SINAIS_VITAIS_URL não configurada para ambiente de desenvolvimento. Configure no .env.local')
+        }
         
         logger.info(`Fazendo request para: ${sinaisVitaisUrl}`)
         

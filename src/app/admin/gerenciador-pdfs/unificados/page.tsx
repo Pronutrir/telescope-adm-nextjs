@@ -56,6 +56,9 @@ const UnificadosGerenciadorPDFsPage = () => {
             return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[ i ]
         }
 
+        // Extrair status de envio do customFields
+        const sentToTasy = item.customFields?.Tasy === true || item.customFields?.Tasy === 'true'
+
         return {
             id: item.id || '',
             title: fileName.replace('.pdf', ''),
@@ -65,7 +68,8 @@ const UnificadosGerenciadorPDFsPage = () => {
             uploadDate: item.lastModified || new Date().toISOString(),
             description: `PDF unificado criado em ${PDFManagerService.formatDate(item.lastModified || new Date().toISOString())}`,
             sourceFiles: [], // API não retorna essa informação
-            pageCount: 0 // API não retorna essa informação
+            pageCount: 0, // API não retorna essa informação
+            sentToTasy
         }
     }
 
@@ -1038,6 +1042,23 @@ const UnificadosGerenciadorPDFsPage = () => {
                     )}>
                         {isLoading ? 'Carregando...' : `${filteredPdfs.length} documento${filteredPdfs.length > 1 ? 's' : ''} unificado${filteredPdfs.length > 1 ? 's' : ''} disponív${filteredPdfs.length > 1 ? 'eis' : 'el'}`}
                     </p>
+
+                    {/* Estatísticas de Envio */}
+                    {!isLoading && filteredPdfs.length > 0 && (
+                        <div className="flex items-center justify-center gap-6 mt-4">
+                            <div className="flex items-center gap-2">
+                                <span className={twMerge(
+                                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border',
+                                    isDark 
+                                        ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' 
+                                        : 'bg-purple-50 text-purple-700 border-purple-200'
+                                )}>
+                                    <Database className="w-4 h-4" />
+                                    {filteredPdfs.filter(pdf => pdf.sentToTasy).length} enviado{filteredPdfs.filter(pdf => pdf.sentToTasy).length !== 1 ? 's' : ''} ao TASY
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -1189,19 +1210,34 @@ const UnificadosGerenciadorPDFsPage = () => {
                 ) : viewMode === 'grid' ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3" style={{ padding: '0 6px' }}>
                         {filteredPdfs.map((pdf) => (
-                            <TelescopePDFCard
-                                key={pdf.id}
-                                pdf={convertToPDFItem(pdf)}
-                                viewMode="grid"
-                                onView={() => openViewer(pdf)}
-                                onEdit={() => handleEditPDF(pdf)}
-                                onSendToTasy={() => openTasyModal(pdf)}
-                                formatDate={PDFManagerService.formatDate}
-                                priority="medium"
-                                showStats={true}
-                                actionButtonStyle="full"
-                                className="transition-all duration-300"
-                            />
+                            <div key={pdf.id} className="relative">
+                                {/* Badge de Status - Posicionado acima do card */}
+                                {pdf.sentToTasy && (
+                                    <div className="absolute -top-2 left-2 right-2 z-10 flex gap-2 justify-center">
+                                        <span className={twMerge(
+                                            'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold shadow-lg border',
+                                            isDark
+                                                ? 'bg-purple-500/90 text-white border-purple-400/50 shadow-purple-900/50'
+                                                : 'bg-purple-500 text-white border-purple-400/30 shadow-purple-500/30'
+                                        )}>
+                                            <Database className="w-3 h-3" />
+                                            TASY
+                                        </span>
+                                    </div>
+                                )}
+                                <TelescopePDFCard
+                                    pdf={convertToPDFItem(pdf)}
+                                    viewMode="grid"
+                                    onView={() => openViewer(pdf)}
+                                    onEdit={() => handleEditPDF(pdf)}
+                                    onSendToTasy={() => openTasyModal(pdf)}
+                                    formatDate={PDFManagerService.formatDate}
+                                    priority="medium"
+                                    showStats={true}
+                                    actionButtonStyle="full"
+                                    className="transition-all duration-300"
+                                />
+                            </div>
                         ))}
                     </div>
                 ) : (
@@ -1226,12 +1262,26 @@ const UnificadosGerenciadorPDFsPage = () => {
                                     <FileText className="w-8 h-8 text-purple-500 pdf-icon" />
                                 </div>                                    {/* Informações principais */}
                                 <div className="flex-1 min-w-0">
-                                    <h3 className={twMerge(
-                                        'font-semibold text-lg mb-1 truncate',
-                                        isDark ? 'text-white' : 'text-gray-900'
-                                    )}>
-                                        {pdf.title}
-                                    </h3>
+                                    <div className="flex items-start gap-2 mb-1">
+                                        <h3 className={twMerge(
+                                            'font-semibold text-lg truncate flex-1',
+                                            isDark ? 'text-white' : 'text-gray-900'
+                                        )}>
+                                            {pdf.title}
+                                        </h3>
+                                        {/* Badge de Status inline */}
+                                        {pdf.sentToTasy && (
+                                            <span className={twMerge(
+                                                'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm',
+                                                isDark
+                                                    ? 'bg-purple-500/80 text-white border border-purple-400/50'
+                                                    : 'bg-purple-500 text-white border border-purple-400/30'
+                                            )}>
+                                                <Database className="w-3 h-3" />
+                                                TASY
+                                            </span>
+                                        )}
+                                    </div>
                                     <p className={twMerge(
                                         'text-sm mb-2 line-clamp-1',
                                         isDark ? 'text-gray-300' : 'text-gray-600'

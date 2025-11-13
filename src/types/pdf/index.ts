@@ -30,6 +30,7 @@ export interface PdfInfo {
 export interface UnifiedPDFItem extends PDFItem {
   sourceFiles: string[];
   pageCount: number;
+  sentToTasy?: boolean;
 }
 
 // Interface para integração com sistema Tasy

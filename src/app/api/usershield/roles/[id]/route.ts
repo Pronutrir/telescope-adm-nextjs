@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { tokenCacheService } from '@/services/tokenCacheService'
+import { SERVICES_CONFIG } from '@/config/env'
 
-const USERSHIELD_API_URL = 'https://servicesapp.pronutrir.com.br/usershield/api/v1'
+const USERSHIELD_API_URL = `${SERVICES_CONFIG.USERSHIELD}/api/v1`
 
 /**
  * DELETE /api/usershield/roles/[id]

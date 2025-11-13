@@ -7,14 +7,14 @@ loadEnvironmentConfig()
 export const redisEnvironments: Record<string, RedisConfig> = {
   local: {
     name: 'LOCAL',
-    host: getEnvVar('REDIS_LOCAL_HOST', '13.65.197.121'),
+    host: getEnvVar('REDIS_LOCAL_HOST', 'localhost'),
     port: getEnvNumber('REDIS_LOCAL_PORT', 6379),
     password: getEnvVar('REDIS_LOCAL_PASSWORD', ''),
     db: getEnvNumber('REDIS_LOCAL_DB', 0)
   },
   production: {
     name: 'PRODUÇÃO',
-    host: getEnvVar('REDIS_PROD_HOST', '10.0.0.7'),
+    host: getEnvVar('REDIS_PROD_HOST', 'localhost'),
     port: getEnvNumber('REDIS_PROD_PORT', 6379),
     password: getEnvVar('REDIS_PROD_PASSWORD', ''),
     db: getEnvNumber('REDIS_PROD_DB', 0)

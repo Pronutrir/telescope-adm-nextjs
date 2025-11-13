@@ -1,7 +1,8 @@
 /**
  * Serviço para integração com API SharePoint PDF - Gerenciador de PDFs
- * API: http://localhost:5000
- * Documentação: http://localhost:5000/swagger
+ * 
+ * URL configurada via variável de ambiente: PDF_API_URL
+ * Documentação: Acesse /swagger na URL configurada
  * 
  * Baseado na especificação OpenAPI 3.0.1 oficial da API
  */
@@ -12,6 +13,28 @@ export interface SharePointPdfItem {
   size: number // int64
   lastModified: string // date-time format
   downloadUrl: string | null
+  customFields?: {
+    FileLeafRef?: string
+    MediaServiceImageTags?: Record<string, any>
+    Modified?: string
+    Tasy?: boolean | string
+    NAS?: boolean | string
+    ContentType?: string
+    Created?: string
+    AuthorLookupId?: string
+    EditorLookupId?: string
+    LinkFilenameNoMenu?: string
+    LinkFilename?: string
+    DocIcon?: string
+    FileSizeDisplay?: string
+    ItemChildCount?: string
+    FolderChildCount?: string
+    AppAuthorLookupId?: string
+    Edit?: string
+    ParentVersionStringLookupId?: string
+    ParentLeafNameLookupId?: string
+    [key: string]: any // Permitir campos customizados adicionais
+  }
 }
 
 export interface PagedPdfResponse {
