@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import { getServiceUrl } from '@/config/env'
 
-const TASY_API_BASE = getServiceUrl('APITASY') // Já inclui /api/ no final
+const TASY_API_BASE = getServiceUrl('APITASY')
 
 export async function GET(request: NextRequest) {
     try {
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 segundos
 
         try {
-            const url = `${TASY_API_BASE}/v2/ContaPaciente/GetContaPaciente?Numero_Atendimento=${numeroAtendimento}`
+            const url = `${TASY_API_BASE}/api/v2/ContaPaciente/GetContaPaciente?Numero_Atendimento=${numeroAtendimento}`
             logger.info(`🌐 [TASY] URL completa: ${url}`)
             
             const response = await fetch(url, {

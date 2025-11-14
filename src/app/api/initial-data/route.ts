@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireApiBaseUrl } from '@/config/env'
+import { requireApiBaseUrl, SERVICES_CONFIG } from '@/config/env'
 import { logger } from '@/lib/logger'
 
 // Função para obter token de autenticação usando credenciais do servidor
@@ -76,13 +76,7 @@ export async function GET() {
         logger.info('Token obtido, buscando dados da API...')
 
         // Buscar dados da API externa - URL específica para sinais vitais
-        const sinaisVitaisUrl = process.env.NODE_ENV === 'development' 
-            ? process.env.DEV_SINAIS_VITAIS_URL
-            : `${requireApiBaseUrl()}/apitasy/api/v1/SinaisVitaisMonitoracaoGeral/GetAlertaSinaisVitaisPaciente`
-        
-        if (!sinaisVitaisUrl) {
-            throw new Error('DEV_SINAIS_VITAIS_URL não configurada para ambiente de desenvolvimento. Configure no .env.local')
-        }
+        const sinaisVitaisUrl = `${SERVICES_CONFIG.APITASY}/api/v1/SinaisVitaisMonitoracaoGeral/GetAlertaSinaisVitaisPaciente`
         
         logger.info(`Fazendo request para: ${sinaisVitaisUrl}`)
         

@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           sharePointUrl: sharePointUrl,
+          fileId: "Tasy",
           nomeArquivo: null,
           sobrescrever: true,
           pastaDestino: null

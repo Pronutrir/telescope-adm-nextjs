@@ -5,6 +5,16 @@ const nextConfig = {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br'
     const pdfApiBaseUrl = process.env.PDF_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5656/api/v1' : '')
 
+    // Extrair path dinâmico do APITASY da URL do .env
+    const apitasyUrl = process.env.NEXT_PUBLIC_APITASY_URL || `${apiBaseUrl}/apitasy`
+    let apitasyPath = '/apitasy'
+    try {
+      const urlObj = new URL(apitasyUrl)
+      apitasyPath = urlObj.pathname
+    } catch (e) {
+      console.warn('⚠️ Erro ao parsear NEXT_PUBLIC_APITASY_URL, usando /apitasy como fallback')
+    }
+
     return [
       // Rota específica para PDFs
       {
@@ -32,8 +42,8 @@ const nextConfig = {
         destination: `${apiBaseUrl}/usershield/:path*`,
       },
       {
-        source: '/apitasy/:path*',
-        destination: `${apiBaseUrl}/apitasy/:path*`,
+        source: `${apitasyPath}/:path*`,
+        destination: `${apiBaseUrl}${apitasyPath}/:path*`,
       },
       {
         source: '/notify/:path*',
@@ -42,7 +52,7 @@ const nextConfig = {
       // Rota específica para SignalR Hub
       {
         source: '/signalr/:path*',
-        destination: `${apiBaseUrl}/apitasy/:path*`,
+        destination: `${apiBaseUrl}${apitasyPath}/:path*`,
       },
     ]
   },

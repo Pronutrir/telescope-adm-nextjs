@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useDebounce } from './useDebounce'
+import { SERVICES_CONFIG } from '@/config/env'
 
 // Interface para o paciente
 export interface IPaciente {
@@ -29,8 +30,11 @@ async function getPacientes(searchTerm?: string): Promise<IPaciente[]> {
       rows: '20'
     })
 
+    // Extrair path de SERVICES_CONFIG.APITASY para uso client-side
+    const apitasyPath = new URL(SERVICES_CONFIG.APITASY).pathname
+    
     // Usar rewrite do Next para resolver para a API de backend
-    const response = await fetch(`/apitasy/api/v1/PacientesSinaisVitais/Search?${searchParams}`, {
+    const response = await fetch(`${apitasyPath}/api/v1/PacientesSinaisVitais/Search?${searchParams}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

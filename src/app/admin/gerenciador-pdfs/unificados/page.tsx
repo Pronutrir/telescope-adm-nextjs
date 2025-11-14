@@ -35,7 +35,7 @@ const UnificadosGerenciadorPDFsPage = () => {
     const notify = useNotify()
 
     // Estado para status do NAS
-    const [ nasStatus, setNasStatus ] = useState<{
+    const [nasStatus, setNasStatus] = useState<{
         status: 'online' | 'offline' | 'error' | 'loading'
         message?: string
         details?: any
@@ -51,9 +51,9 @@ const UnificadosGerenciadorPDFsPage = () => {
         const formatFileSize = (bytes: number): string => {
             if (bytes === 0) return '0 B'
             const k = 1024
-            const sizes = [ 'B', 'KB', 'MB', 'GB' ]
+            const sizes = ['B', 'KB', 'MB', 'GB']
             const i = Math.floor(Math.log(bytes) / Math.log(k))
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[ i ]
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
         }
 
         // Extrair status de envio do customFields
@@ -85,14 +85,14 @@ const UnificadosGerenciadorPDFsPage = () => {
     })
 
     // Estados
-    const [ mounted, setMounted ] = useState(false)
-    const [ unifiedPdfs, setUnifiedPdfs ] = useState<UnifiedPDFItem[]>([])
-    const [ viewMode, setViewMode ] = useState<ViewMode>('grid')
-    const [ searchTerm, setSearchTerm ] = useState('')
-    const [ isLoading, setIsLoading ] = useState(true)
+    const [mounted, setMounted] = useState(false)
+    const [unifiedPdfs, setUnifiedPdfs] = useState<UnifiedPDFItem[]>([])
+    const [viewMode, setViewMode] = useState<ViewMode>('grid')
+    const [searchTerm, setSearchTerm] = useState('')
+    const [isLoading, setIsLoading] = useState(true)
 
     // Estado para edição de páginas do PDF
-    const [ editState, setEditState ] = useState<PDFEditState>({
+    const [editState, setEditState] = useState<PDFEditState>({
         isOpen: false,
         selectedPdf: null,
         isLoading: false,
@@ -106,7 +106,7 @@ const UnificadosGerenciadorPDFsPage = () => {
     })
 
     // Estados para modal de envio para TASY
-    const [ tasyModal, setTasyModal ] = useState<{
+    const [tasyModal, setTasyModal] = useState<{
         isOpen: boolean
         selectedPdf?: UnifiedPDFItem
         searchTerm: string
@@ -165,7 +165,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                     size: '1.5 MB',
                     uploadDate: new Date().toISOString(),
                     description: 'Dados de demonstração - API indisponível',
-                    sourceFiles: [ 'arquivo1.pdf', 'arquivo2.pdf' ],
+                    sourceFiles: ['arquivo1.pdf', 'arquivo2.pdf'],
                     pageCount: 25
                 }
             ]
@@ -179,7 +179,7 @@ const UnificadosGerenciadorPDFsPage = () => {
     useEffect(() => {
         setMounted(true)
         loadUnifiedPdfs()
-    }, [ loadUnifiedPdfs ])
+    }, [loadUnifiedPdfs])
 
     // Buscar status do NAS
     useEffect(() => {
@@ -211,11 +211,11 @@ const UnificadosGerenciadorPDFsPage = () => {
             notify.warning('URL do PDF não está disponível para visualização.', {
                 title: 'PDF Indisponível',
                 duration: 5000,
-                actions: [ {
+                actions: [{
                     label: 'Entendi',
                     onClick: () => { },
                     variant: 'ghost'
-                } ]
+                }]
             })
         }
     }
@@ -345,11 +345,11 @@ const UnificadosGerenciadorPDFsPage = () => {
             notify.warning('Selecione pelo menos uma página para manter no PDF', {
                 title: 'Seleção Obrigatória',
                 duration: 5000,
-                actions: [ {
+                actions: [{
                     label: 'OK',
                     onClick: () => { },
                     variant: 'primary'
-                } ]
+                }]
             })
             return
         }
@@ -371,11 +371,11 @@ const UnificadosGerenciadorPDFsPage = () => {
                 notify.success(response.message || `PDF editado com sucesso! ${selectedPages.length} páginas mantidas.`, {
                     title: 'Edição Concluída',
                     duration: 6000,
-                    actions: [ {
+                    actions: [{
                         label: 'Ver Lista',
                         onClick: () => { },
                         variant: 'ghost'
-                    } ]
+                    }]
                 })
                 closeEditModal()
 
@@ -387,11 +387,11 @@ const UnificadosGerenciadorPDFsPage = () => {
                 notify.error(response.message || 'Erro ao editar PDF', {
                     title: 'Falha na Edição',
                     duration: 6000,
-                    actions: [ {
+                    actions: [{
                         label: 'Tentar novamente',
                         onClick: () => handleSaveEdit(),
                         variant: 'primary'
-                    } ]
+                    }]
                 })
             }
         } catch (error) {
@@ -399,11 +399,11 @@ const UnificadosGerenciadorPDFsPage = () => {
             notify.error(error instanceof Error ? error.message : 'Erro ao editar PDF', {
                 title: 'Erro Inesperado',
                 duration: 6000,
-                actions: [ {
+                actions: [{
                     label: 'Tentar novamente',
                     onClick: () => handleSaveEdit(),
                     variant: 'primary'
-                } ]
+                }]
             })
 
             // Mesmo em caso de erro, recarregar a lista para garantir consistência
@@ -448,11 +448,11 @@ const UnificadosGerenciadorPDFsPage = () => {
             notify.error('Número de atendimento não encontrado no nome do arquivo', {
                 title: 'Erro de Processamento',
                 duration: 5000,
-                actions: [ {
+                actions: [{
                     label: 'Entendi',
                     onClick: () => { },
                     variant: 'ghost'
-                } ]
+                }]
             })
         }
     }
@@ -467,7 +467,7 @@ const UnificadosGerenciadorPDFsPage = () => {
             const parts = nameWithoutExtension.split('_')
 
             if (parts.length >= 3) {
-                const numeroAtendimento = parts[ 2 ]
+                const numeroAtendimento = parts[2]
                 console.log('📄 [TASY] Número de atendimento extraído:', numeroAtendimento, 'do arquivo:', fileName)
                 return numeroAtendimento
             }
@@ -543,9 +543,9 @@ const UnificadosGerenciadorPDFsPage = () => {
     }
 
     // Função auxiliar para verificar se há contas válidas no array
-    const hasValidAccounts = (contas: Array<{numeroAtendimento: string, contaPaciente: string, displayText: string}>) => {
-        return contas.length > 0 && contas.some(conta => 
-            conta.contaPaciente && 
+    const hasValidAccounts = (contas: Array<{ numeroAtendimento: string, contaPaciente: string, displayText: string }>) => {
+        return contas.length > 0 && contas.some(conta =>
+            conta.contaPaciente &&
             String(conta.contaPaciente).trim() !== '' &&
             conta.contaPaciente !== 'undefined' &&
             conta.contaPaciente !== 'null' &&
@@ -589,7 +589,7 @@ const UnificadosGerenciadorPDFsPage = () => {
 
             if (response.ok) {
                 const data = await response.json()
-                
+
                 // Log para debug da resposta da API
                 console.log('🔍 [TASY DEBUG] Resposta completa da API:', data)
                 console.log('🔍 [TASY DEBUG] Tipo de contasPaciente:', typeof data.contasPaciente)
@@ -603,21 +603,24 @@ const UnificadosGerenciadorPDFsPage = () => {
                     displayText: string
                 }> = []
 
-                // Verificar se a API retorna múltiplas contas em um array de objetos
+                // Verificar se a API retorna múltiplas contas em um array
                 if (Array.isArray(data.contasPaciente)) {
                     console.log('🔍 [TASY DEBUG] Array detectado, tamanho:', data.contasPaciente.length)
                     console.log('🔍 [TASY DEBUG] Conteúdo do array:', data.contasPaciente)
-                    
+
                     if (data.contasPaciente.length === 0) {
                         console.log('⚠️ [TASY DEBUG] Array está vazio - nenhuma conta para processar')
                     } else {
-                        // Processar cada conta do array
+                        // Processar cada conta do array (pode ser string ou objeto)
                         data.contasPaciente.forEach((conta: any) => {
-                            if (conta.contaPaciente) {
+                            // Se for string, usar diretamente
+                            const contaNumero = typeof conta === 'string' ? conta : conta.contaPaciente
+
+                            if (contaNumero) {
                                 contasEncontradas.push({
                                     numeroAtendimento: data.numeroAtendimento,
-                                    contaPaciente: conta.contaPaciente,
-                                    displayText: `Atend: ${data.numeroAtendimento} → Conta: ${conta.contaPaciente}`
+                                    contaPaciente: contaNumero,
+                                    displayText: `Atend: ${data.numeroAtendimento} → Conta: ${contaNumero}`
                                 })
                             }
                         })
@@ -628,7 +631,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                 console.log('🔍 [TASY DEBUG] Contas válidas encontradas:', contasEncontradas.length)
                 console.log('🔍 [TASY DEBUG] Lista de contas processadas:', contasEncontradas)
                 console.log('🔍 [TASY DEBUG] Há contas realmente válidas?:', hasValidAccounts(contasEncontradas))
-                
+
                 // Log de divergência entre array length e validação
                 if (contasEncontradas.length > 0 && !hasValidAccounts(contasEncontradas)) {
                     console.warn('⚠️ [TASY DEBUG] DIVERGÊNCIA: Array tem elementos mas nenhuma conta válida!')
@@ -671,7 +674,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                 setTasyModal(prev => ({
                     ...prev,
                     contasPaciente: contasEncontradas,
-                    selectedConta: contasEncontradas.length === 1 ? contasEncontradas[ 0 ].contaPaciente : '', // Auto-selecionar apenas se for uma única conta
+                    selectedConta: contasEncontradas.length === 1 ? contasEncontradas[0].contaPaciente : '', // Auto-selecionar apenas se for uma única conta
                     isSearching: false,
                     isManualEntry: false
                 }))
@@ -679,7 +682,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                 // Só mostrar notificação de sucesso se realmente há contas válidas
                 if (hasValidAccounts(contasEncontradas)) {
                     if (contasEncontradas.length === 1) {
-                        notify.success(`Conta encontrada: ${contasEncontradas[ 0 ].contaPaciente}`, {
+                        notify.success(`Conta encontrada: ${contasEncontradas[0].contaPaciente}`, {
                             title: 'Busca Concluída',
                             duration: 4000
                         })
@@ -766,18 +769,18 @@ const UnificadosGerenciadorPDFsPage = () => {
 
         // Verificar se a conta foi selecionada da lista ou inserida manualmente
         let contaSelecionada = tasyModal.contasPaciente.find(c => c.contaPaciente === tasyModal.selectedConta)
-        
+
         // Se não foi encontrada na lista (conta manual), criar estrutura artificial
         if (!contaSelecionada) {
             // Usar o número de atendimento extraído do arquivo ou do campo de busca
             const numeroAtendimento = extractAtendimentoFromFileName(tasyModal.selectedPdf.fileName) || tasyModal.searchTerm
-            
+
             contaSelecionada = {
                 numeroAtendimento: numeroAtendimento || '',
                 contaPaciente: tasyModal.selectedConta,
                 displayText: `Atend: ${numeroAtendimento || 'Manual'} → Conta: ${tasyModal.selectedConta} (Manual)`
             }
-            
+
             console.log('💡 Usando conta inserida manualmente:', contaSelecionada)
         }
 
@@ -833,11 +836,11 @@ const UnificadosGerenciadorPDFsPage = () => {
                     {
                         title: 'Envio Concluído',
                         duration: 8000,
-                        actions: [ {
+                        actions: [{
                             label: 'Ver Detalhes',
                             onClick: () => console.log('Detalhes:', result),
                             variant: 'ghost'
-                        } ]
+                        }]
                     }
                 )
 
@@ -856,11 +859,11 @@ const UnificadosGerenciadorPDFsPage = () => {
                     {
                         title: 'Falha no Envio',
                         duration: 8000,
-                        actions: [ {
+                        actions: [{
                             label: 'Tentar novamente',
                             onClick: () => sendPdfToTasy(),
                             variant: 'primary'
-                        } ]
+                        }]
                     }
                 )
             }
@@ -877,11 +880,11 @@ const UnificadosGerenciadorPDFsPage = () => {
                     {
                         title: 'Falha no Download',
                         duration: 8000,
-                        actions: [ {
+                        actions: [{
                             label: 'Tentar novamente',
                             onClick: () => sendPdfToTasy(),
                             variant: 'primary'
-                        } ]
+                        }]
                     }
                 )
             } else {
@@ -890,11 +893,11 @@ const UnificadosGerenciadorPDFsPage = () => {
                     {
                         title: 'Erro no Processamento',
                         duration: 8000,
-                        actions: [ {
+                        actions: [{
                             label: 'Tentar novamente',
                             onClick: () => sendPdfToTasy(),
                             variant: 'primary'
-                        } ]
+                        }]
                     }
                 )
             }
@@ -940,8 +943,8 @@ const UnificadosGerenciadorPDFsPage = () => {
                                 disabled={isLoading}
                                 className={twMerge(
                                     'flex items-center gap-2',
-                                    isDark 
-                                        ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                                    isDark
+                                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
                                         : 'bg-blue-500 hover:bg-blue-600 text-white'
                                 )}
                             >
@@ -994,8 +997,8 @@ const UnificadosGerenciadorPDFsPage = () => {
                             <div className="flex items-center gap-2">
                                 <span className={twMerge(
                                     'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border',
-                                    isDark 
-                                        ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' 
+                                    isDark
+                                        ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
                                         : 'bg-purple-50 text-purple-700 border-purple-200'
                                 )}>
                                     <Database className="w-4 h-4" />
@@ -1791,7 +1794,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                                 isDark ? 'text-gray-400' : 'text-gray-500'
                             )}>
                                 {tasyModal.contasPaciente.length === 1
-                                    ? `✅ Conta selecionada automaticamente: ${tasyModal.contasPaciente[ 0 ].contaPaciente}`
+                                    ? `✅ Conta selecionada automaticamente: ${tasyModal.contasPaciente[0].contaPaciente}`
                                     : `${tasyModal.contasPaciente.length} contas encontradas - selecione uma para continuar`
                                 }
                             </p>
@@ -1817,7 +1820,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                             )}>
                                 Número da Conta Médica (Entrada Manual)
                             </label>
-                            
+
                             <div className={twMerge(
                                 'text-xs p-3 rounded border mb-3',
                                 isDark ? 'bg-orange-900/20 border-orange-700 text-orange-300' : 'bg-orange-50 border-orange-200 text-orange-700'
@@ -1869,8 +1872,8 @@ const UnificadosGerenciadorPDFsPage = () => {
                                     'font-mono text-sm',
                                     isDark ? 'text-purple-300' : 'text-purple-700'
                                 )}>
-                                    {tasyModal.isManualEntry 
-                                        ? `Conta: ${tasyModal.selectedConta} (Manual)` 
+                                    {tasyModal.isManualEntry
+                                        ? `Conta: ${tasyModal.selectedConta} (Manual)`
                                         : tasyModal.contasPaciente.find(c => c.contaPaciente === tasyModal.selectedConta)?.displayText
                                     }
                                 </span>
@@ -1882,14 +1885,14 @@ const UnificadosGerenciadorPDFsPage = () => {
                     {nasStatus.status !== 'online' && (
                         <div className={twMerge(
                             'p-3 rounded-lg border text-sm',
-                            isDark 
-                                ? 'bg-red-900/20 border-red-700 text-red-300' 
+                            isDark
+                                ? 'bg-red-900/20 border-red-700 text-red-300'
                                 : 'bg-red-50 border-red-200 text-red-700'
                         )}>
                             <div className="flex items-center gap-2">
                                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                                 <div>
-                                    <strong>NAS Offline:</strong> O servidor NAS está {nasStatus.status === 'offline' ? 'offline' : 'com erro'}. 
+                                    <strong>NAS Offline:</strong> O servidor NAS está {nasStatus.status === 'offline' ? 'offline' : 'com erro'}.
                                     O envio para TASY está desabilitado até que a conexão seja restabelecida.
                                     {nasStatus.message && (
                                         <div className="text-xs mt-1 opacity-80">

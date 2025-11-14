@@ -77,6 +77,14 @@ export function requireApiBaseUrl(): string {
   return url
 }
 
+export function requireApitasyBaseUrl(): string {
+  const url = SERVICES_CONFIG.APITASY
+  if (!url) throw new Error('APITASY_URL não configurada. Defina NEXT_PUBLIC_APITASY_URL no ambiente de produção.')
+  // Retornar apenas o domínio + path base (ex: https://servicesapp.pronutrir.com.br/apitasy)
+  // Remove /api/ do final se existir
+  return url.replace(/\/api\/?$/, '')
+}
+
 export function requirePdfApiBaseUrl(kind: 'public' | 'internal' = 'public'): string {
   const url = kind === 'public' ? PDF_API_CONFIG.PUBLIC_URL : PDF_API_CONFIG.BASE_URL
   if (!url) throw new Error('PDF_API_URL não configurada. Defina PDF_API_URL/NEXT_PUBLIC_PDF_API_URL no ambiente de produção.')

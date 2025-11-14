@@ -1,7 +1,11 @@
 import axios from "axios"
+import { SERVICES_CONFIG } from '@/config/env'
+
+// Extrair path de SERVICES_CONFIG.APITASY para uso client-side
+const apitasyPath = new URL(SERVICES_CONFIG.APITASY).pathname
 
 export const Api = axios.create({
-  baseURL: '/apitasy/',
+  baseURL: apitasyPath,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireApiBaseUrl, requirePdfApiBaseUrl } from '@/config/env'
+import { requireApiBaseUrl, requirePdfApiBaseUrl, SERVICES_CONFIG } from '@/config/env'
 import { logger } from '@/lib/logger'
 
 export async function GET(
@@ -52,8 +52,7 @@ async function handleRequest(
       const PDF_API_BASE = requirePdfApiBaseUrl()
       url = `${PDF_API_BASE}/${apiPath}`
     } else {
-      const API_BASE_URL = requireApiBaseUrl()
-      url = `${API_BASE_URL}/apitasy/api/v1/${apiPath}`
+      url = `${SERVICES_CONFIG.APITASY}/api/v1/${apiPath}`
     }
 
     logger.info('🔗 [Proxy] URL:', url)

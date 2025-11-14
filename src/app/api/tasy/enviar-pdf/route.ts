@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import { getServiceUrl } from '@/config/env'
 
-const TASY_API_BASE = getServiceUrl('APITASY') // Já inclui /api/ no final
+const TASY_API_BASE = getServiceUrl('APITASY')
 
 export async function POST(request: NextRequest) {
     try {
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 segundos
 
         try {
-            const url = `${TASY_API_BASE}v2/ContaPaciente/UploadAnexoContaPaciente`
+            const url = `${TASY_API_BASE}/api/v2/ContaPaciente/UploadAnexoContaPaciente`
             logger.info(`🌐 [TASY] URL de envio: ${url}`)
             
             const response = await fetch(url, {
