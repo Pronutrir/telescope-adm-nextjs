@@ -90,6 +90,9 @@ const UnificadosGerenciadorPDFsPage = () => {
     const [viewMode, setViewMode] = useState<ViewMode>('grid')
     const [searchTerm, setSearchTerm] = useState('')
     const [isLoading, setIsLoading] = useState(true)
+    const [isSearching, setIsSearching] = useState(false)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [pageSize] = useState(10)
 
     // Estado para edição de páginas do PDF
     const [editState, setEditState] = useState<PDFEditState>({
@@ -136,23 +139,38 @@ const UnificadosGerenciadorPDFsPage = () => {
     // Ref para controlar o AbortController das requisições
     const abortControllerRef = useRef<AbortController | null>(null)
 
-    const loadUnifiedPdfs = useCallback(async () => {
+    // Função para buscar PDFs unificados (com ou sem filtro)
+    const searchUnifiedPdfs = useCallback(async (term: string = '', page: number = 1) => {
         try {
-            setIsLoading(true)
+            // Abortar requisição anterior se existir
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort()
+            }
 
-            console.log('📚 [UnificadosGerenciadorPDFsPage] Carregando PDFs unificados...')
+            abortControllerRef.current = new AbortController()
 
-            // Chamada real para a API
-            const sharePointItems = await PDFManagerService.listarPDFsUnificados()
+            setIsSearching(true)
 
-            console.log('✅ [UnificadosGerenciadorPDFsPage] PDFs unificados carregados:', sharePointItems.length)
+            console.log('🔍 [UnificadosGerenciadorPDFsPage] Buscando PDFs unificados:', { term, page })
+
+            let sharePointItems: SharePointPdfItem[]
+
+            // Se houver termo de busca, usar endpoint de search
+            if (term.trim()) {
+                sharePointItems = await PDFManagerService.buscarPDFsUnificados(term, page, pageSize)
+                console.log('✅ [UnificadosGerenciadorPDFsPage] PDFs encontrados com filtro:', sharePointItems.length)
+            } else {
+                // Caso contrário, carregar todos
+                sharePointItems = await PDFManagerService.listarPDFsUnificados()
+                console.log('✅ [UnificadosGerenciadorPDFsPage] PDFs unificados carregados:', sharePointItems.length)
+            }
 
             // Converter para UnifiedPDFItem
             const unifiedPdfs = sharePointItems.map(mapToUnifiedPDFItem)
 
             setUnifiedPdfs(unifiedPdfs)
         } catch (error) {
-            console.error('❌ [UnificadosGerenciadorPDFsPage] Erro ao carregar PDFs unificados:', error)
+            console.error('❌ [UnificadosGerenciadorPDFsPage] Erro ao buscar PDFs unificados:', error)
 
             // Fallback para dados mock em caso de erro
             console.warn('⚠️ [UnificadosGerenciadorPDFsPage] Usando dados de demonstração')
@@ -172,14 +190,45 @@ const UnificadosGerenciadorPDFsPage = () => {
 
             setUnifiedPdfs(mockUnifiedPdfs)
         } finally {
-            setIsLoading(false)
+            setIsSearching(false)
         }
-    }, [])
+    }, [pageSize])
+
+    const loadUnifiedPdfs = useCallback(async () => {
+        setIsLoading(true)
+        await searchUnifiedPdfs('', 1)
+        setIsLoading(false)
+    }, [searchUnifiedPdfs])
 
     useEffect(() => {
         setMounted(true)
         loadUnifiedPdfs()
     }, [loadUnifiedPdfs])
+
+    // Efeito para busca com debounce
+    useEffect(() => {
+        // Limpar timeout anterior
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current)
+        }
+
+        // Se estiver carregando inicial, não fazer busca
+        if (isLoading) return
+
+        // Fazer busca após 500ms de inatividade
+        searchTimeoutRef.current = setTimeout(() => {
+            console.log('🔍 [UnificadosGerenciadorPDFsPage] Executando busca:', searchTerm)
+            setCurrentPage(1) // Reset para página 1 ao buscar
+            searchUnifiedPdfs(searchTerm, 1)
+        }, 500)
+
+        // Cleanup
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current)
+            }
+        }
+    }, [searchTerm, isLoading, searchUnifiedPdfs])
 
     // Buscar status do NAS
     useEffect(() => {
@@ -196,11 +245,8 @@ const UnificadosGerenciadorPDFsPage = () => {
         return () => clearInterval(interval)
     }, [])
 
-    const filteredPdfs = unifiedPdfs.filter(pdf =>
-        pdf.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pdf.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (pdf.description && pdf.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
+    // Agora filteredPdfs é apenas unifiedPdfs (já filtrado pela API)
+    const filteredPdfs = unifiedPdfs
 
     const openViewer = (pdf: UnifiedPDFItem) => {
         if (pdf.url && pdf.url !== '#') {
@@ -1031,7 +1077,10 @@ const UnificadosGerenciadorPDFsPage = () => {
                                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                             )}
                         />
-                        {searchTerm && (
+                        {(isSearching || isLoading) && (
+                            <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 animate-spin text-blue-500" />
+                        )}
+                        {searchTerm && !isSearching && !isLoading && (
                             <button
                                 onClick={() => setSearchTerm('')}
                                 className={twMerge(

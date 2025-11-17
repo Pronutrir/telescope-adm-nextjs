@@ -79,6 +79,7 @@ const GerenciadorPDFsPage = () => {
     // Estados para modal de composição do nome
     const [ showCompositionModal, setShowCompositionModal ] = useState(false)
     const [ nomeComposicao, setNomeComposicao ] = useState({
+        nomePaciente: '',
         numeroGuia: '',
         numeroProtocolo: '',
         numeroAtendimento: '',
@@ -300,10 +301,36 @@ const GerenciadorPDFsPage = () => {
             const fileName = firstPdf.fileName.replace('.pdf', '')
             const parts = fileName.split('_')
             
+            let nomePaciente = ''
             let cdPessoa = ''
             let numAtend = ''
             let dataUpload = ''
             let hash = ''
+            
+            // Extrair nome do paciente do fileName
+            // Padrão esperado: "Nome Completo do Paciente_numeroAtend_data_hash.pdf"
+            // ou com prefixo: "UNI_Nome Completo do Paciente_numeroAtend_data_hash.pdf"
+            if (parts.length >= 2) {
+                // Se tem prefixo (UNI, AU, ES, etc.)
+                const hasPrefix = parts[0].length <= 3 && parts[0].match(/^[A-Z]+$/)
+                const nameIndex = hasPrefix ? 1 : 0
+                
+                // O nome do paciente é a parte antes dos números
+                // Vamos procurar a primeira parte que não é só números ou data
+                for (let i = nameIndex; i < parts.length; i++) {
+                    const part = parts[i]
+                    // Se a parte não é um número puro e não é uma data (8 dígitos)
+                    if (!part.match(/^\d+$/) && part.length !== 8) {
+                        nomePaciente = part.trim()
+                        break
+                    }
+                }
+                
+                // Se não encontrou, tenta usar o title do PDF
+                if (!nomePaciente && firstPdf.title) {
+                    nomePaciente = firstPdf.title.replace('.pdf', '').trim()
+                }
+            }
             
             if (parts.length >= 4) {
                 // Se começa com prefixo (UNI, AU, ES, etc.), pular o primeiro elemento
@@ -318,6 +345,7 @@ const GerenciadorPDFsPage = () => {
             
             // Preencher campos do modal
             setNomeComposicao({
+                nomePaciente: nomePaciente,
                 numeroGuia: '', // Será buscado automaticamente
                 numeroProtocolo: '', // Será buscado automaticamente
                 numeroAtendimento: numAtend,
@@ -343,6 +371,11 @@ const GerenciadorPDFsPage = () => {
      */
     const handleConfirmMerge = async () => {
         // Validar composição do nome
+        if (!nomeComposicao.nomePaciente.trim()) {
+            showWarning('Nome do Paciente é obrigatório')
+            return
+        }
+
         if (!nomeComposicao.numeroGuia.trim()) {
             showWarning('Número da Guia é obrigatório')
             return
@@ -388,7 +421,7 @@ const GerenciadorPDFsPage = () => {
             })
 
             // Gerar nome composto para o arquivo unificado com prefixo UNI_
-            const nomeComposto = `UNI_${nomeComposicao.numeroGuia}_${nomeComposicao.numeroProtocolo}_${nomeComposicao.numeroAtendimento}_${nomeComposicao.dataUpload}_${nomeComposicao.hash}`
+            const nomeComposto = `UNI_${nomeComposicao.nomePaciente}_${nomeComposicao.numeroGuia}_${nomeComposicao.numeroProtocolo}_${nomeComposicao.numeroAtendimento}_${nomeComposicao.dataUpload}_${nomeComposicao.hash}`
 
             setMergeProgress({
                 show: true,
@@ -1406,48 +1439,57 @@ const GerenciadorPDFsPage = () => {
                         'text-sm',
                         isDark ? 'text-gray-400' : 'text-gray-600'
                     )}>
-                        Os arquivos serão nomeados no formato: <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">UNI_numeroGuia_numeroProtocolo_numAtendimento_DDMMAAAA_hash.pdf</code>
+                        Os arquivos serão nomeados no formato: <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">UNI_nomePaciente_numeroGuia_numeroProtocolo_numAtendimento_DDMMAAAA_hash.pdf</code>
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Número da Guia *</label>
-                            <div className="flex gap-2">
-                                <Input
-                                    type="text"
-                                    placeholder="Ex: 123456"
-                                    value={nomeComposicao.numeroGuia}
-                                    onChange={(e) => setNomeComposicao(prev => ({
-                                        ...prev,
-                                        numeroGuia: e.target.value
-                                    }))}
-                                    className={twMerge(
-                                        'w-full',
-                                        isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
-                                    )}
-                                    required
-                                    disabled={isLoadingGuia}
-                                />
-                                <Button
-                                    onClick={() => buscarNumeroGuia(nomeComposicao.numeroAtendimento)}
-                                    disabled={!nomeComposicao.numeroAtendimento || isLoadingGuia}
-                                    className={twMerge(
-                                        'px-3 whitespace-nowrap',
-                                        isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'
-                                    )}
-                                >
-                                    {isLoadingGuia ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                        '🔍 Buscar'
-                                    )}
-                                </Button>
-                            </div>
+                            <label className="text-sm font-medium">Nome do Paciente *</label>
+                            <Input
+                                type="text"
+                                placeholder="Ex: João Silva"
+                                value={nomeComposicao.nomePaciente}
+                                onChange={(e) => setNomeComposicao(prev => ({
+                                    ...prev,
+                                    nomePaciente: e.target.value
+                                }))}
+                                className={twMerge(
+                                    'w-full',
+                                    isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
+                                )}
+                                required
+                                readOnly
+                            />
                             <p className={twMerge(
                                 'text-xs',
                                 isDark ? 'text-gray-500' : 'text-gray-500'
                             )}>
-                                💡 Será buscado automaticamente com base no atendimento
+                                💡 Extraído automaticamente do primeiro PDF
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Número da Guia *</label>
+                            <Input
+                                type="text"
+                                placeholder="Ex: 123456"
+                                value={nomeComposicao.numeroGuia}
+                                onChange={(e) => setNomeComposicao(prev => ({
+                                    ...prev,
+                                    numeroGuia: e.target.value
+                                }))}
+                                className={twMerge(
+                                    'w-full',
+                                    isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
+                                )}
+                                required
+                                readOnly
+                            />
+                            <p className={twMerge(
+                                'text-xs',
+                                isDark ? 'text-gray-500' : 'text-gray-500'
+                            )}>
+                                💡 Buscado automaticamente com base no atendimento
                             </p>
                         </div>
 
@@ -1465,13 +1507,13 @@ const GerenciadorPDFsPage = () => {
                                     'w-full',
                                     isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
                                 )}
-                                disabled={isLoadingGuia}
+                                readOnly
                             />
                             <p className={twMerge(
                                 'text-xs',
                                 isDark ? 'text-gray-500' : 'text-gray-500'
                             )}>
-                                💡 Será buscado automaticamente junto com a guia
+                                💡 Buscado automaticamente junto com a guia
                             </p>
                         </div>
 
@@ -1490,6 +1532,7 @@ const GerenciadorPDFsPage = () => {
                                     isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
                                 )}
                                 required
+                                readOnly
                             />
                         </div>
 
@@ -1512,6 +1555,7 @@ const GerenciadorPDFsPage = () => {
                                 )}
                                 placeholder="DDMMAAAA"
                                 maxLength={8}
+                                readOnly
                             />
                         </div>
 
@@ -1530,6 +1574,7 @@ const GerenciadorPDFsPage = () => {
                                 )}
                                 placeholder="Ex: ABC123"
                                 maxLength={8}
+                                readOnly
                             />
                         </div>
                     </div>
@@ -1545,7 +1590,7 @@ const GerenciadorPDFsPage = () => {
                                 'ml-2 px-2 py-1 rounded text-xs',
                                 isDark ? 'bg-gray-700 text-gray-300' : 'bg-white text-gray-700'
                             )}>
-                                UNI_{nomeComposicao.numeroGuia || 'numeroGuia'}_{nomeComposicao.numeroProtocolo || 'numeroProtocolo'}_{nomeComposicao.numeroAtendimento || 'numAtendimento'}_{nomeComposicao.dataUpload}_{nomeComposicao.hash || 'hash'}.pdf
+                                UNI_{nomeComposicao.nomePaciente || 'nomePaciente'}_{nomeComposicao.numeroGuia || 'numeroGuia'}_{nomeComposicao.numeroProtocolo || 'numeroProtocolo'}_{nomeComposicao.numeroAtendimento || 'numAtendimento'}_{nomeComposicao.dataUpload}_{nomeComposicao.hash || 'hash'}.pdf
                             </code>
                         </div>
                     </div>
@@ -1562,12 +1607,14 @@ const GerenciadorPDFsPage = () => {
                             onClick={handleConfirmMerge}
                             disabled={
                                 isMerging ||
+                                !nomeComposicao.nomePaciente.trim() ||
                                 !nomeComposicao.numeroGuia.trim() ||
                                 !nomeComposicao.numeroAtendimento.trim()
                             }
                             className={twMerge(
                                 'inline-flex items-center gap-2',
                                 (isMerging ||
+                                    !nomeComposicao.nomePaciente.trim() ||
                                     !nomeComposicao.numeroGuia.trim() ||
                                     !nomeComposicao.numeroAtendimento.trim())
                                     ? 'cursor-not-allowed opacity-50'

@@ -56,7 +56,10 @@ export async function GET(request: NextRequest) {
                 
                 // Tentar nR_GUIA_PRINC_CONV primeiro, depois nR_GUIA_PRINC
                 const numeroGuia = primeiraGuia.nR_GUIA_PRINC_CONV || primeiraGuia.nR_GUIA_PRINC
-                const numeroProtocolo = primeiraGuia.numerO_PROTOCOLO
+                
+                // Buscar o primeiro protocolo não nulo
+                const itemComProtocolo = data.find(item => item.numerO_PROTOCOLO != null)
+                const numeroProtocolo = itemComProtocolo?.numerO_PROTOCOLO
 
                 if (!numeroGuia && !numeroProtocolo) {
                     logger.warn('⚠️ [TASY] Número da guia e protocolo não encontrados na resposta')

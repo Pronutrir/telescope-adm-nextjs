@@ -375,8 +375,8 @@ const UploadGerenciadorPDFsPage = () => {
                                 const setorSelecionado = setores.find(s => s.nome === nomeComposicao.setor)
                                 const siglaSetor = setorSelecionado?.sigla || (nomeComposicao.setor ? nomeComposicao.setor.substring(0, 2).toUpperCase() : 'XX')
                                 const nomeFormatado = nomeComposicao.nomeCompleto 
-                                    ? nomeComposicao.nomeCompleto.trim().replace(/\s+/g, '_')
-                                    : 'nome_completo'
+                                    ? nomeComposicao.nomeCompleto.trim().replace(/\s+/g, ' ')
+                                    : 'nome completo'
                                 const numAtend = nomeComposicao.numeroAtendimento || 'atendimento'
                                 const data = nomeComposicao.dataUpload || 'DDMMAAAA'
                                 const hash = nomeComposicao.hash || 'HASH'

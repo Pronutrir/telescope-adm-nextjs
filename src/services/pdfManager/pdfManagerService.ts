@@ -397,8 +397,8 @@ export class PDFManagerService {
         const setorSelecionado = setores.find(s => s.nome === nomeComposicao.setor)
         const siglaSetor = setorSelecionado?.sigla || nomeComposicao.setor.substring(0, 2).toUpperCase()
         
-        // Formatar nome completo (substituir espaços por underscores)
-        const nomeFormatado = nomeComposicao.nomeCompleto.trim().replace(/\s+/g, '_')
+        // Formatar nome completo (manter espaços, apenas normalizar múltiplos espaços)
+        const nomeFormatado = nomeComposicao.nomeCompleto.trim().replace(/\s+/g, ' ')
         
         // Compor o nome do arquivo com hash único e sigla do setor
         const uniqueHash = `${nomeComposicao.hash}${index.toString().padStart(2, '0')}`
@@ -751,6 +751,65 @@ export class PDFManagerService {
         return []
       }
       console.error('❌ [PDFManagerService] Erro ao listar PDFs unificados:', _error)
+      return []
+    }
+  }
+
+  /**
+   * Buscar PDFs unificados com filtro
+   * GET /api/Pdfs/unified/search?searchTerm=termo&page=1&pageSize=10
+   * @param searchTerm - Termo de busca
+   * @param page - Número da página (padrão: 1)
+   * @param pageSize - Tamanho da página (padrão: 10)
+   * @returns Promise com lista de PDFs unificados filtrados
+   */
+  static async buscarPDFsUnificados(
+    searchTerm: string,
+    page: number = 1,
+    pageSize: number = 10
+  ): Promise<SharePointPdfItem[]> {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
+      
+      // Construir query params
+      const params = new URLSearchParams({
+        searchTerm: searchTerm,
+        page: page.toString(),
+        pageSize: pageSize.toString()
+      })
+
+      const response = await fetch(`/api/pdfs/unificados/search?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+        signal: controller.signal
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`)
+      }
+
+      const result = await response.json()
+      
+      // Verificar se é um array ou um objeto com propriedade de array
+      if (Array.isArray(result)) {
+        return result
+      } else if (result.items && Array.isArray(result.items)) {
+        return result.items
+      } else {
+        return []
+      }
+
+    } catch (_error) {
+      if (_error instanceof Error && _error.name === 'AbortError') {
+        console.error('❌ [PDFManagerService] Timeout ao buscar PDFs unificados')
+        return []
+      }
+      console.error('❌ [PDFManagerService] Erro ao buscar PDFs unificados:', _error)
       return []
     }
   }

@@ -76,7 +76,7 @@ export async function buscarPessoaFisica(nome: string): Promise<BuscarPessoaResp
       }
     }
 
-    const tasyUrl = `${APITASY_URL}v1/PessoaFisica/filtroPessoas/${encodeURIComponent(nome.trim())}`
+    const tasyUrl = `${APITASY_URL}/api/v1/PessoaFisica/filtroPessoas/${encodeURIComponent(nome.trim())}`
 
     console.log(`🔍 [Server Action] Buscando pessoas: ${nome}`)
 
