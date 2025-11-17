@@ -18,8 +18,8 @@ async function performLogin(loginUrl: string): Promise<string | null> {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userName: process.env.USERSHIELD_USERNAME,
-        password: process.env.USERSHIELD_PASSWORD
+        Username: process.env.USERSHIELD_USERNAME,
+        Password: process.env.USERSHIELD_PASSWORD
       })
     })
 
@@ -29,7 +29,7 @@ async function performLogin(loginUrl: string): Promise<string | null> {
     }
 
     const loginData = await loginResponse.json()
-    const token = loginData.result?.jwtToken || loginData.jwtToken
+    const token = loginData.token || loginData.jwtToken
 
     if (token) {
       // Armazenar no cache Redis com TTL de 55 minutos
@@ -47,8 +47,8 @@ async function performLogin(loginUrl: string): Promise<string | null> {
 
 export async function GET() {
   const USERSHIELD_BASE_URL = `${getServiceUrl('USERSHIELD')}`
-  const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}v1/Auth/login`
-  const USERSHIELD_PERFIS_URL = `${USERSHIELD_BASE_URL}v1/Perfis`
+  const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}/api/v1/Auth/login`
+  const USERSHIELD_PERFIS_URL = `${USERSHIELD_BASE_URL}/api/v1/Perfis`
   
   try {
     logger.info('API Route UserShield Perfis: Iniciada')

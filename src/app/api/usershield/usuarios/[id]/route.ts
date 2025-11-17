@@ -24,14 +24,12 @@ export async function GET(
       console.warn('⚠️ Token não encontrado no cache, fazendo login...')
       
       // Fazer login para obter novo token
-      const loginResponse = await fetch(`${USERSHIELD_API_URL}/Login`, {
+      const loginResponse = await fetch(`${USERSHIELD_API_URL}/Auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: 1,
-          username: 'User@ADM#0110',
-          password: '5sdt85f215600k008sdfbn$#sd4',
-          role: 'default_fullstackdev'
+          Username: process.env.USERSHIELD_USERNAME,
+          Password: process.env.USERSHIELD_PASSWORD
         })
       })
 
@@ -40,7 +38,7 @@ export async function GET(
       }
 
       const loginData = await loginResponse.json()
-      token = loginData.result.accessToken
+      token = loginData.token
 
       // Salvar no cache (55 minutos)
       if (token) {
@@ -61,19 +59,17 @@ export async function GET(
     if (userResponse.status === 401) {
       console.log('🔄 Token expirado, renovando...')
       
-      const loginResponse = await fetch(`${USERSHIELD_API_URL}/Login`, {
+      const loginResponse = await fetch(`${USERSHIELD_API_URL}/Auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: 1,
-          username: 'User@ADM#0110',
-          password: '5sdt85f215600k008sdfbn$#sd4',
-          role: 'default_fullstackdev'
+          Username: process.env.USERSHIELD_USERNAME,
+          Password: process.env.USERSHIELD_PASSWORD
         })
       })
 
       const loginData = await loginResponse.json()
-      token = loginData.result.accessToken
+      token = loginData.token
       
       if (token) {
         await tokenCacheService.setToken(token, 'usershield')
@@ -280,8 +276,8 @@ export async function DELETE(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userName: process.env.USERSHIELD_USERNAME || 'User@ADM#0110',
-          password: process.env.USERSHIELD_PASSWORD || '5sdt85f215600k008sdfbn$#sd4'
+          Username: process.env.USERSHIELD_USERNAME,
+          Password: process.env.USERSHIELD_PASSWORD
         })
       })
 
@@ -326,8 +322,8 @@ export async function DELETE(
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userName: process.env.USERSHIELD_USERNAME || 'User@ADM#0110',
-            password: process.env.USERSHIELD_PASSWORD || '5sdt85f215600k008sdfbn$#sd4'
+            Username: process.env.USERSHIELD_USERNAME,
+            Password: process.env.USERSHIELD_PASSWORD
           })
         })
 

@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username: 'User@ADM#0110',
-          password: '5sdt85f215600k008sdfbn$#sd4'
+          Username: process.env.USERSHIELD_USERNAME,
+          Password: process.env.USERSHIELD_PASSWORD
         })
       })
 
@@ -60,8 +60,8 @@ export async function POST(request: NextRequest) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username: 'User@ADM#0110',
-          password: '5sdt85f215600k008sdfbn$#sd4'
+          Username: process.env.USERSHIELD_USERNAME,
+          Password: process.env.USERSHIELD_PASSWORD
         })
       })
 
