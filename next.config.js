@@ -52,7 +52,7 @@ const nextConfig = {
       // Rota específica para SignalR Hub
       {
         source: '/signalr/:path*',
-        destination: `${apiBaseUrl}${apitasyPath}/:path*`,
+        destination: `${apiBaseUrl}${'/apitasy'}/:path*`,
       },
     ]
   },

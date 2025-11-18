@@ -76,7 +76,7 @@ export async function GET() {
         logger.info('Token obtido, buscando dados da API...')
 
         // Buscar dados da API externa - URL específica para sinais vitais
-        const sinaisVitaisUrl = `${SERVICES_CONFIG.APITASY}/api/v1/SinaisVitaisMonitoracaoGeral/GetAlertaSinaisVitaisPaciente`
+        const sinaisVitaisUrl = `https://servicesapp.pronutrir.com.br/apitasy/api/v1/SinaisVitaisMonitoracaoGeral/GetAlertaSinaisVitaisPaciente`
         
         logger.info(`Fazendo request para: ${sinaisVitaisUrl}`)
         
