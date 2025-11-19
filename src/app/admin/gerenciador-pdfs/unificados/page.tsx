@@ -19,7 +19,8 @@ import {
     Send,
     Database,
     RefreshCw,
-    AlertCircle
+    AlertCircle,
+    Download
 } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 import { UnifiedPDFItem, ViewMode, PDFEditState, PDFItem } from '@/types/pdf'
@@ -106,6 +107,27 @@ const UnificadosGerenciadorPDFsPage = () => {
             fileName: ''
         },
         pages: []
+    })
+
+    // Estado para modal de informações do PDF
+    const [infoModal, setInfoModal] = useState<{
+        isOpen: boolean
+        selectedPdf?: UnifiedPDFItem
+        isLoadingAccount: boolean
+        editableFileName: string
+        accountData?: {
+            numeroAtendimento: string
+            numeroConta: string
+            nomeConvenio: string
+            numeroProtocolo?: string
+            numeroGuia?: string
+        }
+    }>({
+        isOpen: false,
+        selectedPdf: undefined,
+        isLoadingAccount: false,
+        editableFileName: '',
+        accountData: undefined
     })
 
     // Estados para modal de envio para TASY
@@ -337,7 +359,15 @@ const UnificadosGerenciadorPDFsPage = () => {
             }))
 
             // Mostrar erro ao usuário
-            alert(`Erro ao carregar detalhes do PDF: ${errorMessage}`)
+            notify.error(`Erro ao carregar detalhes do PDF: ${errorMessage}`, {
+                title: 'Erro ao Carregar PDF',
+                duration: 6000,
+                actions: [{
+                    label: 'Tentar novamente',
+                    onClick: () => handleEditPDF(pdf),
+                    variant: 'primary'
+                }]
+            })
         }
     }
 
@@ -464,6 +494,148 @@ const UnificadosGerenciadorPDFsPage = () => {
         }
     }
 
+    // Funções para o modal de informações
+    const openInfoModal = async (pdf: UnifiedPDFItem) => {
+        // Inicializar com nome do arquivo original
+        setInfoModal({
+            isOpen: true,
+            selectedPdf: pdf,
+            isLoadingAccount: true,
+            editableFileName: pdf.fileName.replace('.pdf', ''),
+            accountData: undefined
+        })
+
+        // Extrair número de atendimento do nome do arquivo
+        const numeroAtendimento = extractAtendimentoFromFileName(pdf.fileName)
+
+        if (numeroAtendimento) {
+            try {
+                // Fazer requisição para nossa API Next.js (que faz proxy para TASY)
+                const response = await fetch(`/api/tasy/conta-paciente-raw?numeroAtendimento=${numeroAtendimento}`)
+
+                if (response.ok) {
+                    const data = await response.json()
+                    
+                    // A API retorna um array: [{ numerO_CONTA, dS_CONVENIO, numerO_PROTOCOLO, nR_GUIA_PRINC, ... }]
+                    let accountData = undefined
+                    let nomeFormatado = pdf.fileName.replace('.pdf', '')
+                    
+                    if (Array.isArray(data) && data.length > 0) {
+                        const primeiraLinha = data[0]
+                        accountData = {
+                            numeroAtendimento: numeroAtendimento,
+                            numeroConta: primeiraLinha.numerO_CONTA?.toString() || '',
+                            nomeConvenio: primeiraLinha.dS_CONVENIO || '',
+                            numeroProtocolo: primeiraLinha.numerO_PROTOCOLO?.toString(),
+                            numeroGuia: primeiraLinha.nR_GUIA_PRINC || primeiraLinha.nR_GUIA_PRINC_CONV
+                        }
+                        
+                        // Formatar nome sugerido
+                        const { numeroConta, nomeConvenio } = accountData
+                        const convenioFormatado = nomeConvenio ? nomeConvenio.replace(/\s+/g, '_') : 'SemConvenio'
+                        nomeFormatado = `${numeroAtendimento}_${numeroConta}_${convenioFormatado}`
+                    }
+
+                    setInfoModal(prev => ({
+                        ...prev,
+                        isLoadingAccount: false,
+                        editableFileName: nomeFormatado,
+                        accountData
+                    }))
+                } else {
+                    setInfoModal(prev => ({
+                        ...prev,
+                        isLoadingAccount: false
+                    }))
+                }
+            } catch (error) {
+                console.error('Erro ao buscar dados da conta:', error)
+                setInfoModal(prev => ({
+                    ...prev,
+                    isLoadingAccount: false
+                }))
+            }
+        } else {
+            setInfoModal(prev => ({
+                ...prev,
+                isLoadingAccount: false
+            }))
+        }
+    }
+
+    const closeInfoModal = () => {
+        setInfoModal({
+            isOpen: false,
+            selectedPdf: undefined,
+            isLoadingAccount: false,
+            editableFileName: '',
+            accountData: undefined
+        })
+    }
+
+    // Função para fazer download do PDF com nome formatado
+    const handleDownloadPDF = async () => {
+        if (!infoModal.selectedPdf) return
+
+        try {
+            const pdf = infoModal.selectedPdf
+            
+            // Usar o nome editável (já tem .pdf no final)
+            let fileName = infoModal.editableFileName || pdf.fileName
+            
+            // Garantir que tem extensão .pdf
+            if (!fileName.toLowerCase().endsWith('.pdf')) {
+                fileName += '.pdf'
+            }
+
+            // Verificar se é URL externa (SharePoint, etc)
+            const isExternalUrl = pdf.url.startsWith('http://') || pdf.url.startsWith('https://')
+            
+            let blob: Blob
+            
+            if (isExternalUrl) {
+                // Para URLs externas, usar API Next.js como proxy para evitar CORS
+                const response = await fetch(`/api/pdf/download-proxy?url=${encodeURIComponent(pdf.url)}`)
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao fazer download do arquivo')
+                }
+                
+                blob = await response.blob()
+            } else {
+                // Para URLs locais/relativas, fazer fetch direto
+                const response = await fetch(pdf.url)
+                blob = await response.blob()
+            }
+            
+            // Criar URL temporária do blob
+            const blobUrl = window.URL.createObjectURL(blob)
+            
+            // Criar link e forçar download
+            const link = document.createElement('a')
+            link.href = blobUrl
+            link.download = fileName
+            link.style.display = 'none'
+            document.body.appendChild(link)
+            link.click()
+            
+            // Limpar
+            document.body.removeChild(link)
+            window.URL.revokeObjectURL(blobUrl)
+
+            notify.success(`Download concluído: ${fileName}`, {
+                title: 'Download',
+                duration: 3000
+            })
+        } catch (error) {
+            console.error('Erro ao fazer download:', error)
+            notify.error('Erro ao fazer download do PDF', {
+                title: 'Erro',
+                duration: 5000
+            })
+        }
+    }
+
     // Funções para o modal TASY
     const openTasyModal = (pdf: UnifiedPDFItem) => {
 
@@ -513,7 +685,7 @@ const UnificadosGerenciadorPDFsPage = () => {
             const parts = nameWithoutExtension.split('_')
 
             if (parts.length >= 3) {
-                const numeroAtendimento = parts[2]
+                const numeroAtendimento = parts[4]
                 console.log('📄 [TASY] Número de atendimento extraído:', numeroAtendimento, 'do arquivo:', fileName)
                 return numeroAtendimento
             }
@@ -1223,11 +1395,12 @@ const UnificadosGerenciadorPDFsPage = () => {
                                     </div>
                                 )}
                                 <TelescopePDFCard
-                                    pdf={convertToPDFItem(pdf)}
+                                    pdf={pdf}
                                     viewMode="grid"
                                     onView={() => openViewer(pdf)}
                                     onEdit={() => handleEditPDF(pdf)}
                                     onSendToTasy={() => openTasyModal(pdf)}
+                                    onDownload={() => openInfoModal(pdf)}
                                     formatDate={PDFManagerService.formatDate}
                                     priority="medium"
                                     showStats={true}
@@ -1422,6 +1595,249 @@ const UnificadosGerenciadorPDFsPage = () => {
                     </div>
                 )}
             </div>
+
+            {/* Modal de Informações do PDF */}
+            <Modal
+                isOpen={infoModal.isOpen}
+                onClose={closeInfoModal}
+                title="Informações do PDF"
+                size="lg"
+            >
+                {infoModal.selectedPdf && (
+                    <div className="space-y-4">
+                        {/* Informações do Arquivo */}
+                        <div className={twMerge(
+                            'p-4 rounded-lg border',
+                            isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'
+                        )}>
+                            <div className="space-y-2">
+                                <div className="flex items-start gap-2">
+                                    <span className={twMerge(
+                                        'text-sm font-medium min-w-[120px]',
+                                        isDark ? 'text-gray-400' : 'text-gray-600'
+                                    )}>
+                                        Nome do arquivo:
+                                    </span>
+                                    <span className={twMerge(
+                                        'text-sm',
+                                        isDark ? 'text-gray-300' : 'text-gray-700'
+                                    )}>
+                                        {infoModal.selectedPdf.fileName}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-start gap-2">
+                                    <span className={twMerge(
+                                        'text-sm font-medium min-w-[120px]',
+                                        isDark ? 'text-gray-400' : 'text-gray-600'
+                                    )}>
+                                        Tamanho:
+                                    </span>
+                                    <span className={twMerge(
+                                        'text-sm',
+                                        isDark ? 'text-gray-300' : 'text-gray-700'
+                                    )}>
+                                        {infoModal.selectedPdf.size}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-start gap-2">
+                                    <span className={twMerge(
+                                        'text-sm font-medium min-w-[120px]',
+                                        isDark ? 'text-gray-400' : 'text-gray-600'
+                                    )}>
+                                        Descrição:
+                                    </span>
+                                    <span className={twMerge(
+                                        'text-sm',
+                                        isDark ? 'text-gray-300' : 'text-gray-700'
+                                    )}>
+                                        {infoModal.selectedPdf.description || 'Sem descrição'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Informações da Conta do Paciente */}
+                        {infoModal.isLoadingAccount ? (
+                            <div className={twMerge(
+                                'p-4 rounded-lg border flex items-center justify-center gap-3',
+                                isDark ? 'bg-blue-900/20 border-blue-700' : 'bg-blue-50 border-blue-200'
+                            )}>
+                                <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                                <span className={twMerge(
+                                    'text-sm',
+                                    isDark ? 'text-blue-300' : 'text-blue-700'
+                                )}>
+                                    Carregando informações da conta...
+                                </span>
+                            </div>
+                        ) : infoModal.accountData ? (
+                            <div className={twMerge(
+                                'p-4 rounded-lg border',
+                                isDark ? 'bg-green-900/20 border-green-700' : 'bg-green-50 border-green-200'
+                            )}>
+                                <h4 className={twMerge(
+                                    'font-semibold text-sm mb-3 flex items-center gap-2',
+                                    isDark ? 'text-green-300' : 'text-green-700'
+                                )}>
+                                    <Database className="w-4 h-4" />
+                                    Informações da Conta
+                                </h4>
+                                <div className="space-y-2">
+                                    <div className="flex items-start gap-2">
+                                        <span className={twMerge(
+                                            'text-sm font-medium min-w-[140px]',
+                                            isDark ? 'text-green-400' : 'text-green-600'
+                                        )}>
+                                            Nº Atendimento:
+                                        </span>
+                                        <span className={twMerge(
+                                            'text-sm font-mono',
+                                            isDark ? 'text-green-200' : 'text-green-800'
+                                        )}>
+                                            {infoModal.accountData.numeroAtendimento}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-start gap-2">
+                                        <span className={twMerge(
+                                            'text-sm font-medium min-w-[140px]',
+                                            isDark ? 'text-green-400' : 'text-green-600'
+                                        )}>
+                                            Número da Conta:
+                                        </span>
+                                        <span className={twMerge(
+                                            'text-sm font-mono',
+                                            isDark ? 'text-green-200' : 'text-green-800'
+                                        )}>
+                                            {infoModal.accountData.numeroConta}
+                                        </span>
+                                    </div>
+                                    {infoModal.accountData.nomeConvenio && (
+                                        <div className="flex items-start gap-2">
+                                            <span className={twMerge(
+                                                'text-sm font-medium min-w-[140px]',
+                                                isDark ? 'text-green-400' : 'text-green-600'
+                                            )}>
+                                                Convênio:
+                                            </span>
+                                            <span className={twMerge(
+                                                'text-sm',
+                                                isDark ? 'text-green-200' : 'text-green-800'
+                                            )}>
+                                                {infoModal.accountData.nomeConvenio}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {infoModal.accountData.numeroProtocolo && (
+                                        <div className="flex items-start gap-2">
+                                            <span className={twMerge(
+                                                'text-sm font-medium min-w-[140px]',
+                                                isDark ? 'text-green-400' : 'text-green-600'
+                                            )}>
+                                                Nº Protocolo:
+                                            </span>
+                                            <span className={twMerge(
+                                                'text-sm font-mono',
+                                                isDark ? 'text-green-200' : 'text-green-800'
+                                            )}>
+                                                {infoModal.accountData.numeroProtocolo}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {infoModal.accountData.numeroGuia && (
+                                        <div className="flex items-start gap-2">
+                                            <span className={twMerge(
+                                                'text-sm font-medium min-w-[140px]',
+                                                isDark ? 'text-green-400' : 'text-green-600'
+                                            )}>
+                                                Nº Guia:
+                                            </span>
+                                            <span className={twMerge(
+                                                'text-sm font-mono',
+                                                isDark ? 'text-green-200' : 'text-green-800'
+                                            )}>
+                                                {infoModal.accountData.numeroGuia}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ) : null}
+
+                        {/* Campo editável para nome do arquivo */}
+                        <div className={twMerge(
+                            'p-4 rounded-lg border',
+                            isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'
+                        )}>
+                            <label className={twMerge(
+                                'block text-sm font-medium mb-2',
+                                isDark ? 'text-gray-300' : 'text-gray-700'
+                            )}>
+                                Nome do arquivo para download:
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={infoModal.editableFileName}
+                                    onChange={(e) => setInfoModal(prev => ({
+                                        ...prev,
+                                        editableFileName: e.target.value
+                                    }))}
+                                    placeholder="nome-do-arquivo"
+                                    className={twMerge(
+                                        'flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20',
+                                        isDark
+                                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                    )}
+                                />
+                                <span className={twMerge(
+                                    'flex items-center px-3 py-2 rounded-lg border',
+                                    isDark ? 'bg-gray-700 border-gray-600 text-gray-400' : 'bg-gray-100 border-gray-300 text-gray-600'
+                                )}>
+                                    .pdf
+                                </span>
+                            </div>
+                            <p className={twMerge(
+                                'text-xs mt-2',
+                                isDark ? 'text-gray-400' : 'text-gray-500'
+                            )}>
+                                Edite o nome do arquivo como desejar. A extensão .pdf será adicionada automaticamente.
+                            </p>
+                        </div>
+
+                        {/* Botões de ação */}
+                        <div className="flex justify-end gap-2 pt-4">
+                            <Button
+                                onClick={closeInfoModal}
+                                variant="outline"
+                                className={twMerge(
+                                    'px-4 py-2',
+                                    isDark
+                                        ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                                        : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                                )}
+                            >
+                                Fechar
+                            </Button>
+                            <Button
+                                onClick={handleDownloadPDF}
+                                disabled={infoModal.isLoadingAccount}
+                                className={twMerge(
+                                    'px-4 py-2 flex items-center gap-2',
+                                    isDark
+                                        ? 'bg-green-600 hover:bg-green-700 text-white'
+                                        : 'bg-green-500 hover:bg-green-600 text-white'
+                                )}
+                            >
+                                <Download className="w-4 h-4" />
+                                {infoModal.accountData ? 'Download com Nome Formatado' : 'Download PDF'}
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
 
             {/* Modal de Edição de Páginas do PDF */}
             <Modal

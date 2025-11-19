@@ -1,21 +1,22 @@
 'use client'
 
 import React from 'react'
-import { PDFItem } from '@/types/pdf'
+import { PDFItem, UnifiedPDFItem } from '@/types/pdf'
 import { useTheme } from '@/contexts/ThemeContext'
-import { FileText, Eye, Trash2, Calendar, HardDrive, Edit3, Send } from 'lucide-react'
+import { FileText, Eye, Trash2, Calendar, HardDrive, Edit3, Send, Download } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 
 interface TelescopePDFCardProps {
-    pdf: PDFItem
+    pdf: PDFItem | UnifiedPDFItem
     isSelected?: boolean
     isSelectionMode?: boolean
     viewMode?: 'grid' | 'list'
-    onView?: (pdf: PDFItem) => void
-    onEdit?: (pdf: PDFItem) => void
-    onDelete?: (pdf: PDFItem) => void
-    onSelect?: (pdf: PDFItem) => void
-    onSendToTasy?: (pdf: PDFItem) => void
+    onView?: (pdf: PDFItem | UnifiedPDFItem) => void
+    onEdit?: (pdf: PDFItem | UnifiedPDFItem) => void
+    onDelete?: (pdf: PDFItem | UnifiedPDFItem) => void
+    onSelect?: (pdf: PDFItem | UnifiedPDFItem) => void
+    onSendToTasy?: (pdf: PDFItem | UnifiedPDFItem) => void
+    onDownload?: (pdf: PDFItem | UnifiedPDFItem) => void
     className?: string
     showStats?: boolean
     priority?: 'low' | 'medium' | 'high' | 'critical'
@@ -43,6 +44,7 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
     onDelete,
     onSelect,
     onSendToTasy,
+    onDownload,
     className,
     priority = 'medium',
     formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('pt-BR'),
@@ -224,46 +226,90 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
                         <span>{isGridView ? 'Editar' : 'Editar'}</span>
                     </button>
 
-                    {onSendToTasy && (
-                        <button
-                            onClick={handleSendToTasyClick}
-                            style={{
-                                ...buttonStyle,
-                                background: isDark
-                                    ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(147, 51, 234, 0.9))'
-                                    : 'linear-gradient(135deg, rgba(250, 245, 255, 0.95), rgba(233, 213, 255, 0.9))',
-                                color: isDark ? 'rgba(196, 181, 253, 0.95)' : 'rgba(147, 51, 234, 0.9)',
-                                border: isDark
-                                    ? '1px solid rgba(168, 85, 247, 0.3)'
-                                    : '1px solid rgba(233, 213, 255, 0.6)',
-                                boxShadow: isDark
-                                    ? '0 2px 8px rgba(168, 85, 247, 0.15)'
-                                    : '0 2px 8px rgba(168, 85, 247, 0.1)'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'translateY(-1px)'
-                                e.currentTarget.style.background = isDark
-                                    ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(147, 51, 234, 1))'
-                                    : 'linear-gradient(135deg, rgba(245, 243, 255, 0.95), rgba(221, 214, 254, 0.9))'
-                                e.currentTarget.style.boxShadow = isDark
-                                    ? '0 4px 12px rgba(168, 85, 247, 0.25)'
-                                    : '0 4px 12px rgba(168, 85, 247, 0.15)'
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'translateY(0)'
-                                e.currentTarget.style.background = isDark
-                                    ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(147, 51, 234, 0.9))'
-                                    : 'linear-gradient(135deg, rgba(250, 245, 255, 0.95), rgba(233, 213, 255, 0.9))'
-                                e.currentTarget.style.boxShadow = isDark
-                                    ? '0 2px 8px rgba(168, 85, 247, 0.15)'
-                                    : '0 2px 8px rgba(168, 85, 247, 0.1)'
-                            }}
-                            title="Enviar PDF para sistema TASY"
-                            aria-label="Enviar PDF para sistema TASY"
-                        >
-                            <Send className="w-4 h-4 navbar-message-icon" />
-                            <span>{isGridView ? 'TASY' : 'TASY'}</span>
-                        </button>
+                    {('sentToTasy' in pdf && pdf.sentToTasy) ? (
+                        onDownload && (
+                            <button
+                                onClick={handleDownloadClick}
+                                style={{
+                                    ...buttonStyle,
+                                    background: isDark
+                                        ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.9))'
+                                        : 'linear-gradient(135deg, rgba(240, 253, 244, 0.95), rgba(220, 252, 231, 0.9))',
+                                    color: isDark ? 'rgba(134, 239, 172, 0.95)' : 'rgba(22, 163, 74, 0.9)',
+                                    border: isDark
+                                        ? '1px solid rgba(34, 197, 94, 0.3)'
+                                        : '1px solid rgba(220, 252, 231, 0.6)',
+                                    boxShadow: isDark
+                                        ? '0 2px 8px rgba(34, 197, 94, 0.15)'
+                                        : '0 2px 8px rgba(34, 197, 94, 0.1)'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-1px)'
+                                    e.currentTarget.style.background = isDark
+                                        ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(22, 163, 74, 1))'
+                                        : 'linear-gradient(135deg, rgba(220, 252, 231, 0.95), rgba(187, 247, 208, 0.9))'
+                                    e.currentTarget.style.boxShadow = isDark
+                                        ? '0 4px 12px rgba(34, 197, 94, 0.25)'
+                                        : '0 4px 12px rgba(34, 197, 94, 0.15)'
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)'
+                                    e.currentTarget.style.background = isDark
+                                        ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.9))'
+                                        : 'linear-gradient(135deg, rgba(240, 253, 244, 0.95), rgba(220, 252, 231, 0.9))'
+                                    e.currentTarget.style.boxShadow = isDark
+                                        ? '0 2px 8px rgba(34, 197, 94, 0.15)'
+                                        : '0 2px 8px rgba(34, 197, 94, 0.1)'
+                                }}
+                                title="Ver informações do PDF"
+                                aria-label="Ver informações do PDF"
+                            >
+                                <Download className="w-4 h-4" />
+                                <span>Info</span>
+                            </button>
+                        )
+                    ) : (
+                        onSendToTasy && (
+                            <button
+                                onClick={handleSendToTasyClick}
+                                style={{
+                                    ...buttonStyle,
+                                    background: isDark
+                                        ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(147, 51, 234, 0.9))'
+                                        : 'linear-gradient(135deg, rgba(250, 245, 255, 0.95), rgba(233, 213, 255, 0.9))',
+                                    color: isDark ? 'rgba(196, 181, 253, 0.95)' : 'rgba(147, 51, 234, 0.9)',
+                                    border: isDark
+                                        ? '1px solid rgba(168, 85, 247, 0.3)'
+                                        : '1px solid rgba(233, 213, 255, 0.6)',
+                                    boxShadow: isDark
+                                        ? '0 2px 8px rgba(168, 85, 247, 0.15)'
+                                        : '0 2px 8px rgba(168, 85, 247, 0.1)'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-1px)'
+                                    e.currentTarget.style.background = isDark
+                                        ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(147, 51, 234, 1))'
+                                        : 'linear-gradient(135deg, rgba(245, 243, 255, 0.95), rgba(221, 214, 254, 0.9))'
+                                    e.currentTarget.style.boxShadow = isDark
+                                        ? '0 4px 12px rgba(168, 85, 247, 0.25)'
+                                        : '0 4px 12px rgba(168, 85, 247, 0.15)'
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)'
+                                    e.currentTarget.style.background = isDark
+                                        ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(147, 51, 234, 0.9))'
+                                        : 'linear-gradient(135deg, rgba(250, 245, 255, 0.95), rgba(233, 213, 255, 0.9))'
+                                    e.currentTarget.style.boxShadow = isDark
+                                        ? '0 2px 8px rgba(168, 85, 247, 0.15)'
+                                        : '0 2px 8px rgba(168, 85, 247, 0.1)'
+                                }}
+                                title="Enviar PDF para sistema TASY"
+                                aria-label="Enviar PDF para sistema TASY"
+                            >
+                                <Send className="w-4 h-4 navbar-message-icon" />
+                                <span>{isGridView ? 'TASY' : 'TASY'}</span>
+                            </button>
+                        )
                     )}
                 </div>
             )
@@ -326,31 +372,60 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
                     <Edit3 className="w-5 h-5 navbar-settings-icon" />
                 </button>
 
-                {onSendToTasy && (
-                    <button
-                        onClick={handleSendToTasyClick}
-                        style={{
-                            padding: padding,
-                            borderRadius: '8px',
-                            backgroundColor: 'transparent',
-                            border: 'none',
-                            color: textColors.secondary,
-                            transition: 'all 0.2s ease',
-                            cursor: 'pointer'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = isDark ? 'rgba(168, 85, 247, 0.2)' : 'rgba(168, 85, 247, 0.1)'
-                            e.currentTarget.style.color = isDark ? 'rgb(168, 85, 247)' : 'rgb(147, 51, 234)'
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent'
-                            e.currentTarget.style.color = textColors.secondary
-                        }}
-                        title="Enviar PDF para sistema TASY"
-                        aria-label="Enviar PDF para sistema TASY"
-                    >
-                        <Send className="w-5 h-5 navbar-message-icon" />
-                    </button>
+                {('sentToTasy' in pdf && pdf.sentToTasy) ? (
+                    onDownload && (
+                        <button
+                            onClick={handleDownloadClick}
+                            style={{
+                                padding: padding,
+                                borderRadius: '8px',
+                                backgroundColor: 'transparent',
+                                border: 'none',
+                                color: textColors.secondary,
+                                transition: 'all 0.2s ease',
+                                cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)'
+                                e.currentTarget.style.color = isDark ? 'rgb(34, 197, 94)' : 'rgb(22, 163, 74)'
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'transparent'
+                                e.currentTarget.style.color = textColors.secondary
+                            }}
+                            title="Ver informações do PDF"
+                            aria-label="Ver informações do PDF"
+                        >
+                            <Download className="w-5 h-5" />
+                        </button>
+                    )
+                ) : (
+                    onSendToTasy && (
+                        <button
+                            onClick={handleSendToTasyClick}
+                            style={{
+                                padding: padding,
+                                borderRadius: '8px',
+                                backgroundColor: 'transparent',
+                                border: 'none',
+                                color: textColors.secondary,
+                                transition: 'all 0.2s ease',
+                                cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = isDark ? 'rgba(168, 85, 247, 0.2)' : 'rgba(168, 85, 247, 0.1)'
+                                e.currentTarget.style.color = isDark ? 'rgb(168, 85, 247)' : 'rgb(147, 51, 234)'
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'transparent'
+                                e.currentTarget.style.color = textColors.secondary
+                            }}
+                            title="Enviar PDF para sistema TASY"
+                            aria-label="Enviar PDF para sistema TASY"
+                        >
+                            <Send className="w-5 h-5 navbar-message-icon" />
+                        </button>
+                    )
                 )}
 
                 {onDelete && (
@@ -412,6 +487,11 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
     const handleSendToTasyClick = (e: React.MouseEvent) => {
         e.stopPropagation()
         if (onSendToTasy) onSendToTasy(pdf)
+    }
+
+    const handleDownloadClick = (e: React.MouseEvent) => {
+        e.stopPropagation()
+        if (onDownload) onDownload(pdf)
     }
 
     const handleSelectClick = (e: React.ChangeEvent<HTMLInputElement>) => {
