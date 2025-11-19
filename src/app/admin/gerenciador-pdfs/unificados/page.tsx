@@ -1236,31 +1236,87 @@ const UnificadosGerenciadorPDFsPage = () => {
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
                     {/* Busca */}
                     <div className="relative flex-1 max-w-md">
+                        {/* Ícone de busca à esquerda */}
+                        <div className={twMerge(
+                            'absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none transition-all duration-200',
+                            searchTerm ? 'scale-90 opacity-50' : 'scale-100 opacity-70'
+                        )}>
+                            <svg 
+                                className={twMerge(
+                                    'w-5 h-5 transition-colors duration-200',
+                                    isDark ? 'text-gray-400' : 'text-gray-500'
+                                )} 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+
                         <input
                             type="text"
-                            placeholder="🔍 Buscar PDFs unificados..."
+                            placeholder="Buscar PDFs unificados..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className={twMerge(
-                                'w-full pl-10 pr-10 py-2 rounded-lg border transition-all duration-200',
-                                'focus:outline-none focus:ring-2 focus:ring-blue-500/20',
+                                'w-full pl-10 pr-10 py-2.5 rounded-lg border transition-all duration-200',
+                                'focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50',
+                                'hover:border-blue-400/50',
                                 isDark
-                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                    ? 'bg-gray-700/80 border-gray-600 text-white placeholder-gray-400 hover:bg-gray-700'
+                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 hover:bg-gray-50'
                             )}
                         />
+
+                        {/* Loader animado */}
                         {(isSearching || isLoading) && (
-                            <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 animate-spin text-blue-500" />
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                <svg 
+                                    className="w-5 h-5 text-blue-500 animate-spin" 
+                                    fill="none" 
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle 
+                                        className="opacity-25" 
+                                        cx="12" 
+                                        cy="12" 
+                                        r="10" 
+                                        stroke="currentColor" 
+                                        strokeWidth="4"
+                                    />
+                                    <path 
+                                        className="opacity-75" 
+                                        fill="currentColor" 
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    />
+                                </svg>
+                            </div>
                         )}
+
+                        {/* Botão limpar com animação */}
                         {searchTerm && !isSearching && !isLoading && (
                             <button
                                 onClick={() => setSearchTerm('')}
                                 className={twMerge(
                                     'absolute right-3 top-1/2 transform -translate-y-1/2',
-                                    isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'
+                                    'w-5 h-5 rounded-full flex items-center justify-center',
+                                    'transition-all duration-200 hover:scale-110',
+                                    'hover:rotate-90',
+                                    isDark 
+                                        ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
+                                        : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200'
                                 )}
+                                title="Limpar busca"
                             >
-                                ×
+                                <svg 
+                                    className="w-4 h-4" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
                             </button>
                         )}
                     </div>
