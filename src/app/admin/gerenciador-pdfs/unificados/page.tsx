@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { PageWrapper } from '@/components/layout'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
+import { Input } from '@/components/ui/Input'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useLayout } from '@/contexts/LayoutContext'
 import {
@@ -20,9 +21,17 @@ import {
     Database,
     RefreshCw,
     AlertCircle,
-    Download
+    Download,
+    Layers,
+    Check,
+    Search,
+    GripVertical,
+    FileArchive,
+    Plus,
+    Trash2
 } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
+import JSZip from 'jszip'
 import { UnifiedPDFItem, ViewMode, PDFEditState, PDFItem } from '@/types/pdf'
 import PDFManagerService, { SharePointPdfItem } from '@/services/pdfManager/pdfManagerService'
 import PDFService from '@/services/pdf/pdfService'
@@ -90,10 +99,45 @@ const UnificadosGerenciadorPDFsPage = () => {
     const [unifiedPdfs, setUnifiedPdfs] = useState<UnifiedPDFItem[]>([])
     const [viewMode, setViewMode] = useState<ViewMode>('grid')
     const [searchTerm, setSearchTerm] = useState('')
+    const [loadingFields, setLoadingFields] = useState<Set<string>>(new Set())
     const [isLoading, setIsLoading] = useState(true)
     const [isSearching, setIsSearching] = useState(false)
     const [currentPage, setCurrentPage] = useState(1)
     const [pageSize] = useState(10)
+    
+    // Estados para seleção múltipla
+    const [selectedPdfs, setSelectedPdfs] = useState<Set<string>>(new Set())
+    const [isSelectionMode, setIsSelectionMode] = useState(false)
+    
+    // Tipos para campos disponíveis na composição do nome
+    type NameField = {
+        id: string
+        label: string
+        value: string
+        enabled: boolean
+        isCustom?: boolean
+        isEditable?: boolean
+    }
+
+    // Estado para modal de renomeação em lote
+    const [batchRenameModal, setBatchRenameModal] = useState<{
+        isOpen: boolean
+        isProcessing: boolean
+        useCustomComposition: boolean
+        availableFields: NameField[]
+        preview: Array<{
+            id: string
+            originalName: string
+            newName: string
+            fields: NameField[]
+        }>
+    }>({
+        isOpen: false,
+        isProcessing: false,
+        useCustomComposition: false,
+        availableFields: [],
+        preview: []
+    })
 
     // Estado para edição de páginas do PDF
     const [editState, setEditState] = useState<PDFEditState>({
@@ -982,6 +1026,384 @@ const UnificadosGerenciadorPDFsPage = () => {
         }
     }
 
+    // Funções de seleção múltipla
+    const togglePdfSelection = (pdfId: string) => {
+        setSelectedPdfs(prev => {
+            const newSet = new Set(prev)
+            if (newSet.has(pdfId)) {
+                newSet.delete(pdfId)
+            } else {
+                newSet.add(pdfId)
+            }
+            return newSet
+        })
+    }
+
+    const toggleSelectAll = () => {
+        if (selectedPdfs.size === filteredPdfs.length) {
+            setSelectedPdfs(new Set())
+        } else {
+            setSelectedPdfs(new Set(filteredPdfs.map(pdf => pdf.id)))
+        }
+    }
+
+    const clearSelection = () => {
+        setSelectedPdfs(new Set())
+        setIsSelectionMode(false)
+    }
+
+    // Função para extrair campos do nome do arquivo
+    const extractFieldsFromFileName = async (fileName: string, pdfId: string): Promise<NameField[]> => {
+        const nameWithoutExtension = fileName.replace('.pdf', '')
+        const parts = nameWithoutExtension.split('_')
+        
+        // Tentar buscar informações da conta do paciente
+        let accountInfo = null
+        const numeroAtendimento = parts[4] // Posição do número de atendimento
+        
+        if (numeroAtendimento) {
+            try {
+                const response = await fetch(`/api/tasy/conta-paciente-raw?numeroAtendimento=${numeroAtendimento}`)
+                if (response.ok) {
+                    const data = await response.json()
+                    if (Array.isArray(data) && data.length > 0) {
+                        accountInfo = data[0]
+                    }
+                }
+            } catch (error) {
+                console.warn('Erro ao buscar informações da conta:', error)
+            }
+        }
+
+        return [
+            {
+                id: 'numeroGuia',
+                label: 'Número da Guia',
+                value: accountInfo?.nR_GUIA_PRINC || accountInfo?.nR_GUIA_PRINC_CONV || parts[2] || '',
+                enabled: true
+            },
+            {
+                id: 'numeroProtocolo',
+                label: 'Número do Protocolo',
+                value: accountInfo?.numerO_PROTOCOLO?.toString() || parts[3] || '',
+                enabled: true
+            },
+            {
+                id: 'numeroAtendimento',
+                label: 'Número Atendimento',
+                value: numeroAtendimento || '',
+                enabled: true
+            }
+        ]
+    }
+
+    // Funções de renomeação em lote
+    const openBatchRenameModal = async () => {
+        const selected = filteredPdfs.filter(pdf => selectedPdfs.has(pdf.id))
+        
+        const preview = selected.map(pdf => ({
+            id: pdf.id,
+            originalName: pdf.fileName.replace('.pdf', ''),
+            newName: '',
+            fields: []
+        }))
+
+        setBatchRenameModal({
+            isOpen: true,
+            isProcessing: false,
+            useCustomComposition: false,
+            availableFields: [],
+            preview
+        })
+    }
+
+    const closeBatchRenameModal = () => {
+        setBatchRenameModal({
+            isOpen: false,
+            isProcessing: false,
+            useCustomComposition: false,
+            availableFields: [],
+            preview: []
+        })
+    }
+
+    // Função para gerar novo nome baseado nos campos selecionados
+    const generateNewName = (fields: NameField[]): string => {
+        const enabledFields = fields.filter(f => f.enabled && f.value)
+        const parts = enabledFields.map(f => f.value)
+        
+        return parts.join('_')
+    }
+
+    const updateBatchRenamePreview = () => {
+        if (!batchRenameModal.useCustomComposition) return
+
+        setBatchRenameModal(prev => ({
+            ...prev,
+            preview: prev.preview.map(item => ({
+                ...item,
+                newName: generateNewName(item.fields)
+            }))
+        }))
+    }
+
+    // Função para reordenar campos
+    const moveField = (fromIndex: number, toIndex: number) => {
+        setBatchRenameModal(prev => {
+            const newFields = [...prev.availableFields]
+            const [removed] = newFields.splice(fromIndex, 1)
+            newFields.splice(toIndex, 0, removed)
+
+            // Atualizar preview com nova ordem
+            const updatedPreview = prev.preview.map(item => {
+                const reorderedFields = newFields.map(templateField => 
+                    item.fields.find(f => f.id === templateField.id) || templateField
+                )
+                return {
+                    ...item,
+                    fields: reorderedFields,
+                    newName: generateNewName(reorderedFields)
+                }
+            })
+
+            return {
+                ...prev,
+                availableFields: newFields,
+                preview: updatedPreview
+            }
+        })
+    }
+
+    // Função para alternar habilitação de campo
+    const toggleField = (fieldId: string) => {
+        setBatchRenameModal(prev => {
+            const newFields = prev.availableFields.map(f =>
+                f.id === fieldId ? { ...f, enabled: !f.enabled } : f
+            )
+
+            // Atualizar preview
+            const updatedPreview = prev.preview.map(item => {
+                const updatedFields = item.fields.map(f =>
+                    f.id === fieldId ? { ...f, enabled: !f.enabled } : f
+                )
+                return {
+                    ...item,
+                    fields: updatedFields,
+                    newName: generateNewName(updatedFields)
+                }
+            })
+
+            return {
+                ...prev,
+                availableFields: newFields,
+                preview: updatedPreview
+            }
+        })
+    }
+
+    // Atualizar preview quando configurações mudarem
+    useEffect(() => {
+        if (batchRenameModal.isOpen && batchRenameModal.useCustomComposition) {
+            updateBatchRenamePreview()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        batchRenameModal.useCustomComposition,
+        batchRenameModal.availableFields
+    ])
+
+    const handleBatchRename = async (asZip: boolean = false) => {
+        if (batchRenameModal.preview.length === 0) return
+
+        // Validar se há nomes válidos
+        const validItems = batchRenameModal.preview.filter(item => item.newName.trim() !== '')
+        
+        if (validItems.length === 0) {
+            notify.warning('Configure os campos para gerar nomes válidos antes de fazer o download.', {
+                title: 'Nomes Inválidos',
+                duration: 5000
+            })
+            return
+        }
+
+        setBatchRenameModal(prev => ({ ...prev, isProcessing: true }))
+
+        try {
+            let successCount = 0
+            let errorCount = 0
+            const zip = asZip ? new JSZip() : null
+
+            // Fazer download de cada PDF com o novo nome
+            for (const item of validItems) {
+                try {
+                    const pdf = unifiedPdfs.find(p => p.id === item.id)
+                    if (!pdf) {
+                        errorCount++
+                        continue
+                    }
+
+                    // Nome final com extensão
+                    const fileName = `${item.newName}.pdf`
+
+                    // Usar endpoint de download da API SharePoint (via proxy interno)
+                    // Isso evita problemas de CORS e autenticação, pois usa a API backend
+                    console.log(`📥 Iniciando download via API: ${pdf.id}`)
+                    
+                    // Tentar primeiro com o ID
+                    let downloadUrl = `/api/sharepoint/download?id=${pdf.id}`
+                    
+                    // Se o ID parecer inválido ou vazio, tentar usar a URL original para extrair o ID ou caminho
+                    if (!pdf.id || pdf.id === 'unknown') {
+                        console.warn('⚠️ ID do PDF inválido, tentando extrair da URL:', pdf.url)
+                        // Tentar extrair ID da URL se possível, ou usar outro método
+                        // Por enquanto, vamos logar para debug
+                    }
+
+                    const response = await fetch(downloadUrl)
+                    
+                    if (!response.ok) {
+                        // Ler o corpo da resposta como texto primeiro para debug
+                        const errorText = await response.text()
+                        let errorData = {}
+                        try {
+                            errorData = JSON.parse(errorText)
+                        } catch (e) {
+                            console.error('❌ Erro ao fazer parse do JSON de erro:', e)
+                        }
+
+                        console.error('❌ Erro na resposta da API:', {
+                            status: response.status,
+                            statusText: response.statusText,
+                            responseText: errorText.substring(0, 500) // Limitar tamanho
+                        })
+                        
+                        const errorMessage = (errorData as any).error || (errorData as any).message || response.statusText || 'Erro desconhecido'
+                        throw new Error(`Erro ao fazer download: ${errorMessage}`)
+                    }
+
+                    // Garantir que estamos recebendo um PDF
+                    const contentType = response.headers.get('content-type')
+                    console.log(`📄 Content-Type recebido: ${contentType}`)
+                    
+                    if (contentType && !contentType.includes('application/pdf') && !contentType.includes('application/octet-stream')) {
+                        console.error('❌ Tipo de conteúdo inesperado:', contentType)
+                        // Se for JSON, pode ser uma mensagem de erro
+                        if (contentType.includes('application/json')) {
+                            const errorData = await response.json()
+                            throw new Error(`Erro do servidor: ${errorData.error || 'Resposta inválida'}`)
+                        }
+                        throw new Error('Arquivo não é um PDF válido')
+                    }
+                    
+                    const blob = await response.blob()
+                    console.log(`✅ Blob recebido: ${blob.size} bytes, tipo: ${blob.type}`)
+                    
+                    // Verificar se o blob tem tamanho válido
+                    if (blob.size === 0) {
+                        throw new Error('Arquivo vazio recebido')
+                    }
+                    
+                    // Verificar se não é HTML (erro comum)
+                    if (blob.type.includes('text/html')) {
+                        throw new Error('Servidor retornou HTML em vez de PDF')
+                    }
+
+                    if (asZip && zip) {
+                        // Adicionar ao ZIP
+                        zip.file(fileName, blob)
+                        successCount++
+                    } else {
+                        // Download individual
+                        // Criar URL temporária do blob
+                        const blobUrl = window.URL.createObjectURL(blob)
+                        
+                        // Criar link e forçar download
+                        const link = document.createElement('a')
+                        link.href = blobUrl
+                        link.download = fileName
+                        link.style.display = 'none'
+                        document.body.appendChild(link)
+                        link.click()
+                        
+                        // Limpar após um pequeno delay
+                        setTimeout(() => {
+                            document.body.removeChild(link)
+                            window.URL.revokeObjectURL(blobUrl)
+                        }, 100)
+
+                        successCount++
+
+                        // Pequeno delay entre downloads para não sobrecarregar o navegador
+                        await new Promise(resolve => setTimeout(resolve, 500))
+                    }
+
+                } catch (error) {
+                    errorCount++
+                    console.error(`Erro ao fazer download de ${item.originalName}:`, error)
+                }
+            }
+
+            // Se for ZIP e tiver arquivos, gerar e baixar o ZIP
+            if (asZip && zip && successCount > 0) {
+                try {
+                    notify.info('Compactando arquivos...', { title: 'Gerando ZIP', duration: 2000 })
+                    const zipContent = await zip.generateAsync({ type: 'blob' })
+                    const zipUrl = window.URL.createObjectURL(zipContent)
+                    const link = document.createElement('a')
+                    link.href = zipUrl
+                    link.download = `pdfs_unificados_${new Date().toISOString().split('T')[0]}.zip`
+                    link.style.display = 'none'
+                    document.body.appendChild(link)
+                    link.click()
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(link)
+                        window.URL.revokeObjectURL(zipUrl)
+                    }, 100)
+                } catch (zipError) {
+                    console.error('Erro ao gerar ZIP:', zipError)
+                    notify.error('Erro ao gerar arquivo compactado', { title: 'Erro ZIP' })
+                }
+            }
+
+            // Mostrar resultado
+            if (errorCount === 0) {
+                notify.success(`${successCount} PDFs baixados com sucesso!`, {
+                    title: 'Download Concluído',
+                    duration: 5000,
+                    actions: [{
+                        label: 'OK',
+                        onClick: () => {},
+                        variant: 'ghost'
+                    }]
+                })
+            } else {
+                notify.warning(`${successCount} PDFs baixados, ${errorCount} com erro.`, {
+                    title: 'Download Parcial',
+                    duration: 6000,
+                    actions: [{
+                        label: 'Ver Detalhes',
+                        onClick: () => console.log('Downloads:', { successCount, errorCount }),
+                        variant: 'ghost'
+                    }]
+                })
+            }
+            
+            // Fechar modal e limpar seleção
+            closeBatchRenameModal()
+            clearSelection()
+
+        } catch (error) {
+            console.error('Erro no download em lote:', error)
+            notify.error('Erro ao fazer download dos PDFs', {
+                title: 'Erro',
+                duration: 5000
+            })
+        } finally {
+            setBatchRenameModal(prev => ({ ...prev, isProcessing: false }))
+        }
+    }
+
     const sendPdfToTasy = async () => {
         if (!tasyModal.selectedConta || !tasyModal.selectedPdf) return
 
@@ -1228,139 +1650,125 @@ const UnificadosGerenciadorPDFsPage = () => {
                 </div>
             </div>
 
-            {/* Barra de ferramentas */}
-            <div className={twMerge(
-                'p-6 rounded-lg border',
-                isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white border-gray-200 shadow-sm'
-            )}>
-                <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
-                    {/* Busca */}
-                    <div className="relative flex-1 max-w-md">
-                        {/* Ícone de busca à esquerda */}
-                        <div className={twMerge(
-                            'absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none transition-all duration-200',
-                            searchTerm ? 'scale-90 opacity-50' : 'scale-100 opacity-70'
-                        )}>
-                            <svg 
-                                className={twMerge(
-                                    'w-5 h-5 transition-colors duration-200',
-                                    isDark ? 'text-gray-400' : 'text-gray-500'
-                                )} 
-                                fill="none" 
-                                stroke="currentColor" 
-                                viewBox="0 0 24 24"
-                            >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-
-                        <input
+            {/* Controles de busca e visualização */}
+            <div className="space-y-4">
+                <div className="flex flex-col lg:flex-row gap-4">
+                    <div className="flex-1 relative">
+                        <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                        <Input
                             type="text"
-                            placeholder="Buscar PDFs unificados..."
+                            placeholder="🔍 Buscar PDFs unificados..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className={twMerge(
-                                'w-full pl-10 pr-10 py-2.5 rounded-lg border transition-all duration-200',
-                                'focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50',
-                                'hover:border-blue-400/50',
-                                isDark
-                                    ? 'bg-gray-700/80 border-gray-600 text-white placeholder-gray-400 hover:bg-gray-700'
-                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 hover:bg-gray-50'
+                                'pl-10 h-12',
+                                isDark ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
                             )}
                         />
-
-                        {/* Loader animado */}
-                        {(isSearching || isLoading) && (
-                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                <svg 
-                                    className="w-5 h-5 text-blue-500 animate-spin" 
-                                    fill="none" 
-                                    viewBox="0 0 24 24"
-                                >
-                                    <circle 
-                                        className="opacity-25" 
-                                        cx="12" 
-                                        cy="12" 
-                                        r="10" 
-                                        stroke="currentColor" 
-                                        strokeWidth="4"
-                                    />
-                                    <path 
-                                        className="opacity-75" 
-                                        fill="currentColor" 
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    />
-                                </svg>
-                            </div>
-                        )}
-
-                        {/* Botão limpar com animação */}
-                        {searchTerm && !isSearching && !isLoading && (
-                            <button
-                                onClick={() => setSearchTerm('')}
-                                className={twMerge(
-                                    'absolute right-3 top-1/2 transform -translate-y-1/2',
-                                    'w-5 h-5 rounded-full flex items-center justify-center',
-                                    'transition-all duration-200 hover:scale-110',
-                                    'hover:rotate-90',
-                                    isDark 
-                                        ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
-                                        : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200'
-                                )}
-                                title="Limpar busca"
-                            >
-                                <svg 
-                                    className="w-4 h-4" 
-                                    fill="none" 
-                                    stroke="currentColor" 
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
+                        {(isSearching) && (
+                            <Loader2 className="absolute right-3 top-3 w-5 h-5 animate-spin text-blue-500 navbar-bell-icon" />
                         )}
                     </div>
 
-                    {/* Controles de visualização */}
-                    <div className="flex items-center gap-2">
-                        <div className={twMerge(
-                            'flex items-center rounded-lg',
-                            isDark ? 'border-gray-600' : 'border-gray-300'
-                        )}>
-                            <button
-                                onClick={() => setViewMode('grid')}
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={() => setViewMode('grid')}
+                            className={twMerge(
+                                'p-3',
+                                viewMode === 'grid'
+                                    ? isDark ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
+                                    : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                            )}
+                        >
+                            <Grid className="w-5 h-5 navbar-settings-icon" />
+                        </Button>
+                        <Button
+                            onClick={() => setViewMode('list')}
+                            className={twMerge(
+                                'p-3',
+                                viewMode === 'list'
+                                    ? isDark ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
+                                    : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                            )}
+                        >
+                            <List className="w-5 h-5 navbar-message-icon" />
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                setIsSelectionMode(!isSelectionMode)
+                                if (isSelectionMode) {
+                                    clearSelection()
+                                }
+                            }}
+                            className={twMerge(
+                                'p-3',
+                                isSelectionMode
+                                    ? isDark ? 'bg-green-600 text-white' : 'bg-green-500 text-white'
+                                    : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                            )}
+                            title="Modo Seleção para Renomear PDFs"
+                        >
+                            <Layers className="w-5 h-5 navbar-settings-icon" />
+                        </Button>
+                        {isSelectionMode && filteredPdfs.length > 0 && (
+                            <Button
+                                onClick={toggleSelectAll}
                                 className={twMerge(
-                                    'p-2 rounded-l-lg transition-all duration-200 mr-1',
-                                    viewMode === 'grid'
-                                        ? isDark
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-blue-500 text-white'
-                                        : isDark
-                                            ? 'text-gray-400 hover:text-gray-300'
-                                            : 'text-gray-500 hover:text-gray-700'
+                                    isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                                 )}
                             >
-                                <Grid className="w-4 h-4 pdf-icon" />
-                            </button>
-                            <button
-                                onClick={() => setViewMode('list')}
-                                className={twMerge(
-                                    'p-2 rounded-r-lg transition-all duration-200 ml-1',
-                                    viewMode === 'list'
-                                        ? isDark
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-blue-500 text-white'
-                                        : isDark
-                                            ? 'text-gray-400 hover:text-gray-300'
-                                            : 'text-gray-500 hover:text-gray-700'
+                                {selectedPdfs.size === filteredPdfs.length ? (
+                                    <>
+                                        <Check className="w-4 h-4 mr-2" />
+                                        Desselecionar Todos
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check className="w-4 h-4 mr-2" />
+                                        Selecionar Todos ({filteredPdfs.length})
+                                    </>
                                 )}
-                            >
-                                <List className="w-4 h-4 pdf-icon" />
-                            </button>
-                        </div>
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
+
+            {/* Barra de ações em lote - mostra quando há PDFs selecionados */}
+            {selectedPdfs.size > 0 && (
+                <div className={twMerge(
+                    'p-4 rounded-lg border flex items-center justify-between gap-4',
+                    isDark ? 'bg-blue-900/20 border-blue-800/50' : 'bg-blue-50 border-blue-200'
+                )}>
+                    <div className="flex items-center gap-3">
+                        <div className={twMerge(
+                            'px-3 py-1.5 rounded-full text-sm font-medium',
+                            isDark ? 'bg-blue-800/50 text-blue-300' : 'bg-blue-200 text-blue-800'
+                        )}>
+                            {selectedPdfs.size} {selectedPdfs.size === 1 ? 'PDF selecionado' : 'PDFs selecionados'}
+                        </div>
+                        
+                        <Button
+                            onClick={clearSelection}
+                            variant="ghost"
+                            size="sm"
+                        >
+                            Limpar seleção
+                        </Button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <Button
+                            onClick={openBatchRenameModal}
+                            variant="primary"
+                            size="sm"
+                        >
+                            <Edit3 className="w-4 h-4 mr-2" />
+                            Baixar com Novos Nomes
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             {/* Conteúdo principal */}
             <div className="min-h-0">
@@ -1434,8 +1842,22 @@ const UnificadosGerenciadorPDFsPage = () => {
                     </div>
                 ) : viewMode === 'grid' ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3" style={{ padding: '0 6px' }}>
-                        {filteredPdfs.map((pdf) => (
+                        {filteredPdfs.map((pdf, index) => {
+                            const isSelected = selectedPdfs.has(pdf.id)
+                            const selectionIndex = Array.from(selectedPdfs).indexOf(pdf.id)
+                            const selectionNumber = isSelected ? selectionIndex + 1 : null
+                            
+                            return (
                             <div key={pdf.id} className="relative">
+                                {/* Indicador de seleção no modo de seleção */}
+                                {isSelectionMode && isSelected && (
+                                    <div className="absolute -top-2 -right-2 z-20">
+                                        <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold shadow-lg border-2 border-white">
+                                            {selectionNumber}
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 {/* Badge de Status - Posicionado acima do card */}
                                 {pdf.sentToTasy && (
                                     <div className="absolute -top-2 left-2 right-2 z-10 flex gap-2 justify-center">
@@ -1461,25 +1883,45 @@ const UnificadosGerenciadorPDFsPage = () => {
                                     priority="medium"
                                     showStats={true}
                                     actionButtonStyle="full"
+                                    isSelected={isSelected}
+                                    isSelectionMode={isSelectionMode}
+                                    onSelect={isSelectionMode ? () => togglePdfSelection(pdf.id) : undefined}
                                     className="transition-all duration-300"
                                 />
                             </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 ) : (
                     /* Visualização em lista */
                     <div className="space-y-3">
-                        {filteredPdfs.map((pdf) => (
+                        {filteredPdfs.map((pdf) => {
+                            const isSelected = selectedPdfs.has(pdf.id)
+                            const selectionIndex = Array.from(selectedPdfs).indexOf(pdf.id)
+                            const selectionNumber = isSelected ? selectionIndex + 1 : null
+                            
+                            return (
                             <div
                                 key={pdf.id}
                                 className={twMerge(
-                                    'group flex items-center gap-4 p-5 rounded-2xl border backdrop-blur-sm',
+                                    'group relative flex items-center gap-4 p-5 rounded-2xl border backdrop-blur-sm',
                                     'transition-all duration-300 hover:scale-[1.005]',
                                     isDark
                                         ? 'bg-gray-800/90 border-gray-700/30 hover:border-purple-400/40 shadow-sm hover:shadow-md'
                                         : 'bg-white/95 border-gray-200/30 hover:border-purple-300/40 shadow-sm hover:shadow-md'
                                 )}
+                                onClick={isSelectionMode ? () => togglePdfSelection(pdf.id) : undefined}
+                                style={{ cursor: isSelectionMode ? 'pointer' : 'default' }}
                             >
+                                {/* Indicador de seleção no modo de seleção */}
+                                {isSelectionMode && isSelected && (
+                                    <div className="absolute -top-2 -right-2 z-20">
+                                        <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold shadow-lg border-2 border-white">
+                                            {selectionNumber}
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 {/* Ícone do PDF */}
                                 <div className={twMerge(
                                     'flex-shrink-0 p-3 rounded-xl',
@@ -1647,7 +2089,8 @@ const UnificadosGerenciadorPDFsPage = () => {
                                     </button>
                                 </div>
                             </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 )}
             </div>
@@ -2449,6 +2892,439 @@ const UnificadosGerenciadorPDFsPage = () => {
                                 <>
                                     <Send className="w-4 h-4 mr-2 pdf-icon" />
                                     Enviar para TASY
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal de Download em Lote com Novos Nomes */}
+            <Modal
+                isOpen={batchRenameModal.isOpen}
+                onClose={closeBatchRenameModal}
+                title={`Baixar ${selectedPdfs.size} PDFs com Novos Nomes`}
+                size="xl"
+            >
+                <div className="space-y-6">
+                    {/* Toggle para composição customizada */}
+                    <div className={twMerge(
+                        'p-4 rounded-lg border',
+                        isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'
+                    )}>
+                        <label className="flex items-center gap-3 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={batchRenameModal.useCustomComposition}
+                                onChange={(e) => setBatchRenameModal(prev => ({ 
+                                    ...prev, 
+                                    useCustomComposition: e.target.checked 
+                                }))}
+                                className="w-5 h-5 rounded"
+                            />
+                            <div>
+                                <div className={twMerge(
+                                    'font-medium',
+                                    isDark ? 'text-white' : 'text-gray-900'
+                                )}>
+                                    🎨 Customizar Nomes para Download
+                                </div>
+                                <div className={twMerge(
+                                    'text-sm',
+                                    isDark ? 'text-gray-400' : 'text-gray-600'
+                                )}>
+                                    Escolha quais campos incluir e defina a ordem de aparição nos nomes dos arquivos
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    {/* Configurações de Composição Customizada */}
+                    {batchRenameModal.useCustomComposition && (
+                        <div className="space-y-4">
+                            {/* Explicação do formato */}
+                            <div className={twMerge(
+                                'p-3 rounded-lg border-l-4',
+                                isDark ? 'bg-blue-900/20 border-blue-500' : 'bg-blue-50 border-blue-400'
+                            )}>
+                                <div className={twMerge(
+                                    'text-sm font-medium mb-1',
+                                    isDark ? 'text-blue-300' : 'text-blue-800'
+                                )}>
+                                    📋 Formato do Nome do Arquivo
+                                </div>
+                                <div className={twMerge(
+                                    'text-xs font-mono',
+                                    isDark ? 'text-blue-200' : 'text-blue-700'
+                                )}>
+                                    numeroGuia_numeroProtocolo_numAtendimento.pdf
+                                </div>
+                                <div className={twMerge(
+                                    'text-xs mt-2',
+                                    isDark ? 'text-gray-400' : 'text-gray-600'
+                                )}>
+                                    Cada campo é separado por underscore (_). Arraste para reordenar, clique no checkbox para ativar/desativar.
+                                </div>
+                            </div>
+
+                            {/* Lista de campos disponíveis */}
+                            <div>
+                                <h4 className={twMerge(
+                                    'text-sm font-semibold mb-3',
+                                    isDark ? 'text-white' : 'text-gray-900'
+                                )}>
+                                    Campos Disponíveis (arraste para reordenar)
+                                </h4>
+                                <div className="space-y-2">
+                                    {batchRenameModal.availableFields.map((field, index) => (
+                                        <div 
+                                            key={field.id}
+                                            className={twMerge(
+                                                'p-3 rounded-lg border flex items-center gap-3 cursor-move transition-all',
+                                                field.enabled 
+                                                    ? isDark 
+                                                        ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' 
+                                                        : 'bg-white border-gray-300 hover:bg-gray-50'
+                                                    : isDark
+                                                        ? 'bg-gray-800/50 border-gray-700 opacity-50'
+                                                        : 'bg-gray-50 border-gray-200 opacity-50'
+                                            )}
+                                            draggable
+                                            onDragStart={(e) => e.dataTransfer.setData('fieldIndex', index.toString())}
+                                            onDragOver={(e) => e.preventDefault()}
+                                            onDrop={(e) => {
+                                                e.preventDefault()
+                                                const fromIndex = parseInt(e.dataTransfer.getData('fieldIndex'))
+                                                moveField(fromIndex, index)
+                                            }}
+                                        >
+                                            <div className="flex items-center gap-3 flex-1">
+                                                <GripVertical className="w-5 h-5 text-gray-400" />
+                                                <input
+                                                    type="checkbox"
+                                                    checked={field.enabled}
+                                                    onChange={() => toggleField(field.id)}
+                                                    className="w-5 h-5 rounded"
+                                                />
+                                                <div className="flex-1">
+                                                    <div className={twMerge(
+                                                        'text-sm font-medium',
+                                                        isDark ? 'text-white' : 'text-gray-900'
+                                                    )}>
+                                                        {field.label}
+                                                    </div>
+                                                    {field.isEditable ? (
+                                                        <input
+                                                            type="text"
+                                                            value={field.value}
+                                                            onChange={(e) => {
+                                                                const newValue = e.target.value
+                                                                setBatchRenameModal(prev => {
+                                                                    const newFields = prev.availableFields.map(f =>
+                                                                        f.id === field.id ? { ...f, value: newValue } : f
+                                                                    )
+                                                                    
+                                                                    const updatedPreview = prev.preview.map(item => {
+                                                                        const updatedFields = item.fields.map(f =>
+                                                                            f.id === field.id ? { ...f, value: newValue } : f
+                                                                        )
+                                                                        return {
+                                                                            ...item,
+                                                                            fields: updatedFields,
+                                                                            newName: generateNewName(updatedFields)
+                                                                        }
+                                                                    })
+                                                                    
+                                                                    return {
+                                                                        ...prev,
+                                                                        availableFields: newFields,
+                                                                        preview: updatedPreview
+                                                                    }
+                                                                })
+                                                            }}
+                                                            placeholder="Digite o texto..."
+                                                            className={twMerge(
+                                                                'w-full px-2 py-1 text-xs font-mono rounded border mt-1',
+                                                                isDark 
+                                                                    ? 'bg-gray-600 border-gray-500 text-white placeholder-gray-400' 
+                                                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                                                            )}
+                                                        />
+                                                    ) : (
+                                                        <div className={twMerge(
+                                                            'text-xs font-mono',
+                                                            isDark ? 'text-gray-400' : 'text-gray-600'
+                                                        )}>
+                                                            {field.value || '(vazio)'}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setBatchRenameModal(prev => {
+                                                            const newFields = prev.availableFields.filter(f => f.id !== field.id)
+                                                            
+                                                            const updatedPreview = prev.preview.map(item => {
+                                                                const updatedFields = item.fields.filter(f => f.id !== field.id)
+                                                                return {
+                                                                    ...item,
+                                                                    fields: updatedFields,
+                                                                    newName: generateNewName(updatedFields)
+                                                                }
+                                                            })
+                                                            
+                                                            return {
+                                                                ...prev,
+                                                                availableFields: newFields,
+                                                                preview: updatedPreview
+                                                            }
+                                                        })
+                                                    }}
+                                                    className={twMerge(
+                                                        'p-1 rounded hover:bg-red-500/20',
+                                                        isDark ? 'text-red-400' : 'text-red-600'
+                                                    )}
+                                                    title={field.isCustom ? "Remover campo customizado" : "Remover campo"}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                                <div className={twMerge(
+                                                    'px-2 py-1 rounded text-xs font-medium',
+                                                    isDark ? 'bg-gray-600 text-gray-300' : 'bg-gray-200 text-gray-700'
+                                                )}>
+                                                    {index + 1}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Adicionar campos */}
+                            <div className="space-y-3">
+                                <label className={twMerge(
+                                    'text-sm font-medium block mb-2',
+                                    isDark ? 'text-white' : 'text-gray-900'
+                                )}>
+                                    Adicionar Campos
+                                </label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {/* System Fields */}
+                                    {[
+                                        { id: 'numeroGuia', label: 'Número da Guia' },
+                                        { id: 'numeroProtocolo', label: 'Número do Protocolo' },
+                                        { id: 'numeroAtendimento', label: 'Número Atendimento' }
+                                    ].map(option => {
+                                        const isAdded = batchRenameModal.availableFields.some(f => f.id === option.id);
+                                        const isLoading = loadingFields.has(option.id);
+                                        
+                                        return (
+                                            <label key={option.id} className={twMerge(
+                                                "flex items-center gap-2 p-3 rounded border cursor-pointer transition-colors select-none",
+                                                isAdded 
+                                                    ? (isDark ? "bg-blue-900/20 border-blue-800" : "bg-blue-50 border-blue-200")
+                                                    : (isDark ? "bg-gray-800 border-gray-700 hover:bg-gray-700" : "bg-white border-gray-200 hover:bg-gray-50"),
+                                                isLoading && "opacity-70 cursor-wait"
+                                            )}>
+                                                {isLoading ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                                                ) : (
+                                                    <input 
+                                                        type="checkbox"
+                                                        checked={isAdded}
+                                                        disabled={isLoading}
+                                                        onChange={async () => {
+                                                            if (isAdded) {
+                                                                // Remove
+                                                                setBatchRenameModal(prev => {
+                                                                    const newFields = prev.availableFields.filter(f => f.id !== option.id);
+                                                                    const updatedPreview = prev.preview.map(item => {
+                                                                        const updatedFields = item.fields.filter(f => f.id !== option.id);
+                                                                        return { ...item, fields: updatedFields, newName: generateNewName(updatedFields) };
+                                                                    });
+                                                                    return { ...prev, availableFields: newFields, preview: updatedPreview };
+                                                                });
+                                                            } else {
+                                                                // Add
+                                                                setLoadingFields(prev => new Set(prev).add(option.id));
+                                                                try {
+                                                                    const firstPdf = filteredPdfs.find(pdf => selectedPdfs.has(pdf.id));
+                                                                    if (!firstPdf) return;
+                                                                    
+                                                                    const allFields = await extractFieldsFromFileName(firstPdf.fileName, firstPdf.id);
+                                                                    const selectedField = allFields.find(f => f.id === option.id);
+                                                                    if (!selectedField) return;
+
+                                                                    setBatchRenameModal(prev => {
+                                                                        const newFields = [...prev.availableFields, selectedField];
+                                                                        const updatedPreview = prev.preview.map(async item => {
+                                                                            const pdf = filteredPdfs.find(p => p.id === item.id);
+                                                                            if (!pdf) return item;
+                                                                            const pdfFields = await extractFieldsFromFileName(pdf.fileName, pdf.id);
+                                                                            const pdfField = pdfFields.find(f => f.id === option.id);
+                                                                            if (!pdfField) return item;
+                                                                            const newItemFields = [...item.fields, pdfField];
+                                                                            return { ...item, fields: newItemFields, newName: generateNewName(newItemFields) };
+                                                                        });
+                                                                        
+                                                                        Promise.all(updatedPreview).then(resolvedPreview => {
+                                                                            setBatchRenameModal(p => ({ ...p, preview: resolvedPreview }));
+                                                                        });
+                                                                        
+                                                                        return { ...prev, availableFields: newFields };
+                                                                    });
+                                                                } finally {
+                                                                    setLoadingFields(prev => {
+                                                                        const next = new Set(prev);
+                                                                        next.delete(option.id);
+                                                                        return next;
+                                                                    });
+                                                                }
+                                                            }
+                                                        }}
+                                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                    />
+                                                )}
+                                                <span className={twMerge("text-sm", isDark ? "text-gray-200" : "text-gray-700")}>
+                                                    {option.label}
+                                                </span>
+                                            </label>
+                                        )
+                                    })}
+
+                                    {/* Custom Text Field Button */}
+                                    <button
+                                        onClick={() => {
+                                            const newCustomField: NameField = {
+                                                id: `custom_${Date.now()}`,
+                                                label: 'Texto Customizado',
+                                                value: '',
+                                                enabled: true,
+                                                isCustom: true,
+                                                isEditable: true
+                                            };
+                                            
+                                            setBatchRenameModal(prev => {
+                                                const newFields = [...prev.availableFields, newCustomField];
+                                                const updatedPreview = prev.preview.map(item => ({
+                                                    ...item,
+                                                    fields: [...item.fields, { ...newCustomField }],
+                                                    newName: generateNewName([...item.fields, { ...newCustomField }])
+                                                }));
+                                                return { ...prev, availableFields: newFields, preview: updatedPreview };
+                                            });
+                                        }}
+                                        className={twMerge(
+                                            "flex items-center justify-center gap-2 p-3 rounded border cursor-pointer transition-colors select-none",
+                                            isDark ? "bg-gray-800 border-gray-700 hover:bg-gray-700" : "bg-white border-gray-200 hover:bg-gray-50"
+                                        )}
+                                    >
+                                        <Plus className="w-4 h-4 text-blue-500" />
+                                        <span className={twMerge("text-sm font-medium", isDark ? "text-gray-200" : "text-gray-700")}>
+                                            Adicionar Texto Customizado
+                                        </span>
+                                    </button>
+                                </div>
+                                <p className={twMerge(
+                                    'text-xs mt-1',
+                                    isDark ? 'text-gray-400' : 'text-gray-600'
+                                )}>
+                                    Selecione os campos para compor o nome do arquivo. Arraste os itens acima para reordenar.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Preview */}
+                    <div>
+                        <h3 className={twMerge(
+                            'text-lg font-semibold mb-3',
+                            isDark ? 'text-white' : 'text-gray-900'
+                        )}>
+                            👁️ Preview da Renomeação
+                        </h3>
+                        <div className={twMerge(
+                            'max-h-96 overflow-y-auto rounded-lg border',
+                            isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'
+                        )}>
+                            {batchRenameModal.preview.map((item, index) => (
+                                <div 
+                                    key={item.id}
+                                    className={twMerge(
+                                        'p-3 border-b last:border-b-0',
+                                        isDark ? 'border-gray-700' : 'border-gray-200'
+                                    )}
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <div className={twMerge(
+                                            'px-2 py-1 rounded text-xs font-medium shrink-0',
+                                            isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
+                                        )}>
+                                            {index + 1}
+                                        </div>
+                                        <div className="flex-1 min-w-0 space-y-1">
+                                            <div className={twMerge(
+                                                'text-sm truncate',
+                                                isDark ? 'text-gray-400' : 'text-gray-600'
+                                            )}>
+                                                De: <span className="font-mono">{item.originalName}.pdf</span>
+                                            </div>
+                                            <div className={twMerge(
+                                                'text-sm truncate font-medium',
+                                                isDark ? 'text-blue-400' : 'text-blue-600'
+                                            )}>
+                                                Para: <span className="font-mono">{item.newName}.pdf</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Botões de Ação */}
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-600">
+                        <Button
+                            variant="outline"
+                            onClick={closeBatchRenameModal}
+                            disabled={batchRenameModal.isProcessing}
+                        >
+                            Cancelar
+                        </Button>
+                        
+                        <Button
+                            onClick={() => handleBatchRename(true)}
+                            disabled={batchRenameModal.isProcessing || batchRenameModal.preview.length === 0}
+                            variant="outline"
+                            className={twMerge(
+                                "border-blue-500 text-blue-600 hover:bg-blue-50",
+                                isDark && "border-blue-400 text-blue-400 hover:bg-blue-900/20"
+                            )}
+                        >
+                            {batchRenameModal.isProcessing ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                                <FileArchive className="w-4 h-4 mr-2" />
+                            )}
+                            Baixar como ZIP
+                        </Button>
+
+                        <Button
+                            onClick={() => handleBatchRename(false)}
+                            disabled={batchRenameModal.isProcessing || batchRenameModal.preview.length === 0}
+                            variant="primary"
+                        >
+                            {batchRenameModal.isProcessing ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    Baixando...
+                                </>
+                            ) : (
+                                <>
+                                    <FileText className="w-4 h-4 mr-2" />
+                                    Baixar {batchRenameModal.preview.length} PDFs
                                 </>
                             )}
                         </Button>

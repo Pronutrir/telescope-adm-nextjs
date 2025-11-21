@@ -16,8 +16,12 @@ export async function GET(request: NextRequest) {
 
   logger.info(`⬇️ [SharePoint] Baixando PDF ID: ${id}`)
   const baseUrl = requirePdfApiBaseUrl()
+  
+  // Nova estrutura de URL solicitada
+  const targetUrl = `${baseUrl}/Pdfs/${id}/download`
+  logger.info(`🔗 [SharePoint] URL alvo: ${targetUrl}`)
 
-        const response = await fetch(`${baseUrl}/Pdfs/download-arquivo`, {
+        const response = await fetch(targetUrl, {
       method: 'GET',
       headers: {
         'Accept': 'application/pdf'
@@ -25,6 +29,9 @@ export async function GET(request: NextRequest) {
     })
 
     if (!response.ok) {
+      // Tentar ler o corpo do erro para mais detalhes
+      const errorText = await response.text().catch(() => 'Sem detalhes')
+      logger.error(`❌ [SharePoint] Erro na API externa: ${response.status} ${response.statusText} - ${errorText}`)
       throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`)
     }
 

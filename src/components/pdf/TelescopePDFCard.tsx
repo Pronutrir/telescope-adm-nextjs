@@ -600,7 +600,12 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
     return (
         <div
             className={twMerge("group cursor-pointer", className)}
-            style={telescopeStyles}
+            style={{
+                ...telescopeStyles,
+                minHeight: '320px',
+                display: 'flex',
+                flexDirection: 'column'
+            }}
             onClick={handleCardClick}
             onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-1px)'
@@ -613,7 +618,7 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
                 e.currentTarget.style.boxShadow = telescopeStyles.boxShadow as string
             }}
         >
-            <div className="p-card">
+            <div className="p-card flex-1 flex flex-col">
                 {/* Checkbox de seleção */}
                 {isSelectionMode && (
                     <div className="absolute top-3 left-3 z-10">
@@ -627,7 +632,7 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
                     </div>
                 )}
 
-                <div className="relative mb-6">
+                <div className="relative mb-6 flex-shrink-0">
                     {/* Ícone do PDF posicionado absolutamente */}
                     <div className="absolute top-0 right-0 icon-container-md" style={{
                         backgroundColor: priorityColors.bg,
@@ -673,7 +678,7 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
                 </div>
 
                 {/* Informações do arquivo */}
-                <div className="flex items-center justify-center gap-6 mb-6">
+                <div className="flex items-center justify-center gap-6 mb-6 flex-shrink-0">
                     <div className="flex items-center gap-2">
                         <HardDrive className="w-4 h-4 navbar-settings-icon" />
                         <span className="text-body-xs text-muted font-medium">
@@ -689,7 +694,9 @@ export const TelescopePDFCard: React.FC<TelescopePDFCardProps> = ({
                 </div>
 
                 {/* Ações */}
-                {!isSelectionMode && renderActionButtons(true)}
+                <div className="mt-auto">
+                    {!isSelectionMode && renderActionButtons(true)}
+                </div>
             </div>
         </div>
     )
