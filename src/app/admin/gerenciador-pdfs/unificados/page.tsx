@@ -1256,7 +1256,7 @@ const UnificadosGerenciadorPDFsPage = () => {
                     console.log(`📥 Iniciando download via API: ${pdf.id}`)
                     
                     // Tentar primeiro com o ID
-                    let downloadUrl = `/api/sharepoint/download?id=${pdf.id}`
+                    const downloadUrl = `/api/sharepoint/download?id=${pdf.id}`
                     
                     // Se o ID parecer inválido ou vazio, tentar usar a URL original para extrair o ID ou caminho
                     if (!pdf.id || pdf.id === 'unknown') {
