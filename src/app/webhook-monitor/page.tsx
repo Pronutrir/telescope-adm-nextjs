@@ -410,14 +410,25 @@ const WebhookMonitor = () => {
 
                 if (existingIndex >= 0) {
                     // Paciente já existe - atualizar os dados
+                    // PRESERVAR O MOTIVO DO ATENDIMENTO ORIGINAL (Solicitação do usuário)
+                    const existingPatient = prev[existingIndex]
+                    const motivoOriginal = (existingPatient as any).motivo_ATENDIMENTO || (existingPatient as any).motivO_ATENDIMENTO
+
+                    const updatedEntry = {
+                        ...newEntry,
+                        // Mantém o motivo original se existir, caso contrário usa o novo
+                        motivo_ATENDIMENTO: motivoOriginal || newEntry.motivo_ATENDIMENTO,
+                        motivO_ATENDIMENTO: motivoOriginal || (newEntry as any).motivO_ATENDIMENTO
+                    }
+
                     const updated = [ ...prev ]
-                    updated[ existingIndex ] = newEntry
+                    updated[ existingIndex ] = updatedEntry
                     addLog(`🔄 Dados atualizados para: ${parsedData.nM_PACIENTE}`)
                     return updated
                 } else {
                     // Novo paciente - adicionar ao histórico
                     addLog(`➕ Novo paciente adicionado: ${parsedData.nM_PACIENTE}`)
-                    return [ newEntry, ...prev ].slice(0, 50)
+                    return [ newEntry, ...prev ]
                 }
             })
             setLastUpdate(new Date())

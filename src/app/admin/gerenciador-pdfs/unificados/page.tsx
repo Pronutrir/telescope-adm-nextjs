@@ -1057,41 +1057,29 @@ const UnificadosGerenciadorPDFsPage = () => {
         const nameWithoutExtension = fileName.replace('.pdf', '')
         const parts = nameWithoutExtension.split('_')
         
-        // Tentar buscar informações da conta do paciente
-        let accountInfo = null
-        const numeroAtendimento = parts[4] // Posição do número de atendimento
-        
-        if (numeroAtendimento) {
-            try {
-                const response = await fetch(`/api/tasy/conta-paciente-raw?numeroAtendimento=${numeroAtendimento}`)
-                if (response.ok) {
-                    const data = await response.json()
-                    if (Array.isArray(data) && data.length > 0) {
-                        accountInfo = data[0]
-                    }
-                }
-            } catch (error) {
-                console.warn('Erro ao buscar informações da conta:', error)
-            }
-        }
+        // Extrair informações diretamente do nome do arquivo
+        // Formato esperado: ..._..._GUIA_PROTOCOLO_ATENDIMENTO_...
+        const numeroGuia = parts[2] || ''
+        const numeroProtocolo = parts[3] || ''
+        const numeroAtendimento = parts[4] || ''
 
         return [
             {
                 id: 'numeroGuia',
                 label: 'Número da Guia',
-                value: accountInfo?.nR_GUIA_PRINC || accountInfo?.nR_GUIA_PRINC_CONV || parts[2] || '',
+                value: numeroGuia,
                 enabled: true
             },
             {
                 id: 'numeroProtocolo',
                 label: 'Número do Protocolo',
-                value: accountInfo?.numerO_PROTOCOLO?.toString() || parts[3] || '',
+                value: numeroProtocolo,
                 enabled: true
             },
             {
                 id: 'numeroAtendimento',
                 label: 'Número Atendimento',
-                value: numeroAtendimento || '',
+                value: numeroAtendimento,
                 enabled: true
             }
         ]
@@ -1101,18 +1089,36 @@ const UnificadosGerenciadorPDFsPage = () => {
     const openBatchRenameModal = async () => {
         const selected = filteredPdfs.filter(pdf => selectedPdfs.has(pdf.id))
         
-        const preview = selected.map(pdf => ({
-            id: pdf.id,
-            originalName: pdf.fileName.replace('.pdf', ''),
-            newName: '',
-            fields: []
+        // Preparar campos iniciais (padrão: Número da Guia)
+        let initialAvailableFields: NameField[] = []
+        
+        if (selected.length > 0) {
+            const firstPdf = selected[0]
+            const allFields = await extractFieldsFromFileName(firstPdf.fileName, firstPdf.id)
+            const guiaField = allFields.find(f => f.id === 'numeroGuia')
+            if (guiaField) {
+                initialAvailableFields = [guiaField]
+            }
+        }
+
+        const preview = await Promise.all(selected.map(async pdf => {
+            const allFields = await extractFieldsFromFileName(pdf.fileName, pdf.id)
+            const guiaField = allFields.find(f => f.id === 'numeroGuia')
+            const fields = guiaField ? [guiaField] : []
+            
+            return {
+                id: pdf.id,
+                originalName: pdf.fileName.replace('.pdf', ''),
+                newName: generateNewName(fields),
+                fields: fields
+            }
         }))
 
         setBatchRenameModal({
             isOpen: true,
             isProcessing: false,
-            useCustomComposition: false,
-            availableFields: [],
+            useCustomComposition: true,
+            availableFields: initialAvailableFields,
             preview
         })
     }
@@ -1132,7 +1138,7 @@ const UnificadosGerenciadorPDFsPage = () => {
         const enabledFields = fields.filter(f => f.enabled && f.value)
         const parts = enabledFields.map(f => f.value)
         
-        return parts.join('_')
+        return parts.join('')
     }
 
     const updateBatchRenamePreview = () => {
@@ -2967,141 +2973,9 @@ const UnificadosGerenciadorPDFsPage = () => {
                                 </div>
                             </div>
 
-                            {/* Lista de campos disponíveis */}
-                            <div>
-                                <h4 className={twMerge(
-                                    'text-sm font-semibold mb-3',
-                                    isDark ? 'text-white' : 'text-gray-900'
-                                )}>
-                                    Campos Disponíveis (arraste para reordenar)
-                                </h4>
-                                <div className="space-y-2">
-                                    {batchRenameModal.availableFields.map((field, index) => (
-                                        <div 
-                                            key={field.id}
-                                            className={twMerge(
-                                                'p-3 rounded-lg border flex items-center gap-3 cursor-move transition-all',
-                                                field.enabled 
-                                                    ? isDark 
-                                                        ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' 
-                                                        : 'bg-white border-gray-300 hover:bg-gray-50'
-                                                    : isDark
-                                                        ? 'bg-gray-800/50 border-gray-700 opacity-50'
-                                                        : 'bg-gray-50 border-gray-200 opacity-50'
-                                            )}
-                                            draggable
-                                            onDragStart={(e) => e.dataTransfer.setData('fieldIndex', index.toString())}
-                                            onDragOver={(e) => e.preventDefault()}
-                                            onDrop={(e) => {
-                                                e.preventDefault()
-                                                const fromIndex = parseInt(e.dataTransfer.getData('fieldIndex'))
-                                                moveField(fromIndex, index)
-                                            }}
-                                        >
-                                            <div className="flex items-center gap-3 flex-1">
-                                                <GripVertical className="w-5 h-5 text-gray-400" />
-                                                <input
-                                                    type="checkbox"
-                                                    checked={field.enabled}
-                                                    onChange={() => toggleField(field.id)}
-                                                    className="w-5 h-5 rounded"
-                                                />
-                                                <div className="flex-1">
-                                                    <div className={twMerge(
-                                                        'text-sm font-medium',
-                                                        isDark ? 'text-white' : 'text-gray-900'
-                                                    )}>
-                                                        {field.label}
-                                                    </div>
-                                                    {field.isEditable ? (
-                                                        <input
-                                                            type="text"
-                                                            value={field.value}
-                                                            onChange={(e) => {
-                                                                const newValue = e.target.value
-                                                                setBatchRenameModal(prev => {
-                                                                    const newFields = prev.availableFields.map(f =>
-                                                                        f.id === field.id ? { ...f, value: newValue } : f
-                                                                    )
-                                                                    
-                                                                    const updatedPreview = prev.preview.map(item => {
-                                                                        const updatedFields = item.fields.map(f =>
-                                                                            f.id === field.id ? { ...f, value: newValue } : f
-                                                                        )
-                                                                        return {
-                                                                            ...item,
-                                                                            fields: updatedFields,
-                                                                            newName: generateNewName(updatedFields)
-                                                                        }
-                                                                    })
-                                                                    
-                                                                    return {
-                                                                        ...prev,
-                                                                        availableFields: newFields,
-                                                                        preview: updatedPreview
-                                                                    }
-                                                                })
-                                                            }}
-                                                            placeholder="Digite o texto..."
-                                                            className={twMerge(
-                                                                'w-full px-2 py-1 text-xs font-mono rounded border mt-1',
-                                                                isDark 
-                                                                    ? 'bg-gray-600 border-gray-500 text-white placeholder-gray-400' 
-                                                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                                                            )}
-                                                        />
-                                                    ) : (
-                                                        <div className={twMerge(
-                                                            'text-xs font-mono',
-                                                            isDark ? 'text-gray-400' : 'text-gray-600'
-                                                        )}>
-                                                            {field.value || '(vazio)'}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setBatchRenameModal(prev => {
-                                                            const newFields = prev.availableFields.filter(f => f.id !== field.id)
-                                                            
-                                                            const updatedPreview = prev.preview.map(item => {
-                                                                const updatedFields = item.fields.filter(f => f.id !== field.id)
-                                                                return {
-                                                                    ...item,
-                                                                    fields: updatedFields,
-                                                                    newName: generateNewName(updatedFields)
-                                                                }
-                                                            })
-                                                            
-                                                            return {
-                                                                ...prev,
-                                                                availableFields: newFields,
-                                                                preview: updatedPreview
-                                                            }
-                                                        })
-                                                    }}
-                                                    className={twMerge(
-                                                        'p-1 rounded hover:bg-red-500/20',
-                                                        isDark ? 'text-red-400' : 'text-red-600'
-                                                    )}
-                                                    title={field.isCustom ? "Remover campo customizado" : "Remover campo"}
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                                <div className={twMerge(
-                                                    'px-2 py-1 rounded text-xs font-medium',
-                                                    isDark ? 'bg-gray-600 text-gray-300' : 'bg-gray-200 text-gray-700'
-                                                )}>
-                                                    {index + 1}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
+                            {/* Lista de campos disponíveis (agora integrada ao primeiro item do preview) */}
+                            {/* Removido daqui para ser renderizado dentro do preview */}
+                            
                             {/* Adicionar campos */}
                             <div className="space-y-3">
                                 <label className={twMerge(
@@ -3158,14 +3032,39 @@ const UnificadosGerenciadorPDFsPage = () => {
                                                                     if (!selectedField) return;
 
                                                                     setBatchRenameModal(prev => {
-                                                                        const newFields = [...prev.availableFields, selectedField];
+                                                                        // Se já houver campos, adicionar um separador antes do novo campo
+                                                                        const fieldsToAdd: NameField[] = [];
+                                                                        
+                                                                        if (prev.availableFields.length > 0) {
+                                                                            fieldsToAdd.push({
+                                                                                id: `separator_${Date.now()}`,
+                                                                                label: 'Separador',
+                                                                                value: '_',
+                                                                                enabled: true,
+                                                                                isCustom: true,
+                                                                                isEditable: true
+                                                                            });
+                                                                        }
+                                                                        
+                                                                        fieldsToAdd.push(selectedField);
+
+                                                                        const newFields = [...prev.availableFields, ...fieldsToAdd];
+                                                                        
                                                                         const updatedPreview = prev.preview.map(async item => {
                                                                             const pdf = filteredPdfs.find(p => p.id === item.id);
                                                                             if (!pdf) return item;
                                                                             const pdfFields = await extractFieldsFromFileName(pdf.fileName, pdf.id);
                                                                             const pdfField = pdfFields.find(f => f.id === option.id);
                                                                             if (!pdfField) return item;
-                                                                            const newItemFields = [...item.fields, pdfField];
+                                                                            
+                                                                            // Clonar os campos adicionais para cada item (para o separador ter ID único se necessário, mas aqui usamos o mesmo objeto por enquanto)
+                                                                            // Na verdade, para o separador ser editável globalmente, ele deve ser o mesmo objeto na lista availableFields
+                                                                            // Mas no preview, cada item tem sua cópia.
+                                                                            // O problema é que se editarmos o separador no preview[0], queremos que reflita em todos.
+                                                                            // A lógica de edição atualiza availableFields e depois re-mapeia todos os previews.
+                                                                            // Então está ok usar o mesmo objeto fieldsToAdd.
+                                                                            
+                                                                            const newItemFields = [...item.fields, ...fieldsToAdd];
                                                                             return { ...item, fields: newItemFields, newName: generateNewName(newItemFields) };
                                                                         });
                                                                         
@@ -3231,13 +3130,129 @@ const UnificadosGerenciadorPDFsPage = () => {
                                     'text-xs mt-1',
                                     isDark ? 'text-gray-400' : 'text-gray-600'
                                 )}>
-                                    Selecione os campos para compor o nome do arquivo. Arraste os itens acima para reordenar.
+                                    Selecione os campos para compor o nome do arquivo. Arraste os itens no primeiro preview para reordenar.
                                 </p>
                             </div>
                         </div>
                     )}
 
-                    {/* Preview */}
+                    {/* Pattern Editor */}
+                    <div className="mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className={twMerge(
+                                'text-sm font-medium',
+                                isDark ? 'text-gray-300' : 'text-gray-700'
+                            )}>
+                                Padrão de Renomeação
+                            </h3>
+                            <span className={twMerge(
+                                'text-xs',
+                                isDark ? 'text-gray-500' : 'text-gray-500'
+                            )}>
+                                Arraste para reordenar
+                            </span>
+                        </div>
+                        
+                        <div className={twMerge(
+                            'flex flex-wrap items-center gap-2 p-3 rounded-lg border min-h-[3rem]',
+                            isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'
+                        )}>
+                            {batchRenameModal.availableFields.map((field, fieldIndex) => (
+                                <div 
+                                    key={field.id}
+                                    className={twMerge(
+                                        'group flex items-center gap-2 p-1.5 rounded border cursor-move transition-all',
+                                        isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                                    )}
+                                    draggable
+                                    onDragStart={(e) => e.dataTransfer.setData('fieldIndex', fieldIndex.toString())}
+                                    onDragOver={(e) => e.preventDefault()}
+                                    onDrop={(e) => {
+                                        e.preventDefault()
+                                        const fromIndex = parseInt(e.dataTransfer.getData('fieldIndex'))
+                                        moveField(fromIndex, fieldIndex)
+                                    }}
+                                >
+                                    <GripVertical className="w-3 h-3 text-gray-400 shrink-0" />
+                                    
+                                    {field.isEditable ? (
+                                        <input
+                                            type="text"
+                                            value={field.value}
+                                            onChange={(e) => {
+                                                const newValue = e.target.value
+                                                setBatchRenameModal(prev => {
+                                                    const newFields = prev.availableFields.map(f =>
+                                                        f.id === field.id ? { ...f, value: newValue } : f
+                                                    )
+                                                    
+                                                    const updatedPreview = prev.preview.map(pItem => {
+                                                        const updatedFields = pItem.fields.map(f =>
+                                                            f.id === field.id ? { ...f, value: newValue } : f
+                                                        )
+                                                        return {
+                                                            ...pItem,
+                                                            fields: updatedFields,
+                                                            newName: generateNewName(updatedFields)
+                                                        }
+                                                    })
+                                                    
+                                                    return {
+                                                        ...prev,
+                                                        availableFields: newFields,
+                                                        preview: updatedPreview
+                                                    }
+                                                })
+                                            }}
+                                            style={{ width: `${Math.max(field.value.length, 1) + 2}ch` }}
+                                            className={twMerge(
+                                                'min-w-[20px] px-1 py-1 text-sm bg-transparent border-b border-transparent focus:border-blue-500 focus:outline-none text-center transition-all',
+                                                isDark ? 'text-white' : 'text-gray-900'
+                                            )}
+                                            placeholder="_"
+                                        />
+                                    ) : (
+                                        <span className={twMerge(
+                                            'text-sm font-medium px-1',
+                                            isDark ? 'text-blue-300' : 'text-blue-700'
+                                        )}>
+                                            {field.label}
+                                        </span>
+                                    )}
+
+                                    <button
+                                        onClick={() => {
+                                            setBatchRenameModal(prev => {
+                                                const newFields = prev.availableFields.filter(f => f.id !== field.id)
+                                                const updatedPreview = prev.preview.map(pItem => {
+                                                    const updatedFields = pItem.fields.filter(f => f.id !== field.id)
+                                                    return {
+                                                        ...pItem,
+                                                        fields: updatedFields,
+                                                        newName: generateNewName(updatedFields)
+                                                    }
+                                                })
+                                                return { ...prev, availableFields: newFields, preview: updatedPreview }
+                                            })
+                                        }}
+                                        className={twMerge(
+                                            'p-0.5 rounded hover:bg-red-500/20 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity',
+                                            isDark ? 'text-red-400' : 'text-red-600'
+                                        )}
+                                        title="Remover"
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            ))}
+                            <span className={twMerge(
+                                'text-sm font-mono opacity-50',
+                                isDark ? 'text-gray-400' : 'text-gray-600'
+                            )}>.pdf</span>
+                        </div>
+                    </div>
+
+                    {/* Preview List */}
                     <div>
                         <h3 className={twMerge(
                             'text-lg font-semibold mb-3',
@@ -3257,25 +3272,26 @@ const UnificadosGerenciadorPDFsPage = () => {
                                         isDark ? 'border-gray-700' : 'border-gray-200'
                                     )}
                                 >
-                                    <div className="flex items-start gap-3">
+                                    <div className="flex items-center gap-3">
                                         <div className={twMerge(
                                             'px-2 py-1 rounded text-xs font-medium shrink-0',
                                             isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
                                         )}>
                                             {index + 1}
                                         </div>
-                                        <div className="flex-1 min-w-0 space-y-1">
+                                        <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-2 gap-2 items-center">
                                             <div className={twMerge(
                                                 'text-sm truncate',
                                                 isDark ? 'text-gray-400' : 'text-gray-600'
                                             )}>
-                                                De: <span className="font-mono">{item.originalName}.pdf</span>
+                                                <span className="opacity-70">De:</span> <span className="font-mono">{item.originalName}.pdf</span>
                                             </div>
+                                            
                                             <div className={twMerge(
                                                 'text-sm truncate font-medium',
                                                 isDark ? 'text-blue-400' : 'text-blue-600'
                                             )}>
-                                                Para: <span className="font-mono">{item.newName}.pdf</span>
+                                                <span className="opacity-70">Para:</span> <span className="font-mono">{item.newName}.pdf</span>
                                             </div>
                                         </div>
                                     </div>
