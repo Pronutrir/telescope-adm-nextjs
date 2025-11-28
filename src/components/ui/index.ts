@@ -34,3 +34,6 @@ export * from './DropdownWithTitle'
 export * from './NavbarDropdown'
 export * from './AutocompletePessoa'
 export * from './PowerBIReport'
+export * from './NovaEvolucaoModal'
+export * from './RichTextEditor'
+

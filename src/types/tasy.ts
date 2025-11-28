@@ -28,3 +28,45 @@ export interface BuscarPessoasResponse {
   pessoas: PessoaFisica[]
   total: number
 }
+
+/**
+ * Interface para Evolução do Paciente
+ */
+export interface EvolucaoPaciente {
+  id: number
+  dataEvolucao: string
+  nomeProfissional: string
+  tipoEvolucaoId: number
+  especialidadeMedicoId: number
+  descricao: string
+  dataLiberacao?: string | null
+  numeroAtendimento: number
+  dataAtualizacao: string
+  medicoId: number
+  usuario?: string
+}
+
+/**
+ * Interface para Especialidade Médica
+ */
+export interface Especialidade {
+  id: number
+  descricao: string
+}
+
+/**
+ * Interface para Tipo de Evolução
+ */
+export interface TipoEvolucao {
+  id: number
+  descricao: string
+}
+
+/**
+ * Interface para Texto Padrão
+ */
+export interface TextoPadrao {
+  sequencia: number
+  titulo: string
+  texto?: string
+}

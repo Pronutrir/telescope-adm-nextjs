@@ -7,3 +7,10 @@
 
 // 👤 Pessoa Física
 export * from './pessoa-fisica'
+
+// 📝 Evolução Paciente
+export * from './evolucao-paciente'
+
+// 📄 Texto Padrão
+export * from './texto-padrao'
+

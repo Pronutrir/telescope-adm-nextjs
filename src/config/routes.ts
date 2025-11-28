@@ -4,7 +4,8 @@ import {
   User,
   Layout,
   FileText,
-  BarChart2
+  BarChart2,
+  Activity
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -100,6 +101,20 @@ export const routes: Route[] = [
     search: true,
     component: 'Usuarios',
     roles: ['default_fullstackdev', 'Administrador']
+  },
+
+  // Evolução Paciente
+  {
+    path: '/evolucao-paciente',
+    name: 'Evolução Paciente',
+    icon: Activity,
+    iconColor: 'Primary',
+    layout: '/admin',
+    private: false,
+    search: true,
+    component: 'EvolucaoPaciente',
+    visible: true,
+    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor', 'Doctors', 'Nursing']
   },
 
   // Seu Perfil

@@ -193,7 +193,7 @@ export const AutocompletePessoa: React.FC<AutocompletePessoaProps> = ({
       {/* Dropdown de resultados */}
       {showDropdown && pessoas.length > 0 && (
         <div className={twMerge(
-          'absolute z-50 w-full mt-2 rounded-lg border shadow-lg max-h-60 overflow-auto',
+          'absolute z-[100] w-full mt-2 rounded-lg border shadow-lg max-h-60 overflow-auto scrollbar-hidden',
           isDark
             ? 'bg-gray-800 border-gray-700'
             : 'bg-white border-gray-200'
@@ -204,40 +204,58 @@ export const AutocompletePessoa: React.FC<AutocompletePessoaProps> = ({
               type="button"
               onClick={() => handleSelectPessoa(pessoa)}
               className={twMerge(
-                'w-full px-4 py-3 text-left transition-colors flex items-start gap-3',
-                'hover:bg-opacity-50 first:rounded-t-lg last:rounded-b-lg',
+                'w-full px-4 py-3 text-left transition-all duration-200 flex items-center gap-4 group',
+                'hover:pl-5',
                 isDark
-                  ? 'hover:bg-gray-700 border-b border-gray-700 last:border-0'
-                  : 'hover:bg-gray-50 border-b border-gray-100 last:border-0'
+                  ? 'hover:bg-gray-700/80 border-b border-gray-700/50 last:border-0'
+                  : 'hover:bg-blue-50/80 border-b border-gray-100 last:border-0'
               )}
             >
-              <User className={twMerge(
-                'w-5 h-5 mt-0.5 flex-shrink-0',
-                isDark ? 'text-gray-400' : 'text-gray-500'
-              )} />
+              <div className={twMerge(
+                'p-2 rounded-full transition-colors',
+                isDark ? 'bg-gray-700 group-hover:bg-gray-600' : 'bg-gray-100 group-hover:bg-blue-100'
+              )}>
+                  <User className={twMerge(
+                    'w-5 h-5',
+                    isDark ? 'text-gray-400 group-hover:text-white' : 'text-gray-500 group-hover:text-blue-600'
+                  )} />
+              </div>
+              
               <div className="flex-1 min-w-0">
                 <div className={twMerge(
-                  'font-medium truncate',
-                  isDark ? 'text-white' : 'text-gray-900'
+                  'font-semibold text-base truncate mb-0.5',
+                  isDark ? 'text-gray-100' : 'text-gray-800'
                 )}>
                   {pessoa.nome}
                 </div>
-                <div className={twMerge(
-                  'text-sm mt-1',
-                  isDark ? 'text-gray-400' : 'text-gray-600'
-                )}>
-                  Código: {pessoa.id}
-                  {pessoa.cpf && ` • CPF: ${pessoa.cpf}`}
-                  {pessoa.isFuncionario && (
+                <div className="flex items-center gap-2 flex-wrap text-xs">
                     <span className={twMerge(
-                      'ml-2 px-2 py-0.5 rounded text-xs font-medium',
-                      isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700'
+                        'px-1.5 py-0.5 rounded',
+                        isDark ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'
                     )}>
-                      Funcionário
+                        Cód: {pessoa.id}
                     </span>
-                  )}
+                    {pessoa.cpf && (
+                        <span className={isDark ? 'text-gray-500' : 'text-gray-400'}>•</span>
+                    )}
+                    {pessoa.cpf && (
+                        <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>
+                            CPF: {pessoa.cpf}
+                        </span>
+                    )}
                 </div>
               </div>
+
+              {pessoa.isFuncionario && (
+                <span className={twMerge(
+                  'px-2 py-1 rounded-full text-xs font-medium border',
+                  isDark 
+                    ? 'bg-blue-900/20 text-blue-300 border-blue-800/50' 
+                    : 'bg-blue-50 text-blue-700 border-blue-100'
+                )}>
+                  Func
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -277,20 +295,6 @@ export const AutocompletePessoa: React.FC<AutocompletePessoaProps> = ({
         </div>
       )}
 
-      {/* Informação da pessoa selecionada */}
-      {selectedPessoa && (
-        <div className={twMerge(
-          'mt-2 p-3 rounded-lg border flex items-center gap-2',
-          isDark
-            ? 'bg-green-900/20 border-green-700 text-green-400'
-            : 'bg-green-50 border-green-300 text-green-700'
-        )}>
-          <User className="w-4 h-4 flex-shrink-0" />
-          <span className="text-sm font-medium">
-            Pessoa selecionada: {selectedPessoa.nome} (Cód: {selectedPessoa.id})
-          </span>
-        </div>
-      )}
     </div>
   )
 }
