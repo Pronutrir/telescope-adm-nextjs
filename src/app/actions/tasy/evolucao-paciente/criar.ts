@@ -7,8 +7,8 @@ import { cookies } from 'next/headers'
 interface CriarEvolucaoInput {
   dataEvolucao: string
   medicoId: number
-  especialidadeId: number
-  tipoEvolucaoId: number
+  especialidadeId: number | string
+  tipoEvolucaoId: number | string
   descricao: string
   pacienteId: number | string
 }

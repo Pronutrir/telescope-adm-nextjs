@@ -4,7 +4,7 @@ import { SERVICES_CONFIG } from '@/config/env'
 import { sessionManager } from '@/lib/session'
 import { cookies } from 'next/headers'
 
-export async function listarTextosPadroesReduzidos(codNotasClinicas: number) {
+export async function listarTextosPadroesReduzidos(codNotasClinicas: number | string) {
     try {
         // ✅ Verificar autenticação
         const cookieStore = await cookies()

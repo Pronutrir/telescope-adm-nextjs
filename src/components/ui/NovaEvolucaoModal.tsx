@@ -13,7 +13,7 @@ import {
     obterTextoPadraoCompleto
 } from '@/app/actions/tasy'
 import type { Especialidade, TipoEvolucao, PessoaFisica, TextoPadrao } from '@/types/tasy'
-import { Save, AlertCircle } from 'lucide-react'
+import { Save, AlertCircle, Loader2 } from 'lucide-react'
 
 interface NovaEvolucaoModalProps {
     isOpen: boolean
@@ -35,8 +35,8 @@ export const NovaEvolucaoModal: React.FC<NovaEvolucaoModalProps> = ({
     // Estados do formulário
     const [dataEvolucao, setDataEvolucao] = useState('')
     const [medico, setMedico] = useState<PessoaFisica | null>(null)
-    const [especialidadeId, setEspecialidadeId] = useState<number | ''>('')
-    const [tipoEvolucaoId, setTipoEvolucaoId] = useState<number | ''>('')
+    const [especialidadeId, setEspecialidadeId] = useState<number | string | ''>('')
+    const [tipoEvolucaoId, setTipoEvolucaoId] = useState<number | string | ''>('')
     const [descricao, setDescricao] = useState('')
     
     // Estados de dados auxiliares
@@ -70,7 +70,8 @@ export const NovaEvolucaoModal: React.FC<NovaEvolucaoModalProps> = ({
     // Carregar textos padrões quando o tipo de evolução mudar
     useEffect(() => {
         if (tipoEvolucaoId) {
-            loadTextosPadroes(Number(tipoEvolucaoId))
+            // Agora aceitamos string ou number, pois a API suporta ambos
+            loadTextosPadroes(tipoEvolucaoId)
         } else {
             setTextosPadroes([])
             setTextoPadraoSelecionado('')
@@ -95,7 +96,7 @@ export const NovaEvolucaoModal: React.FC<NovaEvolucaoModalProps> = ({
         }
     }
 
-    const loadTextosPadroes = async (tipoId: number) => {
+    const loadTextosPadroes = async (tipoId: number | string) => {
         setIsLoadingTextos(true)
         try {
             const response = await listarTextosPadroesReduzidos(tipoId)
@@ -141,8 +142,8 @@ export const NovaEvolucaoModal: React.FC<NovaEvolucaoModalProps> = ({
             const response = await criarEvolucaoPaciente({
                 dataEvolucao: new Date(dataEvolucao).toISOString(),
                 medicoId: Number(medico.id),
-                especialidadeId: Number(especialidadeId),
-                tipoEvolucaoId: Number(tipoEvolucaoId),
+                especialidadeId: especialidadeId,
+                tipoEvolucaoId: tipoEvolucaoId,
                 descricao,
                 pacienteId
             })
@@ -166,7 +167,7 @@ export const NovaEvolucaoModal: React.FC<NovaEvolucaoModalProps> = ({
             isOpen={isOpen}
             onClose={onClose}
             title="Nova Evolução"
-            size="lg"
+            size="xl"
         >
             <form onSubmit={handleSubmit} className="space-y-6">
                 {error && (
@@ -176,15 +177,28 @@ export const NovaEvolucaoModal: React.FC<NovaEvolucaoModalProps> = ({
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Paciente (Read-only) */}
                     <div className="space-y-2">
                         <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                             Paciente
                         </label>
-                        <div className={`p-2.5 rounded-lg border ${isDark ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
+                        <div className={`h-[42px] px-2.5 flex items-center rounded-lg border ${isDark ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
                             {pacienteNome}
                         </div>
+                    </div>
+
+                    {/* Profissional */}
+                    <div className="space-y-2">
+                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                            Profissional <span className="text-red-500">*</span>
+                        </label>
+                        <AutocompletePessoa
+                            value={medico?.nome || ''}
+                            onChange={(_, pessoa) => setMedico(pessoa || null)}
+                            placeholder="Busque pelo nome..."
+                            className="w-full"
+                        />
                     </div>
 
                     {/* Data da Evolução */}
@@ -205,27 +219,15 @@ export const NovaEvolucaoModal: React.FC<NovaEvolucaoModalProps> = ({
                         />
                     </div>
 
-                    {/* Profissional */}
-                    <div className="space-y-2 md:col-span-2">
-                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Profissional <span className="text-red-500">*</span>
-                        </label>
-                        <AutocompletePessoa
-                            value={medico?.nome || ''}
-                            onChange={(_, pessoa) => setMedico(pessoa || null)}
-                            placeholder="Busque pelo nome do profissional..."
-                            className="w-full"
-                        />
-                    </div>
-
                     {/* Especialidade */}
                     <div className="space-y-2">
-                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} flex items-center gap-2`}>
                             Especialidade <span className="text-red-500">*</span>
+                            {isLoading && <Loader2 className="w-3 h-3 animate-spin text-blue-500" />}
                         </label>
                         <select
                             value={especialidadeId}
-                            onChange={(e) => setEspecialidadeId(e.target.value === '' ? '' : Number(e.target.value))}
+                            onChange={(e) => setEspecialidadeId(e.target.value === '' ? '' : e.target.value)}
                             className={`w-full p-2.5 rounded-lg border outline-none transition-colors ${
                                 isDark 
                                     ? 'bg-gray-900 border-gray-700 text-white focus:border-blue-500' 
@@ -245,12 +247,13 @@ export const NovaEvolucaoModal: React.FC<NovaEvolucaoModalProps> = ({
 
                     {/* Tipo de Evolução */}
                     <div className="space-y-2">
-                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} flex items-center gap-2`}>
                             Nota Clínica <span className="text-red-500">*</span>
+                            {isLoading && <Loader2 className="w-3 h-3 animate-spin text-blue-500" />}
                         </label>
                         <select
                             value={tipoEvolucaoId}
-                            onChange={(e) => setTipoEvolucaoId(e.target.value === '' ? '' : Number(e.target.value))}
+                            onChange={(e) => setTipoEvolucaoId(e.target.value === '' ? '' : e.target.value)}
                             className={`w-full p-2.5 rounded-lg border outline-none transition-colors ${
                                 isDark 
                                     ? 'bg-gray-900 border-gray-700 text-white focus:border-blue-500' 
@@ -269,9 +272,10 @@ export const NovaEvolucaoModal: React.FC<NovaEvolucaoModalProps> = ({
                     </div>
 
                     {/* Texto Padrão da Instituição */}
-                    <div className="space-y-2 md:col-span-2">
-                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <div className="space-y-2">
+                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} flex items-center gap-2`}>
                             Texto Padrão da Instituição
+                            {isLoadingTextos && <Loader2 className="w-3 h-3 animate-spin text-blue-500" />}
                         </label>
                         <select
                             value={textoPadraoSelecionado}
@@ -285,12 +289,12 @@ export const NovaEvolucaoModal: React.FC<NovaEvolucaoModalProps> = ({
                         >
                             <option value="">
                                 {isLoadingTextos 
-                                    ? 'Carregando modelos...' 
+                                    ? 'Carregando...' 
                                     : !tipoEvolucaoId 
-                                        ? 'Selecione uma Nota Clínica primeiro...'
+                                        ? 'Selecione Nota...'
                                         : textosPadroes.length === 0 
-                                            ? 'Nenhum modelo disponível' 
-                                            : 'Selecione um modelo...'}
+                                            ? 'Nenhum modelo' 
+                                            : 'Selecione...'}
                             </option>
                             {textosPadroes.map(texto => (
                                 <option key={texto.sequencia} value={texto.sequencia}>{texto.titulo}</option>
@@ -299,9 +303,10 @@ export const NovaEvolucaoModal: React.FC<NovaEvolucaoModalProps> = ({
                     </div>
 
                     {/* Descrição */}
-                    <div className="space-y-2 md:col-span-2">
-                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <div className="space-y-2 md:col-span-3">
+                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} flex items-center gap-2`}>
                             Conteúdo da Evolução <span className="text-red-500">*</span>
+                            {isLoadingTextos && <Loader2 className="w-3 h-3 animate-spin text-blue-500" />}
                         </label>
                         <RichTextEditor
                             value={descricao}

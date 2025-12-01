@@ -36,7 +36,7 @@ export interface EvolucaoPaciente {
   id: number
   dataEvolucao: string
   nomeProfissional: string
-  tipoEvolucaoId: number
+  tipoEvolucaoId: number | string
   especialidadeMedicoId: number
   descricao: string
   dataLiberacao?: string | null
@@ -50,7 +50,7 @@ export interface EvolucaoPaciente {
  * Interface para Especialidade Médica
  */
 export interface Especialidade {
-  id: number
+  id: number | string
   descricao: string
 }
 
@@ -58,7 +58,7 @@ export interface Especialidade {
  * Interface para Tipo de Evolução
  */
 export interface TipoEvolucao {
-  id: number
+  id: number | string
   descricao: string
 }
 

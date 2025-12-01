@@ -174,20 +174,22 @@ export const AutocompletePessoa: React.FC<AutocompletePessoaProps> = ({
           )}
         />
 
-        {searchTerm && !disabled && (
-          <button
-            type="button"
-            onClick={handleClear}
-            className={twMerge(
-              'absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full',
-              isDark
-                ? 'hover:bg-gray-600 text-gray-400 hover:text-white'
-                : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
-            )}
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={handleClear}
+          className={twMerge(
+            'absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full transition-opacity duration-200',
+            searchTerm && !disabled 
+              ? 'opacity-100 cursor-pointer' 
+              : 'opacity-0 pointer-events-none',
+            isDark
+              ? 'hover:bg-gray-600 text-gray-400 hover:text-white'
+              : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
+          )}
+          tabIndex={searchTerm && !disabled ? 0 : -1}
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Dropdown de resultados */}
