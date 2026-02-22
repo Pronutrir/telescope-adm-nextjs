@@ -54,8 +54,8 @@ export async function PUT(
     const { idUsuario } = params
 
     const USERSHIELD_BASE_URL = `${getServiceUrl('USERSHIELD')}`
-    const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}/api/v1/Auth/login`
-    const USERSHIELD_RECOVERY_URL = `${USERSHIELD_BASE_URL}/api/v1/Usuarios/RecoveryPass/${idUsuario}`
+    const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}/v1/Auth/login`
+    const USERSHIELD_RECOVERY_URL = `${USERSHIELD_BASE_URL}/v1/Usuarios/RecoveryPass/${idUsuario}`
 
     logger.info(`[RecoveryPass Proxy] Processando request para usuário ${idUsuario}`)
 

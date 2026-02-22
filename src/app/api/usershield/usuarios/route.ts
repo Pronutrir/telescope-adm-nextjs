@@ -18,8 +18,8 @@ export async function GET() {
   
   // URLs da UserShield API a partir de variáveis de ambiente
   const USERSHIELD_BASE_URL = `${getServiceUrl('USERSHIELD')}`
-  const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}/api/v1/Auth/login`
-  const USERSHIELD_USERS_URL = `${USERSHIELD_BASE_URL}/api/v1/Usuarios`
+  const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}v1/Auth/login`
+  const USERSHIELD_USERS_URL = `${USERSHIELD_BASE_URL}v1/Usuarios`
   
   try {
     console.log('🚀 [PERF] API Route UserShield: Iniciada')
@@ -221,8 +221,8 @@ async function performLogin(loginUrl: string): Promise<string | null> {
  */
 export async function POST(request: Request) {
   const USERSHIELD_BASE_URL = `${getServiceUrl('USERSHIELD')}`
-  const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}/api/v1/Auth/login`
-  const USERSHIELD_USERS_URL = `${USERSHIELD_BASE_URL}/api/v1/Usuarios`
+  const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}v1/Auth/login`
+  const USERSHIELD_USERS_URL = `${USERSHIELD_BASE_URL}v1/Usuarios`
   
   try {
     const body = await request.json()

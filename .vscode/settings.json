@@ -1,0 +1,19 @@
+{
+  "github.copilot.chat.codeGeneration.instructions": [
+    { "file": ".github/copilot-instructions.md" },
+    { "file": "AGENT-CONTEXT.md" },
+    { "file": "AGENT-WORKFLOWS.md" }
+  ],
+  "github.copilot.chat.testGeneration.instructions": [
+    { "file": ".github/copilot-instructions.md" },
+    { "file": "AGENT-CONTEXT.md" }
+  ],
+  "github.copilot.chat.reviewSelection.instructions": [
+    { "file": ".github/copilot-instructions.md" }
+  ],
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "Use conventional commits: feat|fix|refactor|style|docs|test|chore. Mensagem em português. Exemplo: feat: adiciona componente Button com suporte dark mode"
+    }
+  ]
+}

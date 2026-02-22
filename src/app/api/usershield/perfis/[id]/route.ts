@@ -50,12 +50,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const USERSHIELD_BASE_URL = `${getServiceUrl('USERSHIELD')}`
-  const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}/api/v1/Auth/login`
+  const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}/v1/Auth/login`
   
   try {
     // Await params (Next.js 15 requirement)
     const { id } = await params
-    const USERSHIELD_PERFIL_URL = `${USERSHIELD_BASE_URL}/api/v1/Perfis/${id}`
+    const USERSHIELD_PERFIL_URL = `${USERSHIELD_BASE_URL}/v1/Perfis/${id}`
     
     logger.info(`API Route UserShield Perfil ${id}: Iniciada`)
     
