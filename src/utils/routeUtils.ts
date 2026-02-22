@@ -23,7 +23,7 @@ export const hasRouteAccess = (route: Route, userRoles: string[]): boolean => {
 export const getFirstAvailableRoute = (user: IUser | null, preferredHomePage?: string): string => {
   // Se não há usuário, redireciona para login
   if (!user) {
-    return '/auth/login'
+    return '/auth/server-login'
   }
 
   // Extrai as roles do usuário

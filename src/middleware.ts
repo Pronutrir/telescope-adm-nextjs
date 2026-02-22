@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // ✅ Rotas públicas que não precisam de autenticação
-  const publicRoutes = ['/auth/login', '/auth/server-login', '/auth/recovery', '/test-pdf', '/webhook-monitor']
+  const publicRoutes = ['/auth/server-login', '/auth/recovery', '/test-pdf', '/webhook-monitor']
   
   // 🔐 Rota especial: Alteração de senha obrigatória (requer sessão ativa)
   const passwordChangeRoute = '/auth/alterar-senha'
@@ -50,7 +50,7 @@ export async function middleware(request: NextRequest) {
   if (publicRoutes.includes(pathname)) {
     // Se tem sessão ativa e está tentando acessar páginas de auth, redirecionar para dashboard
     // Mas permitir acesso às páginas de teste e webhook-monitor mesmo autenticado
-    if (sessionId && (pathname === '/auth/login' || pathname === '/auth/server-login' || pathname === '/auth/recovery')) {
+    if (sessionId && (pathname === '/auth/server-login' || pathname === '/auth/recovery')) {
       console.log(`🔄 [Middleware] Usuário autenticado tentando acessar ${pathname}, redirecionando para dashboard`)
       return NextResponse.redirect(new URL('/admin/gerenciador-pdfs', request.url))
     }

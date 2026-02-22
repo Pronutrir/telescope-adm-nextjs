@@ -19,7 +19,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         // Redireciona para login se não autenticado OU se perdeu o usuário
         if (!authLoading && (!isAuthenticated || !user)) {
             console.warn('⚠️ [AdminLayout] Sessão perdida - redirecionando para login')
-            router.push('/auth/login')
+            router.push('/auth/server-login')
         }
     }, [authLoading, isAuthenticated, user, router])
 
