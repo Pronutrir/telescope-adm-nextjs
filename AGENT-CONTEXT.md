@@ -30,20 +30,33 @@ telescope-adm-nextjs/
 │   └── prompts/                  # Prompts reutilizáveis
 ├── src/
 │   ├── app/                      # App Router (Next.js 15)
-│   │   ├── (auth)/               # Grupo: autenticação
-│   │   │   └── auth/
-│   │   ├── (dashboard)/          # Grupo: área logada
-│   │   │   ├── admin/
-│   │   │   └── webhook-monitor/
-│   │   ├── actions/              # Server Actions
-│   │   ├── api/                  # Route Handlers
+│   │   ├── auth/                 # Rotas de autenticação
+│   │   │   ├── server-login/     # Página de login principal
+│   │   │   ├── recovery/         # Recuperação de senha
+│   │   │   ├── alterar-senha/    # Alteração obrigatória de senha
+│   │   │   └── no-access/        # Acesso negado
+│   │   ├── admin/                # Área administrativa protegida
+│   │   │   ├── layout.tsx        # Layout admin (usa AdminAuthGuard)
+│   │   │   ├── page.tsx          # Dashboard principal
+│   │   │   ├── loading.tsx       # Suspense automático
+│   │   │   ├── error.tsx         # Error Boundary automático
+│   │   │   ├── usuarios/         # Gestão de usuários
+│   │   │   ├── gerenciador-pdfs/ # Gerenciador de PDFs
+│   │   │   ├── powerbi/          # Relatórios PowerBI
+│   │   │   ├── evolucao-paciente/ # Evolução de paciente
+│   │   │   ├── perfil/           # Perfil do usuário
+│   │   │   ├── nps/              # NPS
+│   │   │   └── biblioteca-componentes/ # Biblioteca de exemplos
+│   │   ├── webhook-monitor/      # Monitor de webhooks
+│   │   ├── api/                  # Route Handlers (Next.js API)
+│   │   ├── actions/              # Server Actions ('use server')
 │   │   ├── globals.css
 │   │   ├── layout.tsx            # Root Layout
-│   │   ├── page.tsx              # Home
-│   │   └── providers.tsx         # Client Providers
+│   │   ├── page.tsx              # Home (redirect por auth)
+│   │   └── providers.tsx         # Client Providers (QueryClient, Auth, Theme, Layout)
 │   ├── components/
 │   │   ├── auth/                 # Componentes exclusivos das páginas de autenticação
-│   │   │   ├── ServerLoginForm/  # Formulário de login (server-login/page.tsx)
+│   │   │   ├── ServerLoginForm/  # Formulário de login
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── ServerLoginForm.tsx
 │   │   │   │   ├── ServerLoginForm.test.tsx
@@ -51,53 +64,147 @@ telescope-adm-nextjs/
 │   │   │   │   ├── LoginBackground.tsx
 │   │   │   │   ├── LoginFormFields.tsx
 │   │   │   │   └── LoginHeader.tsx
-│   │   │   ├── RecoveryForm/     # Formulário de recuperação de senha (recovery/page.tsx)
+│   │   │   ├── RecoveryForm/     # Formulário de recuperação de senha
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── RecoveryForm.tsx
 │   │   │   │   ├── RecoveryForm.test.tsx
 │   │   │   │   ├── useRecoveryForm.ts
 │   │   │   │   ├── RecoveryFormFields.tsx
 │   │   │   │   └── PasswordRequirements.tsx
-│   │   │   ├── AlterarSenhaForm/ # Alteração de senha obrigatória (alterar-senha/page.tsx)
+│   │   │   ├── AlterarSenhaForm/ # Alteração de senha obrigatória
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── AlterarSenhaForm.tsx
 │   │   │   │   ├── AlterarSenhaForm.test.tsx
 │   │   │   │   ├── useAlterarSenhaForm.ts
 │   │   │   │   ├── PasswordField.tsx
 │   │   │   │   └── PasswordStrengthBar.tsx
-│   │   │   ├── NoAccessPage/     # Página de acesso negado (no-access/page.tsx)
+│   │   │   ├── NoAccessPage/     # Página de acesso negado
 │   │   │   │   ├── index.ts
 │   │   │   │   ├── NoAccessPage.tsx
 │   │   │   │   ├── NoAccessPage.test.tsx
 │   │   │   │   └── useNoAccessPage.ts
 │   │   │   └── Notification.tsx  # Notificação inline (usada nos forms de auth)
-│   │   └── ui/                   # Componentes genéricos reutilizáveis
-│   │       ├── ComponentName/
-│   │       │   ├── index.ts            # Export público
-│   │       │   ├── ComponentName.tsx   # UI (< 150 linhas)
-│   │       │   ├── ComponentName.test.tsx
-│   │       │   └── useComponentName.ts # Lógica separada
-│   │       ├── Button.tsx        # Componente Button global
-│   │       └── index.ts          # Export central
+│   │   ├── admin/                # Componentes exclusivos da área admin
+│   │   │   └── AdminAuthGuard/   # Guard de autenticação do layout admin
+│   │   ├── layout/               # Componentes do layout principal
+│   │   │   ├── MainLayout.tsx    # Wrapper que envolve todas as páginas
+│   │   │   ├── Navbar.tsx        # Barra superior
+│   │   │   ├── NavbarDropdown.tsx # Menu do usuário na navbar
+│   │   │   ├── Sidebar.tsx       # Menu lateral
+│   │   │   ├── useSidebar.ts     # Lógica do sidebar (rotas, menus, toggle)
+│   │   │   ├── MenuVisibilityModal.tsx # Config de visibilidade dos menus
+│   │   │   ├── PageWrapper.tsx   # Wrapper de página
+│   │   │   └── ClientOnly.tsx    # Renderização client-only
+│   │   ├── dashboard/            # Componentes da área de dashboard
+│   │   │   ├── LineChart.tsx     # Gráfico de linha
+│   │   │   └── TrafficTable.tsx  # Tabela de tráfego
+│   │   ├── usuarios/             # Componentes da gestão de usuários
+│   │   │   ├── index.ts
+│   │   │   ├── UsuarioCard.tsx
+│   │   │   ├── UsuariosHeader.tsx
+│   │   │   ├── UsuariosList.tsx
+│   │   │   ├── UsuariosModais.tsx
+│   │   │   ├── UsuariosToolbar.tsx
+│   │   │   ├── useUsuariosPage.ts
+│   │   │   ├── AddUserModal.tsx
+│   │   │   ├── EditUserModal.tsx
+│   │   │   ├── DeleteUserModal.tsx
+│   │   │   └── ResetPasswordModal.tsx
+│   │   ├── pdf/                  # Componentes do gerenciador de PDFs
+│   │   │   ├── AutocompletePessoa.tsx
+│   │   │   ├── SortablePdfCards.tsx
+│   │   │   ├── PDFCard.tsx
+│   │   │   ├── InlinePDFViewer.tsx
+│   │   │   ├── SearchPDF.tsx
+│   │   │   └── UploadZone.tsx
+│   │   ├── powerbi/              # Componentes de relatórios PowerBI
+│   │   │   └── PowerBIReport.tsx
+│   │   ├── evolucao-paciente/    # Componentes da evolução de paciente
+│   │   │   └── NovaEvolucaoModal.tsx
+│   │   ├── webhook-monitor/      # Componentes do monitor de webhooks
+│   │   │   └── ConnectionStatus.tsx
+│   │   ├── notifications/        # Sistema de notificações
+│   │   │   ├── NotificationContainer.tsx
+│   │   │   └── index.ts
+│   │   ├── library/              # Componentes da biblioteca de exemplos
+│   │   │   ├── SortableProgressStats.tsx
+│   │   │   ├── ProgressStat.tsx
+│   │   │   └── DropdownTest.tsx
+│   │   ├── analytics/            # Google Analytics
+│   │   │   └── GoogleAnalyticsLoader.tsx
+│   │   ├── nps/                  # Componentes de NPS
+│   │   │   ├── AbasAnswers.tsx
+│   │   │   ├── AnswersDashboard.tsx
+│   │   │   └── AnswersList.tsx
+│   │   ├── profile/              # Componentes de perfil do usuário
+│   │   │   ├── UserInfoCard.tsx
+│   │   │   ├── UserProfileForm.tsx
+│   │   │   ├── UserAvatarUpload.tsx
+│   │   │   ├── UserPermissionsCard.tsx
+│   │   │   ├── UserSecuritySettings.tsx
+│   │   │   ├── UserActivityLog.tsx
+│   │   │   ├── UserProfileHeader.tsx
+│   │   │   ├── HomePageSelector.tsx
+│   │   │   └── index.ts
+│   │   ├── debug/                # Componentes de depuração (somente dev)
+│   │   │   └── ThemeDebug.tsx
+│   │   ├── examples/             # Galeria de exemplos interativos
+│   │   │   ├── FlyonCardExamples.tsx
+│   │   │   └── index.ts
+│   │   └── ui/                   # SOMENTE primitivos genéricos reutilizáveis
+│   │       ├── Button.tsx        # Botão com variantes (cva)
+│   │       ├── Card.tsx          # Card genérico
+│   │       ├── StatsCard.tsx     # Card de estatística genérico
+│   │       ├── Input.tsx         # Input genérico
+│   │       ├── Modal.tsx         # Modal genérico
+│   │       ├── Select.tsx        # Select com busca
+│   │       ├── SelectSimple.tsx  # Select simples
+│   │       ├── Textarea.tsx      # Textarea genérico
+│   │       ├── Dropdown.tsx      # Dropdown genérico
+│   │       ├── DropdownWithTitle.tsx # Dropdown com título de seção
+│   │       ├── ConfirmDialog.tsx # Dialog de confirmação
+│   │       ├── Container.tsx     # Container de layout genérico
+│   │       ├── DivHeader.tsx     # Header de seção genérico
+│   │       ├── ThemeToggle.tsx   # Toggle dark/light
+│   │       ├── FlyonCard.tsx     # Card base FlyonUI
+│   │       ├── FlyonSidebar.tsx  # Sidebar base FlyonUI
+│   │       ├── Layout.tsx        # Grid de layout genérico
+│   │       ├── RichTextEditor.tsx
+│   │       ├── TelescopeLogo.tsx
+│   │       └── index.ts          # Export central (somente primitivos genéricos)
 │   ├── contexts/
 │   │   ├── ThemeContext.tsx       # dark/light mode
 │   │   ├── LayoutContext.tsx      # sidebar, mobile, search, notificações
-│   │   ├── AuthContext.tsx
-│   │   ├── NotificationContext.tsx
-│   │   └── TelescopeContext.tsx
+│   │   ├── AuthContext.tsx        # autenticação do usuário
+│   │   ├── NotificationContext.tsx # notificações in-app
+│   │   ├── MenuVisibilityContext.tsx # visibilidade dos menus
+│   │   ├── PDFContext.tsx         # estado do gerenciador de PDFs
+│   │   └── TelescopeContext.tsx   # dados globais do sistema
 │   ├── hooks/                    # Hooks compartilhados
-│   ├── services/                 # Chamadas API
-│   │   ├── auth.ts
-│   │   ├── telescopeAPI.ts
-│   │   └── token.ts
+│   │   ├── useConfirmDialog.ts
+│   │   ├── useDashboardData.ts
+│   │   ├── useDebounce.ts
+│   │   ├── useGoogleAnalytics.ts
+│   │   ├── useIsClient.ts
+│   │   ├── usePacientes.ts
+│   │   ├── usePDFManager.ts
+│   │   ├── usePDFUpload.ts
+│   │   ├── useThemeClasses.ts
+│   │   ├── useTrafficMetrics.ts
+│   │   ├── useUnifiedPDFs.ts
+│   │   ├── useUserProfile.ts
+│   │   └── useUserShield.ts
+│   ├── services/                 # Chamadas API via Axios
 │   ├── types/                    # Interfaces globais TypeScript
 │   ├── lib/
 │   │   ├── utils.ts              # cn(), helpers
 │   │   ├── api.ts                # Axios config base
-│   │   └── axios-config.ts       # Interceptors
+│   │   ├── axios-config.ts       # Interceptors
+│   │   ├── session.ts            # Gerenciamento de sessão
+│   │   └── auth-helpers.ts       # Helpers de autenticação
 │   └── config/
 │       ├── env.ts
-│       ├── routes.ts
+│       ├── routes.ts             # Definição de rotas e permissões
 │       └── environment.ts
 ├── tests/
 │   ├── unit/
@@ -150,13 +257,29 @@ isMobile ? 'text-sm px-2' : 'text-base px-4'
 
 ## 🧩 ANATOMIA DE UM COMPONENTE
 
-> **Onde criar:**
-> - Componente exclusivo de uma página de auth (login, recovery, alterar-senha, no-access)? → `src/components/auth/NomeComponente/`
-> - Componente genérico reutilizável em qualquer parte do sistema? → `src/components/ui/NomeComponente/`
+> **Onde criar — regra de ouro:**
+> - Componente exclusivo de páginas de auth? → `src/components/auth/NomeComponente/`
+> - Componente exclusivo de uma área/página específica (dashboard, usuarios, pdf, powerbi…)? → `src/components/<nome-da-area>/NomeComponente/`
+> - Componente primitivo/genérico usado em 3+ áreas diferentes? → `src/components/ui/NomeComponente/`
+>
+> **`components/ui/` é SOMENTE para primitivos sem domínio:** Button, Input, Select, Modal, Card, Dropdown, ThemeToggle, etc.  
+> **Nunca colocar em `ui/`:** componentes que fazem sentido apenas em uma área específica do sistema.
 
 ```
-components/auth/NomeComponente/   ← auth-specific
-components/ui/NomeComponente/     ← genérico/reutilizável
+# Exemplos de destino correto:
+components/auth/ServerLoginForm/       ← exclusivo da página de login
+components/admin/AdminAuthGuard/       ← exclusivo do layout admin
+components/layout/NavbarDropdown/      ← exclusivo da Navbar
+components/usuarios/UsuariosPage/      ← exclusivo da página de usuários
+components/pdf/AutocompletePessoa/     ← exclusivo do gerenciador de PDFs
+components/powerbi/PowerBIReport/      ← exclusivo da área de PowerBI
+components/ui/Button/                  ← genérico: usado em todo o sistema
+components/ui/Modal/                   ← genérico: modal reutilizável
+```
+
+### Estrutura de pasta (padrão para qualquer destino)
+```
+components/<area>/NomeComponente/
 ├── index.ts              → Export público (único ponto de entrada)
 ├── NomeComponente.tsx    → UI apenas (< 150 linhas)
 ├── NomeComponente.test.tsx → Testes unitários
@@ -330,7 +453,8 @@ tests/
 | Item | Regra |
 |------|-------|
 | Linhas por arquivo | Máx. **150 linhas** |
-| Componentes | 1 por pasta, em `src/components/ui/` |
+| Componentes | 1 por pasta; em `src/components/<area>/` (página ou sistema); `ui/` só para primitivos genéricos |
+| Destino componentes | `auth/` = auth pages; `ui/` = primitivos genéricos; demais = `components/<nome-da-area>/` |
 | Nomenclatura componentes | **PascalCase** |
 | Nomenclatura hooks | **camelCase** com prefixo `use` |
 | Nomenclatura services | **camelCase** com sufixo `Service` |

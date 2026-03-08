@@ -10,7 +10,7 @@ import {
   UsuariosToolbar,
   UsuariosList,
   UsuariosModais,
-} from '@/components/ui/UsuariosPage'
+} from '@/components/usuarios'
 
 export default function UsuariosPage() {
   const { isDark } = useTheme()

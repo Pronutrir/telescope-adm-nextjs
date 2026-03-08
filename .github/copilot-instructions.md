@@ -26,39 +26,84 @@ Leia **obrigatoriamente** antes de qualquer tarefa:
 
 ```
 src/
-├── app/                    # App Router (Next.js 14)
-│   ├── (routes)/           # Grupos de rotas
-│   │   ├── page.tsx        # Server Component por padrão
-│   │   ├── layout.tsx      # Layout compartilhado
-│   │   ├── loading.tsx     # Suspense automático
-│   │   └── error.tsx       # Error Boundary automático
-│   └── actions/            # Server Actions
+├── app/                    # App Router (Next.js 15)
+│   ├── auth/               # Rotas de autenticação (server-login, recovery, alterar-senha, no-access)
+│   ├── admin/              # Área administrativa protegida (usuários, pdf, powerbi, etc.)
+│   │   ├── layout.tsx      # Layout admin — usa AdminAuthGuard server-side
+│   │   ├── page.tsx        # Dashboard principal
+│   │   ├── loading.tsx     # Suspense automático por rota
+│   │   └── error.tsx       # Error Boundary automático por rota
+│   ├── webhook-monitor/    # Monitor de webhooks (rota pública/autenticada)
+│   ├── api/                # Route Handlers (Next.js API)
+│   ├── actions/            # Server Actions ('use server')
+│   ├── layout.tsx          # Root Layout (providers, globals)
+│   ├── page.tsx            # Home → redirect por auth
+│   └── providers.tsx       # Client Providers (QueryClient, Auth, Theme, Layout)
 ├── components/
 │   ├── auth/               # Componentes EXCLUSIVOS das páginas de autenticação
-│   │   ├── ServerLoginForm/    # login (server-login/page.tsx)
-│   │   ├── RecoveryForm/       # recuperação de senha (recovery/page.tsx)
-│   │   ├── AlterarSenhaForm/   # alteração obrigatória (alterar-senha/page.tsx)
-│   │   ├── NoAccessPage/       # acesso negado (no-access/page.tsx)
+│   │   ├── ServerLoginForm/    # login
+│   │   ├── RecoveryForm/       # recuperação de senha
+│   │   ├── AlterarSenhaForm/   # alteração obrigatória de senha
+│   │   ├── NoAccessPage/       # acesso negado
 │   │   └── Notification.tsx    # notificação inline usada nos forms de auth
-│   └── ui/                 # Componentes GENÉRICOS reutilizáveis em todo o sistema
-│       ├── ComponentName/
-│       │   ├── index.ts        # Export público
-│       │   ├── ComponentName.tsx
-│       │   ├── ComponentName.test.tsx
-│       │   └── useComponentName.ts  # lógica separada
-│       └── Button.tsx
+│   ├── admin/              # Guard e componentes EXCLUSIVOS do layout admin
+│   │   └── AdminAuthGuard/     # verifica autenticação e permissão admin
+│   ├── layout/             # Componentes do layout principal
+│   │   ├── MainLayout.tsx      # wrapper que envolve todas as páginas
+│   │   ├── Navbar.tsx          # barra superior
+│   │   ├── NavbarDropdown.tsx  # menu do usuário na navbar
+│   │   ├── Sidebar.tsx         # menu lateral
+│   │   ├── useSidebar.ts       # lógica do sidebar (rotas, menus, toggle)
+│   │   └── MenuVisibilityModal.tsx # config de visibilidade dos menus
+│   ├── dashboard/          # Componentes da área de dashboard (LineChart, TrafficTable)
+│   ├── usuarios/           # Componentes da gestão de usuários
+│   ├── pdf/                # Componentes do gerenciador de PDFs
+│   ├── powerbi/            # Componentes de relatórios PowerBI
+│   ├── evolucao-paciente/  # Componentes da evolução de paciente
+│   ├── webhook-monitor/    # Componentes do monitor de webhooks
+│   ├── notifications/      # Sistema de notificações (NotificationContainer)
+│   ├── library/            # Componentes da biblioteca de exemplos interativos
+│   ├── analytics/          # Google Analytics (GoogleAnalyticsLoader)
+│   ├── nps/                # Componentes de NPS
+│   ├── profile/            # Componentes de perfil do usuário
+│   ├── debug/              # Componentes de depuração (somente dev)
+│   ├── examples/           # Galeria de exemplos (FlyonCardExamples)
+│   └── ui/                 # Componentes GENÉRICOS primitivos (sem domínio específico)
+│       ├── Button.tsx        # Botão com variantes (cva)
+│       ├── Card.tsx          # Card genérico
+│       ├── StatsCard.tsx     # Card de estatística genérico
+│       ├── Input.tsx         # Input genérico
+│       ├── Modal.tsx         # Modal genérico
+│       ├── Select.tsx        # Select com busca
+│       ├── SelectSimple.tsx  # Select simples
+│       ├── Textarea.tsx      # Textarea genérico
+│       ├── Dropdown.tsx      # Dropdown genérico
+│       ├── DropdownWithTitle.tsx # Dropdown com título de seção
+│       ├── ConfirmDialog.tsx # Dialog de confirmação
+│       ├── Container.tsx     # Container de layout genérico
+│       ├── DivHeader.tsx     # Header de seção genérico
+│       ├── ThemeToggle.tsx   # Toggle dark/light
+│       ├── FlyonCard.tsx     # Card base FlyonUI
+│       ├── FlyonSidebar.tsx  # Sidebar base FlyonUI
+│       ├── RichTextEditor.tsx
+│       ├── TelescopeLogo.tsx
+│       └── index.ts          # Export central (somente primitivos genéricos)
 ├── hooks/                  # Hooks compartilhados (client-side)
-├── contexts/               # ThemeContext, LayoutContext
-├── services/               # Chamadas API (server-side preferível)
-├── types/                  # Interfaces globais
-└── lib/                    # Utilitários, helpers, configs
+├── contexts/               # ThemeContext, LayoutContext, AuthContext, etc.
+├── services/               # Chamadas API via Axios
+├── types/                  # Interfaces globais TypeScript
+└── lib/                    # cn(), utils, axios-config, session, etc.
 ```
 
-> **Regra:** Componente usado SOMENTE em página de auth → `components/auth/`. Componente usado em qualquer outra área → `components/ui/`.
+> **Regra de destino de componentes:**
+> - Exclusivo de páginas de auth → `components/auth/`
+> - Exclusivo do layout/estrutura base → `components/layout/` ou `components/admin/`
+> - Exclusivo de uma área/página específica → `components/<nome-da-area>/`
+> - Primitivo/genérico sem domínio (usado em 3+ áreas) → `components/ui/`
 
 ---
 
-## ⚡ SERVER vs CLIENT COMPONENTS (Next.js 14 App Router)
+## ⚡ SERVER vs CLIENT COMPONENTS (Next.js 15 App Router)
 
 ### Regra de Ouro
 > **Por padrão, todo componente é Server Component.**
@@ -118,7 +163,7 @@ export function ClientChild({ initialData }) {
 
 ---
 
-## 🔄 SERVER ACTIONS (Next.js 14)
+## 🔄 SERVER ACTIONS (Next.js 15)
 
 ### Quando usar
 - Mutations (POST, PUT, DELETE)
@@ -239,7 +284,7 @@ export const useComponentName = () => {
 
 ---
 
-## 📡 DATA FETCHING (Next.js 14)
+## 📡 DATA FETCHING (Next.js 15)
 
 ### Estratégias de Cache
 
@@ -453,7 +498,7 @@ async function fetchData<T>(url: string): Promise<T> {
 Antes de finalizar qualquer código:
 
 ```
-[ ] Componente em src/components/auth/ (se auth-specific) ou src/components/ui/ (se genérico)
+[ ] Componente em src/components/<area>/ (domínio específico) ou src/components/ui/ (primitivo genérico)
 [ ] Server Component por padrão (sem 'use client' desnecessário)
 [ ] 'use client' apenas quando há interatividade/hooks
 [ ] Usa useTheme() e useLayout() (somente em Client Components)
@@ -477,6 +522,7 @@ Antes de finalizar qualquer código:
 |----------|----------|
 | Auth components em `src/components/ui/` | Auth components em `src/components/auth/` |
 | Genéricos em `src/components/auth/` | Genéricos em `src/components/ui/` |
+| Componentes de página/sistema em `src/components/ui/` | Componente de área específica em `src/components/<nome-da-area>/` |
 | `'use client'` sem necessidade real | Server Components por padrão |
 | Ignorar `useTheme()` e `useLayout()` em Client | Usar contextos obrigatórios |
 | Detecção manual de tema/mobile | Usar hooks dos contextos |

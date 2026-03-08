@@ -6,7 +6,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { LayoutProvider } from '@/contexts/LayoutContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
-import NotificationContainer from '@/components/ui/NotificationContainer'
+import NotificationContainer from '@/components/notifications/NotificationContainer'
 
 export function Providers({ children }: { children: React.ReactNode }) {
     const [ queryClient ] = useState(() => new QueryClient({

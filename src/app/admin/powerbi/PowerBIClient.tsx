@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { PowerBIReport } from '@/components/ui'
+import { PowerBIReport } from '@/components/powerbi/PowerBIReport'
 import { useTheme } from '@/contexts/ThemeContext'
 import { twMerge } from 'tailwind-merge'
 import { Maximize2, Minimize2, AlertCircle, Users, RefreshCw } from 'lucide-react'

@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useThemeClasses, useMainBackground } from '@/hooks/useThemeClasses'
-import { ConnectionStatus } from '@/components/ui/ConnectionStatus'
+import { ConnectionStatus } from '@/components/webhook-monitor/ConnectionStatus'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { twMerge } from 'tailwind-merge'
 import { HubConnectionBuilder, HubConnection, LogLevel } from '@microsoft/signalr'
