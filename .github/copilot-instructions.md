@@ -33,18 +33,28 @@ src/
 │   │   ├── loading.tsx     # Suspense automático
 │   │   └── error.tsx       # Error Boundary automático
 │   └── actions/            # Server Actions
-├── components/ui/          # ÚNICO lugar para componentes
-│   ├── ComponentName/
-│   │   ├── index.ts        # Export público
-│   │   ├── ComponentName.tsx
-│   │   ├── ComponentName.test.tsx
-│   │   └── useComponentName.ts  # lógica separada
+├── components/
+│   ├── auth/               # Componentes EXCLUSIVOS das páginas de autenticação
+│   │   ├── ServerLoginForm/    # login (server-login/page.tsx)
+│   │   ├── RecoveryForm/       # recuperação de senha (recovery/page.tsx)
+│   │   ├── AlterarSenhaForm/   # alteração obrigatória (alterar-senha/page.tsx)
+│   │   ├── NoAccessPage/       # acesso negado (no-access/page.tsx)
+│   │   └── Notification.tsx    # notificação inline usada nos forms de auth
+│   └── ui/                 # Componentes GENÉRICOS reutilizáveis em todo o sistema
+│       ├── ComponentName/
+│       │   ├── index.ts        # Export público
+│       │   ├── ComponentName.tsx
+│       │   ├── ComponentName.test.tsx
+│       │   └── useComponentName.ts  # lógica separada
+│       └── Button.tsx
 ├── hooks/                  # Hooks compartilhados (client-side)
 ├── contexts/               # ThemeContext, LayoutContext
 ├── services/               # Chamadas API (server-side preferível)
 ├── types/                  # Interfaces globais
 └── lib/                    # Utilitários, helpers, configs
 ```
+
+> **Regra:** Componente usado SOMENTE em página de auth → `components/auth/`. Componente usado em qualquer outra área → `components/ui/`.
 
 ---
 
@@ -443,7 +453,7 @@ async function fetchData<T>(url: string): Promise<T> {
 Antes de finalizar qualquer código:
 
 ```
-[ ] Componente em src/components/ui/
+[ ] Componente em src/components/auth/ (se auth-specific) ou src/components/ui/ (se genérico)
 [ ] Server Component por padrão (sem 'use client' desnecessário)
 [ ] 'use client' apenas quando há interatividade/hooks
 [ ] Usa useTheme() e useLayout() (somente em Client Components)
@@ -465,7 +475,8 @@ Antes de finalizar qualquer código:
 
 | ❌ NUNCA | ✅ SEMPRE |
 |----------|----------|
-| Componentes fora de `src/components/ui/` | Seguir estrutura de pastas |
+| Auth components em `src/components/ui/` | Auth components em `src/components/auth/` |
+| Genéricos em `src/components/auth/` | Genéricos em `src/components/ui/` |
 | `'use client'` sem necessidade real | Server Components por padrão |
 | Ignorar `useTheme()` e `useLayout()` em Client | Usar contextos obrigatórios |
 | Detecção manual de tema/mobile | Usar hooks dos contextos |

@@ -42,12 +42,42 @@ telescope-adm-nextjs/
 │   │   ├── page.tsx              # Home
 │   │   └── providers.tsx         # Client Providers
 │   ├── components/
-│   │   └── ui/                   # ÚNICO lugar para componentes
+│   │   ├── auth/                 # Componentes exclusivos das páginas de autenticação
+│   │   │   ├── ServerLoginForm/  # Formulário de login (server-login/page.tsx)
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── ServerLoginForm.tsx
+│   │   │   │   ├── ServerLoginForm.test.tsx
+│   │   │   │   ├── useServerLoginForm.ts
+│   │   │   │   ├── LoginBackground.tsx
+│   │   │   │   ├── LoginFormFields.tsx
+│   │   │   │   └── LoginHeader.tsx
+│   │   │   ├── RecoveryForm/     # Formulário de recuperação de senha (recovery/page.tsx)
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── RecoveryForm.tsx
+│   │   │   │   ├── RecoveryForm.test.tsx
+│   │   │   │   ├── useRecoveryForm.ts
+│   │   │   │   ├── RecoveryFormFields.tsx
+│   │   │   │   └── PasswordRequirements.tsx
+│   │   │   ├── AlterarSenhaForm/ # Alteração de senha obrigatória (alterar-senha/page.tsx)
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── AlterarSenhaForm.tsx
+│   │   │   │   ├── AlterarSenhaForm.test.tsx
+│   │   │   │   ├── useAlterarSenhaForm.ts
+│   │   │   │   ├── PasswordField.tsx
+│   │   │   │   └── PasswordStrengthBar.tsx
+│   │   │   ├── NoAccessPage/     # Página de acesso negado (no-access/page.tsx)
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── NoAccessPage.tsx
+│   │   │   │   ├── NoAccessPage.test.tsx
+│   │   │   │   └── useNoAccessPage.ts
+│   │   │   └── Notification.tsx  # Notificação inline (usada nos forms de auth)
+│   │   └── ui/                   # Componentes genéricos reutilizáveis
 │   │       ├── ComponentName/
 │   │       │   ├── index.ts            # Export público
 │   │       │   ├── ComponentName.tsx   # UI (< 150 linhas)
 │   │       │   ├── ComponentName.test.tsx
 │   │       │   └── useComponentName.ts # Lógica separada
+│   │       ├── Button.tsx        # Componente Button global
 │   │       └── index.ts          # Export central
 │   ├── contexts/
 │   │   ├── ThemeContext.tsx       # dark/light mode
@@ -120,8 +150,13 @@ isMobile ? 'text-sm px-2' : 'text-base px-4'
 
 ## 🧩 ANATOMIA DE UM COMPONENTE
 
+> **Onde criar:**
+> - Componente exclusivo de uma página de auth (login, recovery, alterar-senha, no-access)? → `src/components/auth/NomeComponente/`
+> - Componente genérico reutilizável em qualquer parte do sistema? → `src/components/ui/NomeComponente/`
+
 ```
-components/ui/NomeComponente/
+components/auth/NomeComponente/   ← auth-specific
+components/ui/NomeComponente/     ← genérico/reutilizável
 ├── index.ts              → Export público (único ponto de entrada)
 ├── NomeComponente.tsx    → UI apenas (< 150 linhas)
 ├── NomeComponente.test.tsx → Testes unitários

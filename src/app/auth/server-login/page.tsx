@@ -1,4 +1,4 @@
-import { ServerLoginForm } from '@/components/ui/ServerLoginForm'
+import { ServerLoginForm } from '@/components/auth/ServerLoginForm'
 
 export default function ServerLoginPage() {
   return <ServerLoginForm />

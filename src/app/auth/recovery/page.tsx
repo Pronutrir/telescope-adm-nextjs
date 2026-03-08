@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { RecoveryForm } from '@/components/ui/RecoveryForm'
+import { RecoveryForm } from '@/components/auth/RecoveryForm'
 
 // Suspense obrigatório pois RecoveryForm usa useSearchParams internamente
 export default function RecoveryPage() {
