@@ -32,7 +32,15 @@ src/
 │   │   ├── layout.tsx      # Layout admin — usa AdminAuthGuard server-side
 │   │   ├── page.tsx        # Dashboard principal
 │   │   ├── loading.tsx     # Suspense automático por rota
-│   │   └── error.tsx       # Error Boundary automático por rota
+│   │   ├── error.tsx       # Error Boundary automático por rota
+│   │   ├── usuarios/       # Gestão de usuários
+│   │   ├── gerenciador-pdfs/ # Gerenciador de PDFs
+│   │   ├── powerbi/        # Relatórios PowerBI
+│   │   ├── evolucao-paciente/ # Evolução de paciente
+│   │   ├── profile/        # Perfil do usuário
+│   │   ├── dashboard/      # Dashboard principal
+│   │   ├── nps/            # NPS
+│   │   └── biblioteca-componentes/ # Biblioteca de exemplos
 │   ├── webhook-monitor/    # Monitor de webhooks (rota pública/autenticada)
 │   ├── api/                # Route Handlers (Next.js API)
 │   ├── actions/            # Server Actions ('use server')
@@ -65,7 +73,24 @@ src/
 │   ├── library/            # Componentes da biblioteca de exemplos interativos
 │   ├── analytics/          # Google Analytics (GoogleAnalyticsLoader)
 │   ├── nps/                # Componentes de NPS
-│   ├── profile/            # Componentes de perfil do usuário
+│   ├── profile/            # Componentes de perfil do usuário (26 arquivos)
+│   │   ├── ProfilePageClient.tsx  # Orquestrador 'use client'
+│   │   ├── useProfilePage.ts     # Hook de lógica (abas, activities)
+│   │   ├── ProfileTabs.tsx       # Navegação por abas
+│   │   ├── UserProfileForm.tsx   # Formulário de edição
+│   │   ├── useProfileForm.ts     # Hook Formik + Yup
+│   │   ├── UserInfoSection.tsx   # Seção dados pessoais
+│   │   ├── ContactSection.tsx    # Seção contato
+│   │   ├── UserPermissionsCard.tsx # Card permissões
+│   │   ├── PermissionCard.tsx    # Card individual permissão
+│   │   ├── PermissionsModal.tsx  # Modal permissões
+│   │   ├── UserSecuritySettings.tsx # Config segurança
+│   │   ├── useSecurityForm.ts    # Hook segurança
+│   │   ├── UserInfoCard.tsx      # Card resumo
+│   │   ├── UserAvatarUpload.tsx  # Upload avatar
+│   │   ├── HomePageSelector.tsx  # Seletor página inicial
+│   │   ├── UserActivityLog.tsx   # Log atividades
+│   │   └── UserProfileHeader.tsx # Header perfil
 │   ├── debug/              # Componentes de depuração (somente dev)
 │   ├── examples/           # Galeria de exemplos (FlyonCardExamples)
 │   └── ui/                 # Componentes GENÉRICOS primitivos (sem domínio específico)

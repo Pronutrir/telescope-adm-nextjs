@@ -44,7 +44,8 @@ telescope-adm-nextjs/
 │   │   │   ├── gerenciador-pdfs/ # Gerenciador de PDFs
 │   │   │   ├── powerbi/          # Relatórios PowerBI
 │   │   │   ├── evolucao-paciente/ # Evolução de paciente
-│   │   │   ├── perfil/           # Perfil do usuário
+│   │   │   ├── profile/           # Perfil do usuário
+│   │   │   ├── dashboard/        # Dashboard principal
 │   │   │   ├── nps/              # NPS
 │   │   │   └── biblioteca-componentes/ # Biblioteca de exemplos
 │   │   ├── webhook-monitor/      # Monitor de webhooks
@@ -137,15 +138,32 @@ telescope-adm-nextjs/
 │   │   │   ├── AnswersDashboard.tsx
 │   │   │   └── AnswersList.tsx
 │   │   ├── profile/              # Componentes de perfil do usuário
-│   │   │   ├── UserInfoCard.tsx
-│   │   │   ├── UserProfileForm.tsx
-│   │   │   ├── UserAvatarUpload.tsx
-│   │   │   ├── UserPermissionsCard.tsx
-│   │   │   ├── UserSecuritySettings.tsx
-│   │   │   ├── UserActivityLog.tsx
-│   │   │   ├── UserProfileHeader.tsx
-│   │   │   ├── HomePageSelector.tsx
-│   │   │   └── index.ts
+│   │   │   ├── index.ts          # Export central
+│   │   │   ├── ProfilePageClient.tsx  # Orquestrador 'use client'
+│   │   │   ├── useProfilePage.ts      # Hook de lógica da página (abas, activities)
+│   │   │   ├── ProfileTabs.tsx        # Navegação por abas
+│   │   │   ├── UserProfileForm.tsx    # Formulário de edição do perfil
+│   │   │   ├── useProfileForm.ts      # Hook Formik + Yup do formulário
+│   │   │   ├── ProfileFormNotification.tsx # Banner de notificação do form
+│   │   │   ├── UserInfoSection.tsx    # Seção de dados pessoais (8 campos)
+│   │   │   ├── ContactSection.tsx     # Seção de contato (6 campos)
+│   │   │   ├── UserPermissionsCard.tsx # Card de permissões do usuário
+│   │   │   ├── PermissionCard.tsx     # Card individual de permissão
+│   │   │   ├── PermissionsModal.tsx   # Modal com lista completa de permissões
+│   │   │   ├── UserSecuritySettings.tsx # Configurações de segurança
+│   │   │   ├── useSecurityForm.ts     # Hook Formik + Yup de segurança
+│   │   │   ├── PasswordField.tsx      # Input de senha com toggle show/hide
+│   │   │   ├── PasswordStrengthBar.tsx # Barra de força da senha
+│   │   │   ├── PasswordRequirements.tsx # Lista de requisitos de senha
+│   │   │   ├── UserInfoCard.tsx       # Card resumo do usuário
+│   │   │   ├── ProfileInfoRow.tsx     # Linha label:valor reutilizável
+│   │   │   ├── UserAvatarUpload.tsx   # Upload de avatar
+│   │   │   ├── useAvatarUpload.ts     # Hook de upload (initials, file handlers)
+│   │   │   ├── AvatarPreview.tsx      # Preview circular com overlay
+│   │   │   ├── HomePageSelector.tsx   # Seletor de página inicial
+│   │   │   ├── useHomePageSelector.ts # Hook do seletor (save, load, routes)
+│   │   │   ├── UserActivityLog.tsx    # Log de atividades do usuário
+│   │   │   └── UserProfileHeader.tsx  # Header do perfil
 │   │   ├── debug/                # Componentes de depuração (somente dev)
 │   │   │   └── ThemeDebug.tsx
 │   │   ├── examples/             # Galeria de exemplos interativos
