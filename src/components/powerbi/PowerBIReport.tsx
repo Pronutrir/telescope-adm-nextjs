@@ -5,9 +5,9 @@ import { PowerBIEmbed } from 'powerbi-client-react'
 import { models } from 'powerbi-client'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useLayout } from '@/contexts/LayoutContext'
-import { twMerge } from 'tailwind-merge'
-import { Loader2, AlertCircle, BarChart3 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { getPowerBIEmbedToken } from '@/app/actions/powerbi/embed'
+import { ReportLoading, ReportError } from './ReportStates'
 
 interface PowerBIReportProps {
   reportId: string
@@ -73,72 +73,12 @@ export const PowerBIReport: React.FC<PowerBIReportProps> = ({
     loadToken()
   }, [reportId, workspaceId])
 
-  // Loading state
   if (isLoading) {
-    return (
-      <div
-        className={twMerge(
-          'flex flex-col items-center justify-center rounded-lg border',
-          isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
-          className
-        )}
-        style={{ height }}
-      >
-        <Loader2
-          className={twMerge(
-            'w-8 h-8 animate-spin mb-3',
-            isDark ? 'text-blue-400' : 'text-blue-600'
-          )}
-        />
-        <p
-          className={twMerge(
-            'text-sm',
-            isDark ? 'text-gray-400' : 'text-gray-600'
-          )}
-        >
-          Carregando relatório {reportName}...
-        </p>
-      </div>
-    )
+    return <ReportLoading isDark={isDark} reportName={reportName} height={height} className={className} />
   }
 
-  // Error state
   if (error || !embedToken || !embedUrl) {
-    return (
-      <div
-        className={twMerge(
-          'flex flex-col items-center justify-center rounded-lg border',
-          isDark
-            ? 'bg-red-900/20 border-red-700'
-            : 'bg-red-50 border-red-200',
-          className
-        )}
-        style={{ height }}
-      >
-        <AlertCircle
-          className={twMerge(
-            'w-8 h-8 mb-3',
-            isDark ? 'text-red-400' : 'text-red-600'
-          )}
-        />
-        <p
-          className={twMerge(
-            'text-sm font-medium mb-1',
-            isDark ? 'text-red-300' : 'text-red-700'
-          )}
-        >
-          {error || 'Erro ao carregar relatório'}
-        </p>
-        <p
-          className={twMerge(
-            'text-xs',
-            isDark ? 'text-red-400' : 'text-red-600'
-          )}
-        >
-          Verifique as configurações do Power BI
-        </p>
-      </div>
-    )
+    return <ReportError isDark={isDark} error={error || 'Erro ao carregar relatório'} height={height} className={className} />
   }
 
   // Configuração do embed
@@ -167,14 +107,10 @@ export const PowerBIReport: React.FC<PowerBIReportProps> = ({
   }
 
   return (
-    <div className={twMerge('relative w-full h-full', className)}>
-      {/* Power BI Embed - Full Height */}
+    <div className={cn('relative w-full h-full', className)}>
       <PowerBIEmbed
         embedConfig={embedConfig}
-        cssClassName={twMerge(
-          'powerbi-report',
-          isDark ? 'dark-theme' : 'light-theme'
-        )}
+        cssClassName={cn('powerbi-report', isDark ? 'dark-theme' : 'light-theme')}
         getEmbeddedComponent={(embeddedReport) => {
           console.log('✅ [PowerBI] Relatório carregado:', embeddedReport)
         }}
