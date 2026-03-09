@@ -17,7 +17,7 @@ export function useAnswersList() {
   const [modalControl, setModalControl] = useState<ModalControl>({ open: false, title: '', type: 'default' })
   const [customMessageData, setCustomMessageData] = useState<IRating | null>(null)
   const [optionsFilter, setOptionsFilter] = useState<IOptionsFilter>({
-    onlyComments: true,
+    onlyComments: false,
     quest1: [], quest2: [], quest3: [], quest4: [],
     nota: [], unidade: [], profissional: [], convenio: [], especialidade: [],
   })
