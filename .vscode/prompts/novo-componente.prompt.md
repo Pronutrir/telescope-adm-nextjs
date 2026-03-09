@@ -3,7 +3,7 @@ mode: 'agent'
 description: 'Criar novo componente seguindo todos os padrões do Telescope ADM'
 ---
 
-Leia obrigatoriamente os arquivos #AGENT-CONTEXT.md e #AGENT-WORKFLOWS.md antes de qualquer ação.
+Leia obrigatoriamente os arquivos #.agents/docs/CONTEXT.md e #.agents/docs/WORKFLOWS.md antes de qualquer ação.
 
 Crie um componente chamado **${input:NomeComponente:ex: UserCard}** com a seguinte finalidade: **${input:Descricao:ex: exibir informações do usuário}**
 

@@ -1,7 +1,7 @@
 'use server'
 
 import { SERVICES_CONFIG } from '@/config/env'
-import { sessionManager } from '@/lib/session'
+import { sessionManager } from '@/services/session'
 import { cookies } from 'next/headers'
 
 interface CriarEvolucaoInput {

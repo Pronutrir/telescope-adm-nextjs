@@ -1,5 +1,5 @@
 import { Api } from '@/lib/api'
-import type { IUser } from '@/lib/auth-types'
+import type { IUser } from '@/types/auth'
 
 /**
  * Serviço para gerenciar operações relacionadas ao perfil do usuário

@@ -1,10 +1,10 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Modal } from './Modal'
+import { Modal } from '@/components/ui/Modal'
 import { useTheme } from '@/contexts/ThemeContext'
-import { AutocompletePessoa } from './AutocompletePessoa'
-import { RichTextEditor } from './RichTextEditor'
+import { AutocompletePessoa } from '@/components/pdf/AutocompletePessoa'
+import { RichTextEditor } from '@/components/ui/RichTextEditor'
 import { 
     listarEspecialidades, 
     listarTiposEvolucao, 

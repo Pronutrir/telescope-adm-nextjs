@@ -1,12 +1,12 @@
 {
   "github.copilot.chat.codeGeneration.instructions": [
     { "file": ".github/copilot-instructions.md" },
-    { "file": "AGENT-CONTEXT.md" },
-    { "file": "AGENT-WORKFLOWS.md" }
+    { "file": ".agents/docs/CONTEXT.md" },
+    { "file": ".agents/docs/WORKFLOWS.md" }
   ],
   "github.copilot.chat.testGeneration.instructions": [
     { "file": ".github/copilot-instructions.md" },
-    { "file": "AGENT-CONTEXT.md" }
+    { "file": ".agents/docs/CONTEXT.md" }
   ],
   "github.copilot.chat.reviewSelection.instructions": [
     { "file": ".github/copilot-instructions.md" }

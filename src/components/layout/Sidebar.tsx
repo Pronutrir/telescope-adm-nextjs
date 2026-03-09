@@ -27,10 +27,16 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
         setConfigModalOpen,
     } = useSidebar()
 
+    const handleLinkClick = () => {
+        if (isMobile && sidebarOpen) {
+            toggleSidebar()
+        }
+    }
+
     const renderIcon = (route: Route, size = 'size-5') => {
         if (!route.icon) return null
         const IconComponent = route.icon
-        return <IconComponent className={`${size} flex-shrink-0 sidebar-icon pdf-icon transition-all duration-300 hover:scale-110 hover:rotate-3`} />
+        return <IconComponent className={`${size} flex-shrink-0 sidebar-icon pdf-icon`} />
     }
 
     return (
@@ -47,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
                 'shadow-xl shadow-black/10 transition-all duration-300 ease-in-out z-40',
                 isDark
                     ? 'bg-gradient-to-b from-gray-800/[0.98] to-gray-900/[0.98]'
-                    : 'bg-white/85',
+                    : 'bg-white/95',
                 className
             )}
             role="dialog"
@@ -64,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
                         )}
                         aria-label={sidebarCollapsed ? 'Expandir menu' : 'Recolher menu'}
                     >
-                        <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300 pdf-icon transition-all duration-300 hover:scale-110 hover:rotate-3" />
+                        <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300 pdf-icon" />
                     </button>
                 )}
                 {!sidebarCollapsed && !isMobile && (
@@ -126,7 +132,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
                                             {!sidebarCollapsed && <span>{route.name}</span>}
                                         </div>
                                         {!sidebarCollapsed && (
-                                            <ChevronDown className={cn('size-4 pdf-icon transition-all duration-300 hover:scale-110', isMenuOpen && 'rotate-180')} />
+                                            <ChevronDown className={cn('size-4 pdf-icon transition-transform duration-200', isMenuOpen && 'rotate-180')} />
                                         )}
                                     </button>
                                     <ul className={cn(
@@ -139,6 +145,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
                                             <li key={submenu.path}>
                                                 <Link
                                                     href={submenu.layout + submenu.path}
+                                                    onClick={handleLinkClick}
                                                     className={cn(
                                                         'flex items-center px-4 py-2.5 rounded-lg text-sm transition-all duration-200 space-x-3',
                                                         isRouteActive(submenu)
@@ -160,13 +167,14 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
                             <li key={route.path}>
                                 <Link
                                     href={route.layout + route.path}
+                                    onClick={handleLinkClick}
                                     className={cn(
-                                        'flex items-center rounded-xl text-sm font-medium transition-all duration-300',
-                                        'hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-[1.02]',
+                                        'flex items-center rounded-xl text-sm font-medium transition-colors duration-200',
+                                        'hover:bg-gray-100 dark:hover:bg-gray-700/50',
                                         sidebarCollapsed ? 'justify-center px-3 py-3' : 'space-x-3 px-4 py-3',
                                         isActive
-                                            ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 shadow-md border border-blue-200 dark:border-blue-700'
-                                            : 'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white'
+                                            ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-l-2 border-blue-500 dark:border-blue-400'
+                                            : 'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white border-l-2 border-transparent'
                                     )}
                                     title={sidebarCollapsed ? route.name : undefined}
                                 >
@@ -188,7 +196,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
                             className="w-full flex items-center justify-center space-x-2 px-3 py-2 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-300 hover:scale-[1.02] group"
                             title="Configurar visibilidade do menu"
                         >
-                            <Settings className="w-4 h-4 pdf-icon sidebar-icon transition-all duration-300 group-hover:scale-110 group-hover:rotate-12" />
+                            <Settings className="w-4 h-4 pdf-icon sidebar-icon" />
                             <span>Configurar Menu</span>
                         </button>
                     )}

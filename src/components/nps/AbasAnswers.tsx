@@ -1,89 +1,68 @@
 'use client'
 
 import React, { useState } from 'react'
+import { cn } from '@/lib/utils'
+import { List, BarChart3 } from 'lucide-react'
 import AnswersList from './AnswersList'
 import AnswersDashboard from './AnswersDashboard'
 
-interface TabPanelProps {
-    children?: React.ReactNode
-    index: number
-    value: number
-}
-
-function CustomTabPanel(props: TabPanelProps) {
-    const { children, value, index, ...other } = props
-
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`nps-tabpanel-${index}`}
-            aria-labelledby={`nps-tab-${index}`}
-            {...other}
-        >
-            {value === index && <>{children}</>}
-        </div>
-    )
-}
+const TABS = [
+  { label: 'Respostas', icon: List },
+  { label: 'Dashboard', icon: BarChart3 },
+] as const
 
 const AbasAnswers: React.FC = () => {
-    const [ value, setValue ] = useState(0)
+  const [activeTab, setActiveTab] = useState(0)
 
-    const handleTabClick = (newValue: number) => {
-        setValue(newValue)
-    }
+  return (
+    <div className="flex flex-col">
+      {/* Tabs Header */}
+      <div className="border-b border-gray-200 dark:border-gray-700/60">
+        <nav className="flex gap-1" aria-label="NPS Consultas tabs">
+          {TABS.map((tab, idx) => {
+            const Icon = tab.icon
+            const isActive = activeTab === idx
+            return (
+              <button
+                key={tab.label}
+                onClick={() => setActiveTab(idx)}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`nps-tabpanel-${idx}`}
+                className={cn(
+                  'flex items-center gap-2 py-3 px-6 text-sm font-medium border-b-2 transition-colors duration-200 cursor-pointer',
+                  isActive
+                    ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600',
+                )}
+              >
+                <Icon size={18} />
+                <span>{tab.label}</span>
+              </button>
+            )
+          })}
+        </nav>
+      </div>
 
-    return (
-        <>
-            {/* Tabs Header */}
-            <div className="bg-gray-700 border-b border-gray-600">
-                <nav className="flex space-x-8" aria-label="Tabs">
-                    <button
-                        onClick={() => handleTabClick(0)}
-                        className={`
-                            py-4 px-6 text-sm font-medium border-b-2 transition-colors duration-200
-                            ${value === 0
-                                ? 'border-blue-500 text-blue-400'
-                                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
-                            }
-                        `}
-                    >
-                        <div className="flex items-center space-x-2">
-                            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                            </svg>
-                            <span>Respostas</span>
-                        </div>
-                    </button>
-                    <button
-                        onClick={() => handleTabClick(1)}
-                        className={`
-                            py-4 px-6 text-sm font-medium border-b-2 transition-colors duration-200
-                            ${value === 1
-                                ? 'border-blue-500 text-blue-400'
-                                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
-                            }
-                        `}
-                    >
-                        <div className="flex items-center space-x-2">
-                            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            <span>Dashboard</span>
-                        </div>
-                    </button>
-                </nav>
-            </div>
-
-            {/* Tab Content */}
-            <CustomTabPanel value={value} index={0}>
-                <AnswersList />
-            </CustomTabPanel>
-            <CustomTabPanel value={value} index={1}>
-                <AnswersDashboard />
-            </CustomTabPanel>
-        </>
-    )
+      {/* Tab Content */}
+      <div className="mt-6">
+        <div
+          role="tabpanel"
+          id="nps-tabpanel-0"
+          hidden={activeTab !== 0}
+        >
+          {activeTab === 0 && <AnswersList />}
+        </div>
+        <div
+          role="tabpanel"
+          id="nps-tabpanel-1"
+          hidden={activeTab !== 1}
+        >
+          {activeTab === 1 && <AnswersDashboard />}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default AbasAnswers

@@ -1,5 +1,5 @@
 import { routes, Route } from '@/config/routes'
-import { IUser } from '@/lib/auth-types'
+import { IUser } from '@/types/auth'
 
 /**
  * Verifica se o usuário tem permissão para acessar uma rota específica

@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
+import Link from 'next/link'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useLayout } from '@/contexts/LayoutContext'
-import { User, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { User, Settings, LogOut, ChevronDown, Loader2 } from 'lucide-react'
 import { twMerge } from 'tailwind-merge'
 
 interface NavbarDropdownProps {
@@ -68,7 +69,7 @@ export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
                 onClick={() => setIsOpen(!isOpen)}
                 className={twMerge(
                     // PRESERVAÇÃO: Classes de layout originais
-                    'flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300',
+                    'flex items-center space-x-2 px-3 py-2 rounded-lg border transition-colors duration-200 cursor-pointer',
                     // ADAPTAÇÃO: Tema baseado no contexto
                     isDark
                         ? 'bg-gray-700/80 border-gray-600 hover:bg-gray-600/80 hover:border-blue-400/50'
@@ -123,12 +124,10 @@ export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
             )}>
                 <div className="py-2">
                     {/* 🎯 PRESERVAÇÃO: Item Perfil com classes originais + ADAPTAÇÃO: Tema */}
-                    <a
+                    <Link
                         href="/admin/profile"
                         className={twMerge(
-                            // PRESERVAÇÃO: Classes funcionais originais
-                            'flex items-center px-4 py-2 text-sm transition-all duration-200',
-                            // ADAPTAÇÃO: Estados hover baseados no tema
+                            'flex items-center px-4 py-2 text-sm transition-colors duration-200 cursor-pointer',
                             isDark
                                 ? 'text-gray-300 hover:bg-gray-700 hover:text-blue-400'
                                 : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
@@ -140,13 +139,13 @@ export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
                             isDark ? 'text-gray-400' : 'text-gray-500'
                         )} />
                         Perfil
-                    </a>
+                    </Link>
 
                     {/* 🎯 PRESERVAÇÃO: Item Configurações com classes originais + ADAPTAÇÃO: Tema */}
-                    <a
+                    <Link
                         href="/settings"
                         className={twMerge(
-                            'flex items-center px-4 py-2 text-sm transition-all duration-200',
+                            'flex items-center px-4 py-2 text-sm transition-colors duration-200 cursor-pointer',
                             isDark
                                 ? 'text-gray-300 hover:bg-gray-700 hover:text-blue-400'
                                 : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
@@ -158,7 +157,7 @@ export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
                             isDark ? 'text-gray-400' : 'text-gray-500'
                         )} />
                         Configurações
-                    </a>
+                    </Link>
 
                     {/* 🎯 PRESERVAÇÃO: Separador horizontal + ADAPTAÇÃO: Cores */}
                     <hr className={twMerge(
@@ -172,24 +171,21 @@ export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
                         disabled={isLoggingOut}
                         className={twMerge(
                             // PRESERVAÇÃO: Classes funcionais originais
-                            'w-full flex items-center px-4 py-2 text-sm transition-all duration-200',
+                            'w-full flex items-center px-4 py-2 text-sm transition-colors duration-200',
                             // ADAPTAÇÃO: Mesma aparência das outras opções
                             isLoggingOut
                                 ? isDark
                                     ? 'text-gray-500 bg-gray-700/50 cursor-not-allowed'
                                     : 'text-gray-400 bg-gray-100/50 cursor-not-allowed'
                                 : isDark
-                                    ? 'text-gray-300 hover:bg-gray-700 hover:text-blue-400'
-                                    : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+                                    ? 'text-gray-300 hover:bg-gray-700 hover:text-red-400 cursor-pointer'
+                                    : 'text-gray-700 hover:bg-gray-100 hover:text-red-600 cursor-pointer'
                         )}
                     >
-                        <LogOut className={twMerge(
-                            'w-4 h-4 mr-3',
-                            // PRESERVAÇÃO: Animação de loading original
-                            isLoggingOut && 'animate-spin',
-                            // ADAPTAÇÃO: Mesma cor de ícone das outras opções
-                            isDark ? 'text-gray-400' : 'text-gray-500'
-                        )} />
+                        {isLoggingOut
+                            ? <Loader2 className="w-4 h-4 mr-3 animate-spin text-gray-400" />
+                            : <LogOut className={twMerge('w-4 h-4 mr-3', isDark ? 'text-gray-400' : 'text-gray-500')} />
+                        }
                         {isLoggingOut ? 'Saindo...' : 'Sair'}
                     </button>
                 </div>

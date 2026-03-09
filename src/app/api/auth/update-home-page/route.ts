@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { sessionManager } from '@/lib/session'
+import { sessionManager } from '@/services/session'
 
 export async function PUT(request: NextRequest) {
     try {

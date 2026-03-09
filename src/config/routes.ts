@@ -5,7 +5,8 @@ import {
   Layout,
   FileText,
   BarChart2,
-  Activity
+  Activity,
+  ClipboardCheck
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -115,6 +116,20 @@ export const routes: Route[] = [
     component: 'EvolucaoPaciente',
     visible: true,
     roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor', 'Doctors', 'Nursing']
+  },
+
+  // NPS - Pesquisa de Satisfação
+  {
+    path: '/nps/consultas',
+    name: 'NPS',
+    icon: ClipboardCheck,
+    iconColor: 'Success',
+    layout: '/admin',
+    private: false,
+    search: true,
+    component: 'NpsConsultas',
+    visible: true,
+    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
   },
 
   // Seu Perfil

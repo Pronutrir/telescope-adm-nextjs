@@ -1,9 +1,26 @@
 # 🔭 Telescope ADM - AI Coding Instructions
 
-## 📋 CONTEXTO ESSENCIAL
+## 📋 DOCUMENTAÇÃO CENTRALIZADA
+
+**⚠️ IMPORTANTE:** Toda a documentação para agentes de IA foi centralizada em `.agents/docs/`
+
 Leia **obrigatoriamente** antes de qualquer tarefa:
-- `AGENT-CONTEXT.md` - Arquitetura completa
-- `AGENT-WORKFLOWS.md` - Workflows e exemplos práticos
+- **[.agents/docs/README.md](../.agents/docs/README.md)** - Índice principal (comece aqui)
+- **[.agents/docs/INSTRUCTIONS.md](../.agents/docs/INSTRUCTIONS.md)** - Instruções de codificação e padrões completos
+- **[.agents/docs/CONTEXT.md](../.agents/docs/CONTEXT.md)** - Arquitetura completa do projeto
+- **[.agents/docs/WORKFLOWS.md](../.agents/docs/WORKFLOWS.md)** - Workflows práticos passo a passo
+
+---
+
+## 🎯 RESUMO RÁPIDO (ver INSTRUCTIONS.md para detalhes)
+
+## 🎨 DESIGN SYSTEM
+- **Fonte global:** `Inter` (definida em `src/app/layout.tsx`) — nunca forçar outra fonte em componentes
+- **Design System completo:** `design-system/telescope-adm/MASTER.md` (paleta, tipografia, estilo, efeitos)
+- **Overrides por página:** `design-system/telescope-adm/pages/<nome-da-pagina>.md` (se existir, sobrescreve o MASTER)
+- **Estilo:** Dark Mode OLED — `bg-[#0F172A]` base, `bg-[#1E293B]` cards, `text-[#F8FAFC]`
+- **Cor de ação/destaque:** `cyan-500` / `cyan-600` (botões primários, badges, indicadores ativos)
+- **Checklist UI antes de entregar:** sem emojis como ícones, `cursor-pointer` em elementos clicáveis, transições `150-300ms`, contraste mínimo 4.5:1, estados de foco visíveis
 
 ---
 
@@ -39,7 +56,10 @@ src/
 │   │   ├── evolucao-paciente/ # Evolução de paciente
 │   │   ├── profile/        # Perfil do usuário
 │   │   ├── dashboard/      # Dashboard principal
-│   │   ├── nps/            # NPS
+│   │   ├── nps/            # NPS Pesquisa de Satisfação
+│   │   │   ├── page.tsx    # Redirect → /admin/nps/consultas
+│   │   │   └── consultas/
+│   │   │       └── page.tsx # Página NPS Consultas (Server Component)
 │   │   └── biblioteca-componentes/ # Biblioteca de exemplos
 │   ├── webhook-monitor/    # Monitor de webhooks (rota pública/autenticada)
 │   ├── api/                # Route Handlers (Next.js API)
@@ -72,7 +92,16 @@ src/
 │   ├── notifications/      # Sistema de notificações (NotificationContainer)
 │   ├── library/            # Componentes da biblioteca de exemplos interativos
 │   ├── analytics/          # Google Analytics (GoogleAnalyticsLoader)
-│   ├── nps/                # Componentes de NPS
+│   ├── nps/                # Componentes de NPS Consultas (~27 arquivos)
+│   │   ├── npsHelpers.ts         # Constantes + render helpers
+│   │   ├── NpsCard/              # Compound component (6 arquivos)
+│   │   ├── NpsTable/             # Tabela genérica NPS (6 arquivos)
+│   │   ├── NpsFilterMenu.tsx     # Filtro avançado com sub-menus
+│   │   ├── SubclassificationFilter.tsx # Filtro 13 subclassificações
+│   │   ├── CustomMessageModal.tsx # Modal 3 modos (24h, 72h, classificação)
+│   │   ├── AnswersList.tsx       # Orquestrador aba Listagem
+│   │   ├── AnswersDashboard.tsx  # Orquestrador aba Dashboard
+│   │   └── AbasAnswers.tsx       # Navegação de abas
 │   ├── profile/            # Componentes de perfil do usuário (26 arquivos)
 │   │   ├── ProfilePageClient.tsx  # Orquestrador 'use client'
 │   │   ├── useProfilePage.ts     # Hook de lógica (abas, activities)
@@ -97,6 +126,7 @@ src/
 │       ├── Button.tsx        # Botão com variantes (cva)
 │       ├── Card.tsx          # Card genérico
 │       ├── StatsCard.tsx     # Card de estatística genérico
+│       ├── MetricCard.tsx    # Card de métrica
 │       ├── Input.tsx         # Input genérico
 │       ├── Modal.tsx         # Modal genérico
 │       ├── Select.tsx        # Select com busca
@@ -107,6 +137,8 @@ src/
 │       ├── ConfirmDialog.tsx # Dialog de confirmação
 │       ├── Container.tsx     # Container de layout genérico
 │       ├── DivHeader.tsx     # Header de seção genérico
+│       ├── Sidebar.tsx       # Sidebar genérico
+│       ├── SidebarToggle.tsx # Toggle do sidebar
 │       ├── ThemeToggle.tsx   # Toggle dark/light
 │       ├── FlyonCard.tsx     # Card base FlyonUI
 │       ├── FlyonSidebar.tsx  # Sidebar base FlyonUI
@@ -116,8 +148,11 @@ src/
 ├── hooks/                  # Hooks compartilhados (client-side)
 ├── contexts/               # ThemeContext, LayoutContext, AuthContext, etc.
 ├── services/               # Chamadas API via Axios
+│   └── npsConsultaService.ts # NPS: 11 funções API (listagem, mensagens, classificação, dashboard)
 ├── types/                  # Interfaces globais TypeScript
+│   └── nps.ts              # NPS: 20+ interfaces (IRating, IDashboardValues, TFilter, etc.)
 └── lib/                    # cn(), utils, axios-config, session, etc.
+    └── api.ts              # Axios instances (Api, ApiNotify) + token em memória (setApiToken/getApiToken)
 ```
 
 > **Regra de destino de componentes:**
@@ -561,4 +596,12 @@ Antes de finalizar qualquer código:
 
 ---
 
-## 📖 Detalhes completos em `AGENT-CONTEXT.md`
+---
+
+## 📖 Documentação Completa
+
+Para instruções detalhadas, arquitetura completa e workflows, consulte:
+- **[.agents/docs/README.md](../.agents/docs/README.md)** - Comece aqui
+- **[.agents/docs/INSTRUCTIONS.md](../.agents/docs/INSTRUCTIONS.md)** - Todas as regras e padrões
+- **[.agents/docs/CONTEXT.md](../.agents/docs/CONTEXT.md)** - Arquitetura completa
+- **[.agents/docs/WORKFLOWS.md](../.agents/docs/WORKFLOWS.md)** - Workflows práticos

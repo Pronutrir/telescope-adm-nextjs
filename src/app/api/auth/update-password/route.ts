@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { sessionManager } from '@/lib/session'
+import { sessionManager } from '@/services/session'
 
 /**
  * Rota para alteração de senha do usuário
