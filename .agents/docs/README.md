@@ -65,6 +65,19 @@ Guias passo a passo para tarefas comuns:
 
 ---
 
+## 🤖 Agentes de IA Configurados
+
+Este projeto utiliza **dois agentes de IA**, ambos seguindo os **mesmos padrões e regras** documentados aqui:
+
+| Agente | Arquivo de Configuração | Skills disponíveis |
+|--------|------------------------|-------------------|
+| **GitHub Copilot** | `.github/copilot-instructions.md` | `.agents/skills/` |
+| **Claude Code** | `.claude/` | `.claude/skills/` |
+
+> **Resposta rápida:** Sim, o agente GitHub Copilot e o Claude Code seguem as **mesmas convenções** de desenvolvimento — ambos leem este diretório (`.agents/docs/`) como fonte de verdade para padrões, arquitetura e workflows.
+
+---
+
 ## 🎯 Como Usar Esta Documentação
 
 ### Para Agentes de IA (Copilot, Claude, etc.)

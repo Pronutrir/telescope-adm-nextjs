@@ -1,5 +1,7 @@
 # 🔭 Telescope ADM - AI Coding Instructions
 
+> **ℹ️ GitHub Copilot vs Claude Code:** Este arquivo configura o agente **GitHub Copilot**. O agente **Claude Code** é configurado separadamente via `.claude/`. Ambos compartilham os **mesmos padrões e regras de codificação** centralizados em `.agents/docs/` — ou seja, sim, os dois agentes seguem as mesmas convenções de desenvolvimento deste projeto.
+
 ## 📋 DOCUMENTAÇÃO CENTRALIZADA
 
 **⚠️ IMPORTANTE:** Toda a documentação para agentes de IA foi centralizada em `.agents/docs/`
