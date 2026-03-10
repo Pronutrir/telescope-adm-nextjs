@@ -307,3 +307,67 @@ export interface IDashboardFormValues {
   endDate: string | null
   cdUnidade: string
 }
+
+// ========================
+// NPS Recepcionistas — Tipos
+// ========================
+
+export interface IRatingRecepcionistas {
+  id: string
+  cd_pessoa_fisica: string
+  name: string
+  fone?: string
+  email: string
+  questionDesc1: string
+  resp1: string
+  questionDesc2?: string
+  resp2?: string
+  data_resposta: string | null
+  reply: boolean
+  classificacao: string
+  cd_estabelecimento: string
+  ds_estabelecimento: string
+  nr_sequencia_local: string
+  ds_local: string
+  subclassificacao: string
+  isExpired: boolean
+}
+
+export interface IResponseRecepcionistas {
+  percentResponses: number
+  percentNotResponses: number
+  percentComents: number
+  percentNotComents: number
+  quizzesResponses: IRatingRecepcionistas[]
+}
+
+export interface IOptionsFilterRecepcionistas {
+  onlyComments?: boolean
+  resp1?: string[]
+  cd_pessoa_fisica?: string[]
+  unidade?: string[]
+  local?: string[]
+}
+
+export type IOptionsFilterRecepcionistasQuests = Exclude<keyof IOptionsFilterRecepcionistas, 'onlyComments'>
+
+export interface ICustomMessageRecepcionistas {
+  npsId: string
+  customMessage: string
+  fone: string
+}
+
+export interface IClassificationParamsRecepcionistas {
+  classification: string
+  subclassification: string | null
+  npsId: string
+}
+
+export interface IClassificationResultRecepcionistas {
+  id: string
+  dt_Register: string
+  dt_Update?: string
+  classification: string
+  subclassification: string
+  npsConsultaId: string
+}
