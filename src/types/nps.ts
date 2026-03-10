@@ -213,6 +213,71 @@ export interface NpsColumn<T> {
   renderValue?: (row: T) => React.ReactNode
 }
 
+// ========================
+// NPS Tratamento — Tipos
+// ========================
+
+export interface IRatingTratamento {
+  npsTratamentoId: string
+  cliente: string
+  cd_medico: string
+  medico: string
+  cd_convenio: string
+  convenio: string
+  fone: string
+  quest1?: string | null   // Auxílio navegação (estrelas)
+  quest2?: string | null   // Equipe multidisciplinar (estrelas)
+  quest3?: string | null   // Orientações (estrelas)
+  quest4?: string | null   // Tempo espera (estrelas)
+  quest5?: string | null   // Atendimento enfermagem (estrelas)
+  quest6?: string | null   // NPS geral (0-10)
+  quest7?: string | null   // Comentário livre
+  data_resposta: string | null
+  cd_estabelecimento: string
+  reply: boolean
+  classificacao: string
+  subclassificacao: string
+  isExpired: boolean
+}
+
+export interface IOptionsFilterTratamento {
+  onlyComments?: boolean
+  nota?: string[]        // Detrator/Neutro/Promotor baseado em quest6
+  unidade?: string[]
+  profissional?: string[]
+  convenio?: string[]
+}
+
+export type IOptionsFilterTratamentoQuests = Exclude<keyof IOptionsFilterTratamento, 'onlyComments'>
+
+export interface ICustomMessageTratamento {
+  npsTratamentoId: string
+  customMessage: string
+  fone: string
+}
+
+export interface ICustomMessage72hTratamento {
+  npsTratamentoId: string
+  situacao: string
+  message: string
+  fone: string
+}
+
+export interface IClassificationParamsTratamento {
+  classification: string
+  subclassification: string | null
+  npsId: string
+}
+
+export interface IClassificationResultTratamento {
+  id: string
+  dt_Register: string
+  dt_Update?: string
+  classification: string
+  subclassification: string
+  npsTratamentoId: string
+}
+
 // --- Dashboard form ---
 
 export interface IDashboardFormValues {
