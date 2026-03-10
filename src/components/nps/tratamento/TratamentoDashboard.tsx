@@ -3,19 +3,19 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 import { Search, Download, Loader2 } from 'lucide-react'
-import { useAnswersDashboard } from './useAnswersDashboard'
-import { DashboardCards } from './DashboardCards'
-import { SubclassificationGrid } from './SubclassificationGrid'
-import { SubclassificationFilter } from './SubclassificationFilter'
-import { UNIDADES } from './npsHelpers'
-import { NpsDatePicker } from './NpsDatePicker'
+import { useTratamentoDashboard } from './useTratamentoDashboard'
+import { DashboardCards } from '../DashboardCards'
+import { SubclassificationGrid } from '../SubclassificationGrid'
+import { SubclassificationFilter } from '../SubclassificationFilter'
+import { UNIDADES } from '../npsHelpers'
+import { NpsDatePicker } from '../NpsDatePicker'
 
-const AnswersDashboard: React.FC = () => {
+const TratamentoDashboard: React.FC = () => {
   const {
     formik, printRef, periodLegend, dashboardValues,
     filteredSubclassifications, isFetching, isSuccess,
     filter, handleChangeFilter, handleCaptureClick,
-  } = useAnswersDashboard()
+  } = useTratamentoDashboard()
 
   return (
     <div className="flex flex-col gap-6">
@@ -83,7 +83,7 @@ const AnswersDashboard: React.FC = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl 2xl:text-3xl font-semibold text-gray-800 dark:text-white font-[Poppins]">
-              Pesquisa de Satisfação Consultas
+              Pesquisa de Satisfação Tratamentos
             </h1>
             {periodLegend && (
               <p className="text-lg 2xl:text-xl font-bold text-cyan-400 font-[Poppins]">
@@ -108,4 +108,4 @@ const AnswersDashboard: React.FC = () => {
   )
 }
 
-export default AnswersDashboard
+export default TratamentoDashboard

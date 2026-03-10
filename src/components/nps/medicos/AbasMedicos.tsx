@@ -2,16 +2,16 @@
 
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { List, BarChart3 } from 'lucide-react'
-import AnswersList from './AnswersList'
-import AnswersDashboard from './AnswersDashboard'
+import { UserRound, Building2 } from 'lucide-react'
+import MedicosDashboard from './MedicosDashboard'
+import ConvenioDashboard from './ConvenioDashboard'
 
 const TABS = [
-  { label: 'Respostas', icon: List },
-  { label: 'Dashboard', icon: BarChart3 },
+  { label: 'Por Médico', icon: UserRound },
+  { label: 'Por Convênio', icon: Building2 },
 ] as const
 
-const AbasAnswers: React.FC = () => {
+const AbasMedicos: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0)
 
   return (
@@ -40,23 +40,15 @@ const AbasAnswers: React.FC = () => {
       </div>
 
       <div>
-        <div
-          role="tabpanel"
-          id="nps-tabpanel-0"
-          hidden={activeTab !== 0}
-        >
-          {activeTab === 0 && <AnswersList />}
+        <div role="tabpanel" id="nps-medicos-tabpanel-0" hidden={activeTab !== 0}>
+          {activeTab === 0 && <MedicosDashboard />}
         </div>
-        <div
-          role="tabpanel"
-          id="nps-tabpanel-1"
-          hidden={activeTab !== 1}
-        >
-          {activeTab === 1 && <AnswersDashboard />}
+        <div role="tabpanel" id="nps-medicos-tabpanel-1" hidden={activeTab !== 1}>
+          {activeTab === 1 && <ConvenioDashboard />}
         </div>
       </div>
     </div>
   )
 }
 
-export default AbasAnswers
+export default AbasMedicos

@@ -3,29 +3,27 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 import { Search, Download, Loader2 } from 'lucide-react'
-import { useAnswersDashboard } from './useAnswersDashboard'
-import { DashboardCards } from './DashboardCards'
-import { SubclassificationGrid } from './SubclassificationGrid'
-import { SubclassificationFilter } from './SubclassificationFilter'
-import { UNIDADES } from './npsHelpers'
-import { NpsDatePicker } from './NpsDatePicker'
+import { useConvenioDashboard } from './useConvenioDashboard'
+import { MedicosDashboardCards } from './MedicosDashboardCards'
+import { MedicosSatisfacaoCharts } from './MedicosSatisfacaoCharts'
+import { NpsDatePicker } from '../NpsDatePicker'
 
-const AnswersDashboard: React.FC = () => {
+const ConvenioDashboard: React.FC = () => {
   const {
-    formik, printRef, periodLegend, dashboardValues,
-    filteredSubclassifications, isFetching, isSuccess,
-    filter, handleChangeFilter, handleCaptureClick,
-  } = useAnswersDashboard()
+    formik, printRef, periodLegend,
+    convenioOptions, isLoadingConvenios,
+    data, isFetching, isSuccess, handleCaptureClick,
+  } = useConvenioDashboard()
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Barra de filtros */}
+      {/* Filtros */}
       <div className="bg-white dark:bg-[#212845] rounded-xl p-6 border border-gray-200 dark:border-gray-700/20 shadow-sm">
         <form onSubmit={formik.handleSubmit} className="flex flex-wrap items-end gap-4">
           <NpsDatePicker
             label="Período inicial"
             name="startDate"
-            value={formik.values.startDate ?? ''}
+            value={formik.values.startDate}
             onChange={(name, val) => formik.setFieldValue(name, val)}
             error={formik.errors.startDate}
             touched={formik.touched.startDate}
@@ -33,26 +31,28 @@ const AnswersDashboard: React.FC = () => {
           <NpsDatePicker
             label="Período final"
             name="endDate"
-            value={formik.values.endDate ?? ''}
+            value={formik.values.endDate}
             onChange={(name, val) => formik.setFieldValue(name, val)}
             error={formik.errors.endDate}
             touched={formik.touched.endDate}
           />
-          <div className="flex-1 min-w-[200px]">
-            <label className="text-gray-700 dark:text-white text-sm mb-1 block">Unidade</label>
+          <div className="flex-1 min-w-[240px]">
+            <label className="text-gray-700 dark:text-white text-sm mb-1 block">Convênio</label>
             <select
-              name="cdUnidade"
-              value={formik.values.cdUnidade}
+              name="cdConvenio"
+              value={formik.values.cdConvenio}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
+              disabled={isLoadingConvenios}
               className={cn(
                 'w-full rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white border',
-                formik.errors.cdUnidade && formik.touched.cdUnidade ? 'border-red-500' : 'border-gray-300 dark:border-gray-600',
+                formik.errors.cdConvenio && formik.touched.cdConvenio ? 'border-red-500' : 'border-gray-300 dark:border-gray-600',
+                'disabled:opacity-50',
               )}
             >
-              <option value="" disabled>Selecione</option>
-              {UNIDADES.map((u) => (
-                <option key={u.cdUnidade} value={u.cdUnidade}>{u.dsUnidade}</option>
+              <option value="" disabled>Selecione um convênio</option>
+              {convenioOptions.map((c) => (
+                <option key={c.cD_CONVENIO} value={c.cD_CONVENIO}>{c.dS_CONVENIO}</option>
               ))}
             </select>
           </div>
@@ -78,34 +78,28 @@ const AnswersDashboard: React.FC = () => {
         </form>
       </div>
 
-      {/* Área do dashboard (exportável) */}
+      {/* Dashboard exportável */}
       <div ref={printRef} className="bg-white dark:bg-[#212845] rounded-xl p-6 border border-gray-200 dark:border-gray-700/20 shadow-sm">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl 2xl:text-3xl font-semibold text-gray-800 dark:text-white font-[Poppins]">
-              Pesquisa de Satisfação Consultas
-            </h1>
-            {periodLegend && (
-              <p className="text-lg 2xl:text-xl font-bold text-cyan-400 font-[Poppins]">
-                {periodLegend}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <DashboardCards data={dashboardValues} />
-
-        <div className="flex items-center gap-3 mt-8">
-          <h2 className="text-lg 2xl:text-2xl font-semibold text-gray-800 dark:text-white font-[Poppins]">
-            Quantitativo de classificações por motivos
-          </h2>
-          <SubclassificationFilter values={filter} onChange={handleChangeFilter} />
-        </div>
-
-        <SubclassificationGrid data={filteredSubclassifications} />
+        <h1 className="text-2xl font-semibold text-gray-800 dark:text-white font-[Poppins]">
+          NPS por Convênio
+        </h1>
+        {periodLegend && (
+          <p className="text-lg font-bold text-cyan-400 font-[Poppins]">{periodLegend}</p>
+        )}
+        <MedicosDashboardCards
+          data={data as any}
+          mode="convenio"
+          porcentagem={data?.porcentageM_CONVENIO}
+        />
+        {data && (
+          <MedicosSatisfacaoCharts
+            satisfacaoAtendimento={data.satisfacaO_CONVENIO}
+            satisfacaoTempoEspera={data.satisfacaO_TEMPO_ESPERA}
+          />
+        )}
       </div>
     </div>
   )
 }
 
-export default AnswersDashboard
+export default ConvenioDashboard

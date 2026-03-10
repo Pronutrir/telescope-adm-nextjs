@@ -2,17 +2,17 @@
 
 import { Search, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { NpsTable } from './NpsTable'
-import { NpsDatePicker } from './NpsDatePicker'
-import { NpsFilterMenu } from './NpsFilterMenu'
-import { CustomMessageModal } from './CustomMessageModal'
-import { AnswersListCards } from './AnswersListCards'
-import { useAnswersList } from './useAnswersList'
-import { useAnswersListColumns } from './useAnswersListColumns'
+import { NpsTable } from '../NpsTable'
+import { TratamentoListCards } from './TratamentoListCards'
+import { NpsFilterMenuQuimio } from './NpsFilterMenuQuimio'
+import { CustomMessageModalTratamento } from './CustomMessageModalTratamento'
+import { useQuimioList } from './useQuimioList'
+import { useQuimioListColumns } from './useQuimioListColumns'
+import { NpsDatePicker } from '../NpsDatePicker'
 
-const AnswersList = () => {
-  const hook = useAnswersList()
-  const columns = useAnswersListColumns({
+const QuimioList = () => {
+  const hook = useQuimioList()
+  const columns = useQuimioListColumns({
     data: hook.filteredData,
     selected: hook.selected,
     order: hook.order,
@@ -27,43 +27,41 @@ const AnswersList = () => {
 
   return (
     <div className="space-y-6">
-      {/* Date picker + search + filter */}
+      {/* Date + search + filter */}
       <div className="bg-white dark:bg-[#212845] rounded-xl p-6 border border-gray-200 dark:border-gray-700/20 shadow-sm">
         <div className="flex flex-wrap items-end gap-4">
           <NpsDatePicker
-            label="Filtrar por data"
-            name="dataNps"
-            value={hook.dataNps}
-            onChange={(_, val) => hook.setDataNps(val)}
+            label="Data da pesquisa"
+            name="date"
+            value={hook.date}
+            onChange={(_, val) => hook.setDate(val)}
             maxDate={new Date()}
           />
           <button
             onClick={hook.handleSearch}
-            disabled={!hook.dataNps}
+            disabled={!hook.date || hook.isFetching}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 text-white text-sm font-medium hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
             aria-label="Pesquisar"
           >
             {hook.isFetching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
             Pesquisar
           </button>
-          <NpsFilterMenu
+          <NpsFilterMenuQuimio
             optionsFilter={hook.optionsFilter}
             onChangeFilter={hook.handleChangeFilter}
-            onSetAllQuestions={hook.handleSetAllQuestions}
             onSetAll={hook.handleSetAll}
             medicos={hook.medicos}
             convenios={hook.convenios}
-            especialidades={hook.especialidades}
           />
         </div>
       </div>
 
       {/* Summary cards */}
-      <AnswersListCards data={hook.data} isSuccess={hook.isSuccess} calcPercent={hook.calcPercent} />
+      <TratamentoListCards data={hook.data} isSuccess={hook.isSuccess} calcPercent={hook.calcPercent} />
 
       {/* Table */}
       <NpsTable<typeof hook.filteredData[number]>
-        title="Pesquisa de Satisfação de Consultas"
+        title="Pesquisa de Satisfação de Tratamentos"
         columns={columns}
         data={hook.filteredData}
         order={hook.order}
@@ -73,7 +71,7 @@ const AnswersList = () => {
         rowsPerPageOptions={[5, 10, 20]}
         selectedCount={hook.selected.length}
         isSelectedRow={(item) => hook.isSelected(item)}
-        keyExtractor={(item) => item.npsConsultaId}
+        keyExtractor={(item) => item.npsTratamentoId}
       />
 
       {/* Send selected button */}
@@ -93,7 +91,7 @@ const AnswersList = () => {
 
       {/* Modal */}
       {hook.modalControl.open && (
-        <CustomMessageModal
+        <CustomMessageModalTratamento
           open={hook.modalControl.open}
           title={hook.modalControl.title}
           type={hook.modalControl.type}
@@ -109,4 +107,4 @@ const AnswersList = () => {
   )
 }
 
-export default AnswersList
+export default QuimioList

@@ -3,15 +3,15 @@
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { List, BarChart3 } from 'lucide-react'
-import AnswersList from './AnswersList'
-import AnswersDashboard from './AnswersDashboard'
+import QuimioList from './QuimioList'
+import TratamentoDashboard from './TratamentoDashboard'
 
 const TABS = [
-  { label: 'Respostas', icon: List },
+  { label: 'Listagem', icon: List },
   { label: 'Dashboard', icon: BarChart3 },
 ] as const
 
-const AbasAnswers: React.FC = () => {
+const AbasTratamento: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0)
 
   return (
@@ -42,21 +42,21 @@ const AbasAnswers: React.FC = () => {
       <div>
         <div
           role="tabpanel"
-          id="nps-tabpanel-0"
+          id="nps-tratamento-tabpanel-0"
           hidden={activeTab !== 0}
         >
-          {activeTab === 0 && <AnswersList />}
+          {activeTab === 0 && <QuimioList />}
         </div>
         <div
           role="tabpanel"
-          id="nps-tabpanel-1"
+          id="nps-tratamento-tabpanel-1"
           hidden={activeTab !== 1}
         >
-          {activeTab === 1 && <AnswersDashboard />}
+          {activeTab === 1 && <TratamentoDashboard />}
         </div>
       </div>
     </div>
   )
 }
 
-export default AbasAnswers
+export default AbasTratamento
