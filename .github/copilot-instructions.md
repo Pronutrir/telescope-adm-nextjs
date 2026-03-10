@@ -54,14 +54,23 @@ src/
 │   │   ├── error.tsx       # Error Boundary automático por rota
 │   │   ├── usuarios/       # Gestão de usuários
 │   │   ├── gerenciador-pdfs/ # Gerenciador de PDFs
+│   │   │   ├── page.tsx    # Página principal
+│   │   │   ├── unificados/ # PDFs unificados
+│   │   │   └── upload/     # Upload de PDFs
 │   │   ├── powerbi/        # Relatórios PowerBI
 │   │   ├── evolucao-paciente/ # Evolução de paciente
 │   │   ├── profile/        # Perfil do usuário
 │   │   ├── dashboard/      # Dashboard principal
 │   │   ├── nps/            # NPS Pesquisa de Satisfação
 │   │   │   ├── page.tsx    # Redirect → /admin/nps/consultas
-│   │   │   └── consultas/
-│   │   │       └── page.tsx # Página NPS Consultas (Server Component)
+│   │   │   ├── consultas/
+│   │   │   │   └── page.tsx # Página NPS Consultas (Server Component)
+│   │   │   ├── recepcionistas/
+│   │   │   │   └── page.tsx # Página NPS Recepcionistas (Server Component)
+│   │   │   ├── tratamento/
+│   │   │   │   └── page.tsx # Página NPS Tratamento (AbasTratamento)
+│   │   │   └── tratamentos/
+│   │   │       └── page.tsx # Página NPS Tratamentos — lista direta
 │   │   └── biblioteca-componentes/ # Biblioteca de exemplos
 │   ├── webhook-monitor/    # Monitor de webhooks (rota pública/autenticada)
 │   ├── api/                # Route Handlers (Next.js API)
@@ -94,16 +103,40 @@ src/
 │   ├── notifications/      # Sistema de notificações (NotificationContainer)
 │   ├── library/            # Componentes da biblioteca de exemplos interativos
 │   ├── analytics/          # Google Analytics (GoogleAnalyticsLoader)
-│   ├── nps/                # Componentes de NPS Consultas (~27 arquivos)
+│   ├── nps/                # Componentes de NPS
 │   │   ├── npsHelpers.ts         # Constantes + render helpers
 │   │   ├── NpsCard/              # Compound component (6 arquivos)
 │   │   ├── NpsTable/             # Tabela genérica NPS (6 arquivos)
-│   │   ├── NpsFilterMenu.tsx     # Filtro avançado com sub-menus
+│   │   ├── NpsFilterMenu.tsx     # Filtro avançado com sub-menus (Consultas)
 │   │   ├── SubclassificationFilter.tsx # Filtro 13 subclassificações
-│   │   ├── CustomMessageModal.tsx # Modal 3 modos (24h, 72h, classificação)
+│   │   ├── CustomMessageModal.tsx # Modal 3 modos — 24h, 72h, classificação (Consultas)
 │   │   ├── AnswersList.tsx       # Orquestrador aba Listagem
 │   │   ├── AnswersDashboard.tsx  # Orquestrador aba Dashboard
-│   │   └── AbasAnswers.tsx       # Navegação de abas
+│   │   ├── AbasAnswers.tsx       # Navegação de abas
+│   │   ├── recepcionistas/       # Componentes NPS Recepcionistas (8 arquivos)
+│   │   │   ├── AbasRecepcionistas.tsx
+│   │   │   ├── RecepcionistasList.tsx
+│   │   │   ├── RecepcionistasListCards.tsx
+│   │   │   ├── NpsFilterMenuRecepcionistas.tsx
+│   │   │   ├── CustomMessageModalRecepcionistas.tsx
+│   │   │   ├── useRecepcionistasList.ts
+│   │   │   ├── useRecepcionistasListColumns.tsx
+│   │   │   └── useCustomMessageModalRecepcionistas.ts
+│   │   └── tratamento/           # Componentes NPS Tratamento (14 arquivos)
+│   │       ├── AbasTratamento.tsx
+│   │       ├── TratamentoList.tsx
+│   │       ├── TratamentoListCards.tsx
+│   │       ├── TratamentoDashboard.tsx
+│   │       ├── QuimioList.tsx
+│   │       ├── NpsFilterMenuTratamento.tsx
+│   │       ├── NpsFilterMenuQuimio.tsx
+│   │       ├── CustomMessageModalTratamento.tsx
+│   │       ├── useTratamentoList.ts
+│   │       ├── useTratamentoListColumns.tsx
+│   │       ├── useTratamentoDashboard.ts
+│   │       ├── useQuimioList.ts
+│   │       ├── useQuimioListColumns.tsx
+│   │       └── useCustomMessageModalTratamento.ts
 │   ├── profile/            # Componentes de perfil do usuário (26 arquivos)
 │   │   ├── ProfilePageClient.tsx  # Orquestrador 'use client'
 │   │   ├── useProfilePage.ts     # Hook de lógica (abas, activities)
@@ -150,7 +183,8 @@ src/
 ├── hooks/                  # Hooks compartilhados (client-side)
 ├── contexts/               # ThemeContext, LayoutContext, AuthContext, etc.
 ├── services/               # Chamadas API via Axios
-│   └── npsConsultaService.ts # NPS: 11 funções API (listagem, mensagens, classificação, dashboard)
+│   ├── npsConsultaService.ts # NPS Consultas: 11 funções API (listagem, mensagens, classificação, dashboard)
+│   └── npsRecepcionistasService.ts # NPS Recepcionistas: funções API (listagem, mensagens, classificação, histórico)
 ├── types/                  # Interfaces globais TypeScript
 │   └── nps.ts              # NPS: 20+ interfaces (IRating, IDashboardValues, TFilter, etc.)
 └── lib/                    # cn(), utils, axios-config, session, etc.

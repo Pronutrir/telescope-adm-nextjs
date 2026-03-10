@@ -42,14 +42,25 @@ telescope-adm-nextjs/
 │   │   │   ├── error.tsx         # Error Boundary automático
 │   │   │   ├── usuarios/         # Gestão de usuários
 │   │   │   ├── gerenciador-pdfs/ # Gerenciador de PDFs
+│   │   │   │   ├── page.tsx      # Página principal
+│   │   │   │   ├── unificados/   # Visualização de PDFs unificados
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── upload/       # Upload de PDFs
+│   │   │   │       └── page.tsx
 │   │   │   ├── powerbi/          # Relatórios PowerBI
 │   │   │   ├── evolucao-paciente/ # Evolução de paciente
 │   │   │   ├── profile/           # Perfil do usuário
 │   │   │   ├── dashboard/        # Dashboard principal
 │   │   │   ├── nps/              # NPS Pesquisa de Satisfação
 │   │   │   │   ├── page.tsx      # Redirect → /admin/nps/consultas
-│   │   │   │   └── consultas/
-│   │   │   │       └── page.tsx  # Página NPS Consultas (Server Component)
+│   │   │   │   ├── consultas/
+│   │   │   │   │   └── page.tsx  # Página NPS Consultas (Server Component)
+│   │   │   │   ├── recepcionistas/
+│   │   │   │   │   └── page.tsx  # Página NPS Recepcionistas (Server Component)
+│   │   │   │   ├── tratamento/
+│   │   │   │   │   └── page.tsx  # Página NPS Tratamento (AbasTratamento)
+│   │   │   │   └── tratamentos/
+│   │   │   │       └── page.tsx  # Página NPS Tratamentos — lista direta (TratamentoList)
 │   │   │   └── biblioteca-componentes/ # Biblioteca de exemplos
 │   │   ├── webhook-monitor/      # Monitor de webhooks
 │   │   ├── api/                  # Route Handlers (Next.js API)
@@ -207,7 +218,7 @@ telescope-adm-nextjs/
 │   │   │   └── DropdownTest.tsx      # Teste de dropdown
 │   │   ├── analytics/            # Google Analytics
 │   │   │   └── GoogleAnalyticsLoader.tsx
-│   │   ├── nps/                  # Componentes de NPS Consultas (~27 arquivos)
+│   │   ├── nps/                  # Componentes de NPS
 │   │   │   ├── npsHelpers.ts             # Constantes (UNIDADES, CLASSIFICATION_MAP) + render helpers
 │   │   │   ├── NpsCard/                  # Compound component (6 arquivos)
 │   │   │   │   ├── index.ts
@@ -223,10 +234,10 @@ telescope-adm-nextjs/
 │   │   │   │   ├── NpsTableBody.tsx
 │   │   │   │   ├── NpsTableFooter.tsx
 │   │   │   │   └── useNpsTable.ts
-│   │   │   ├── NpsFilterMenu.tsx         # Filtro avançado com sub-menus
+│   │   │   ├── NpsFilterMenu.tsx         # Filtro avançado com sub-menus (Consultas)
 │   │   │   ├── SubclassificationFilter.tsx # Filtro 13 subclassificações
-│   │   │   ├── useCustomMessageModal.ts  # Hook modal mensagem/classificação
-│   │   │   ├── CustomMessageModal.tsx    # Modal 3 modos (24h, 72h, classificação)
+│   │   │   ├── useCustomMessageModal.ts  # Hook modal mensagem/classificação (Consultas)
+│   │   │   ├── CustomMessageModal.tsx    # Modal 3 modos — 24h, 72h, classificação (Consultas)
 │   │   │   ├── useAnswersList.ts         # Hook listagem (state, queries, mutations)
 │   │   │   ├── useAnswersListColumns.tsx # Definição de 20 colunas
 │   │   │   ├── AnswersListCards.tsx      # 5 cards resumo
@@ -235,7 +246,31 @@ telescope-adm-nextjs/
 │   │   │   ├── DashboardCards.tsx        # 8 cards métricas
 │   │   │   ├── SubclassificationGrid.tsx # Grid 13 ícones subclassificação
 │   │   │   ├── AnswersDashboard.tsx      # Orquestrador aba Dashboard
-│   │   │   └── AbasAnswers.tsx           # Navegação de abas (Listagem + Dashboard)
+│   │   │   ├── AbasAnswers.tsx           # Navegação de abas (Listagem + Dashboard)
+│   │   │   ├── recepcionistas/           # Componentes NPS Recepcionistas (8 arquivos)
+│   │   │   │   ├── AbasRecepcionistas.tsx
+│   │   │   │   ├── RecepcionistasList.tsx
+│   │   │   │   ├── RecepcionistasListCards.tsx
+│   │   │   │   ├── NpsFilterMenuRecepcionistas.tsx
+│   │   │   │   ├── CustomMessageModalRecepcionistas.tsx
+│   │   │   │   ├── useRecepcionistasList.ts
+│   │   │   │   ├── useRecepcionistasListColumns.tsx
+│   │   │   │   └── useCustomMessageModalRecepcionistas.ts
+│   │   │   └── tratamento/               # Componentes NPS Tratamento (14 arquivos)
+│   │   │       ├── AbasTratamento.tsx             # Navegação de abas
+│   │   │       ├── TratamentoList.tsx              # Orquestrador aba Listagem
+│   │   │       ├── TratamentoListCards.tsx         # Cards de resumo
+│   │   │       ├── TratamentoDashboard.tsx         # Orquestrador aba Dashboard
+│   │   │       ├── QuimioList.tsx                  # Listagem Quimio
+│   │   │       ├── NpsFilterMenuTratamento.tsx     # Filtro avançado Tratamento
+│   │   │       ├── NpsFilterMenuQuimio.tsx         # Filtro avançado Quimio
+│   │   │       ├── CustomMessageModalTratamento.tsx # Modal mensagem + classificação
+│   │   │       ├── useTratamentoList.ts            # Hook listagem (queries, mutations, filtros)
+│   │   │       ├── useTratamentoListColumns.tsx    # Definição de colunas
+│   │   │       ├── useTratamentoDashboard.ts       # Hook dashboard
+│   │   │       ├── useQuimioList.ts                # Hook listagem Quimio
+│   │   │       ├── useQuimioListColumns.tsx        # Definição de colunas Quimio
+│   │   │       └── useCustomMessageModalTratamento.ts # Hook do modal
 │   │   ├── profile/              # Componentes de perfil do usuário
 │   │   │   ├── index.ts          # Export central
 │   │   │   ├── ProfilePageClient.tsx  # Orquestrador 'use client'
@@ -323,12 +358,13 @@ telescope-adm-nextjs/
 │   │   ├── token.ts              # tokenStorage — gerenciamento de tokens (cookies)
 │   │   ├── userProfileService.ts # Operações de perfil de usuário
 │   │   ├── userShieldService.ts  # Serviço UserShield (permissões)
-│   │   ├── npsConsultaService.ts # NPS: 11 funções API (listagem, mensagens, classificação, dashboard)
+│   │   ├── npsConsultaService.ts # NPS Consultas: 11 funções API (listagem, mensagens, classificação, dashboard)
+│   │   ├── npsRecepcionistasService.ts # NPS Recepcionistas: funções API (listagem, mensagens, classificação, histórico)
 │   │   ├── pdf/                  # Módulos de serviço PDF
 │   │   └── pdfManager/           # Serviços gerenciamento de PDFs
 │   ├── types/                    # Interfaces globais TypeScript
 │   │   ├── auth.ts              # Tipos de autenticação (SessionData, UserData, etc.)
-│   │   ├── nps.ts               # NPS: 20+ interfaces (IRating, IDashboardValues, TFilter, etc.)
+│   │   ├── nps.ts               # NPS: 20+ interfaces (IRating, IDashboardValues, TFilter, IRatingRecepcionistas, IResponseRecepcionistas, IOptionsFilterRecepcionistas, etc.)
 │   │   ├── user.ts              # Tipos de usuário/perfil
 │   │   ├── tasy.ts              # Tipos API Tasy
 │   │   ├── layout.ts            # Tipos de layout
