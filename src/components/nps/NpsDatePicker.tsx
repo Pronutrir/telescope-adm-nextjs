@@ -36,10 +36,10 @@ export function NpsDatePicker({ label, name, value, onChange, maxDate, error, to
   return (
     <div className="flex-1 min-w-[140px]">
       <label className={cn(
-        'text-sm mb-1 block',
+        'text-sm mb-1 block font-medium',
         isDark ? 'text-slate-300' : 'text-slate-700',
       )}>{label}</label>
-      <div className="relative">
+      <div className="relative flex items-center">
         <DatePicker
           selected={selected}
           onChange={handleChange}
@@ -62,13 +62,11 @@ export function NpsDatePicker({ label, name, value, onChange, maxDate, error, to
           maxDate={maxDate}
           showPopperArrow={false}
           popperPlacement="bottom-start"
+          calendarClassName="nps-datepicker-calendar"
         />
         <CalendarDays
           size={15}
-          className={cn(
-            'absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none',
-            isDark ? 'text-slate-400' : 'text-slate-500',
-          )}
+          className="input-icon absolute left-3 pointer-events-none"
         />
       </div>
       {error && touched && (

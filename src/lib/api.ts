@@ -57,17 +57,19 @@ ApiNotify.interceptors.request.use(
 Api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("API Error:", error)
-    
+    const status = error.response?.status
+
     // Se token expirado, limpar storage e redirecionar para login
-    if (error.response?.status === 401) {
+    if (status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
         window.location.href = '/auth/server-login'
       }
+    } else if (status !== 404) {
+      console.error("API Error:", error)
     }
-    
+
     return Promise.reject(error)
   }
 )
@@ -75,17 +77,19 @@ Api.interceptors.response.use(
 ApiNotify.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("Notify API Error:", error)
-    
+    const status = error.response?.status
+
     // Se token expirado, limpar storage e redirecionar para login
-    if (error.response?.status === 401) {
+    if (status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
         window.location.href = '/auth/server-login'
       }
+    } else if (status !== 404) {
+      console.error("Notify API Error:", error)
     }
-    
+
     return Promise.reject(error)
   }
 )

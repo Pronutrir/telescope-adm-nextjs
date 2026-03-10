@@ -30,13 +30,21 @@ export function useAnswersList() {
     refetchOnWindowFocus: false,
   })
 
-  const [medicosQ, conveniosQ, especialidadesQ] = useQueries({
+  const [medicosQ, conveniosQ] = useQueries({
     queries: [
       { queryKey: ['medicos'], queryFn: npsService.getMedicos, refetchOnWindowFocus: false },
       { queryKey: ['convenios'], queryFn: npsService.getConvenios, refetchOnWindowFocus: false },
-      { queryKey: ['especialidades'], queryFn: npsService.getEspecialidades, refetchOnWindowFocus: false },
     ],
   })
+
+  const especialidades = useMemo(() => {
+    const medicos = medicosQ.data ?? []
+    const seen = new Set<number>()
+    return medicos
+      .filter((m) => m.cD_ESPECIALIDADE && !seen.has(m.cD_ESPECIALIDADE) && seen.add(m.cD_ESPECIALIDADE))
+      .map((m) => ({ cD_ESPECIALIDADE: m.cD_ESPECIALIDADE, dS_ESPECIALIDADE: m.dS_ESPECIALIDADE }))
+      .sort((a, b) => a.dS_ESPECIALIDADE.localeCompare(b.dS_ESPECIALIDADE))
+  }, [medicosQ.data])
 
   // --- Mutations ---
   const sendMessagesMut = useMutation({
@@ -164,7 +172,7 @@ export function useAnswersList() {
     modalControl, customMessageData, optionsFilter,
     data: listQuery.data ?? [], filteredData,
     isFetching: listQuery.isFetching, isSuccess: listQuery.isSuccess,
-    medicos: medicosQ.data ?? [], convenios: conveniosQ.data ?? [], especialidades: especialidadesQ.data ?? [],
+    medicos: medicosQ.data ?? [], convenios: conveniosQ.data ?? [], especialidades,
     isLoadingSend: sendMessagesMut.isPending,
     isLoadingModal: sendCustomMut.isPending || classificationMut.isPending,
     handleSearch, handleRequestSort, isSelected, isCheckedAll,

@@ -4,7 +4,8 @@ import {
   User,
   Layout,
   FileText,
-  BarChart2
+  BarChart2,
+  ClipboardCheck
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -85,6 +86,20 @@ export const routes: Route[] = [
     private: false,
     search: true,
     component: 'PowerBI',
+    visible: true,
+    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
+  },
+
+  // NPS - Net Promoter Score (página unificada)
+  {
+    path: '/nps',
+    name: 'NPS',
+    icon: ClipboardCheck,
+    iconColor: 'Success',
+    layout: '/admin',
+    private: false,
+    search: true,
+    component: 'Nps',
     visible: true,
     roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
   },
