@@ -147,6 +147,20 @@ export const routes: Route[] = [
     roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
   },
 
+  // NPS Tratamento (Quimioterapia)
+  {
+    path: '/nps/tratamento',
+    name: 'NPS Tratamento',
+    icon: ClipboardList,
+    iconColor: 'Success',
+    layout: '/admin',
+    private: false,
+    search: true,
+    component: 'NpsTratamento',
+    visible: true,
+    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
+  },
+
   // Seu Perfil
   {
     path: '/profile',

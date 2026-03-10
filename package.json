@@ -49,6 +49,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@floating-ui/dom": "^1.7.6",
     "@microsoft/signalr": "^9.0.6",
     "@tanstack/react-query": "^5.84.1",
     "@tiptap/extension-placeholder": "^3.11.1",

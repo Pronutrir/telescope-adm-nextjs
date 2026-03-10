@@ -1,10 +1,13 @@
 import { Api, ApiNotify } from '@/lib/api'
 import type {
   IRatingTratamento,
+  IRatingQuimio,
   ICustomMessageTratamento,
   ICustomMessage72hTratamento,
   IClassificationParamsTratamento,
   IClassificationResultTratamento,
+  IDashboardValues,
+  ISubclassificacaoDashboardValues,
   IMedico,
   IConvenio,
   IDominio,
@@ -72,6 +75,47 @@ export async function getClassificationHistory(npsTratamentoId: string): Promise
     `NpsClassification/ListClassificationsByNpsTratamentoId/${npsTratamentoId}`,
   )
   return data
+}
+
+// --- Listagem Quimio (GetListNpsTratamentos - data única) ---
+
+export async function getListaNpsQuimio(date: string): Promise<IRatingQuimio[]> {
+  const { data } = await ApiNotify.get<IRatingQuimio[]>(
+    `Nps/GetListNpsTratamentos?start=${date}&end=${date}&PageNumber=1&RowsOfPage=100`,
+  )
+  return data
+}
+
+// --- Dashboard ---
+
+export async function getClassificationsDashboardValues(
+  startDate: string,
+  endDate: string,
+  cdEstabelecimento: number,
+): Promise<IDashboardValues | null> {
+  try {
+    const { data } = await ApiNotify.get<IDashboardValues>(
+      `NpsClassification/GetClassificationDashboardValues?startDate=${startDate}&endDate=${endDate}&estabelecimento=${cdEstabelecimento}`,
+    )
+    return data
+  } catch {
+    return null
+  }
+}
+
+export async function getSubclassificationsDashboardValues(
+  startDate: string,
+  endDate: string,
+  cdEstabelecimento: number,
+): Promise<ISubclassificacaoDashboardValues[]> {
+  try {
+    const { data } = await ApiNotify.get<ISubclassificacaoDashboardValues[]>(
+      `NpsClassification/GetSubclassificationDashboardValues?startDate=${startDate}&endDate=${endDate}&estabelecimento=${cdEstabelecimento}`,
+    )
+    return data
+  } catch {
+    return []
+  }
 }
 
 // --- Filtros (Tasy) ---

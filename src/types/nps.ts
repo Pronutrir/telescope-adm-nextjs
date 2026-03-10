@@ -250,6 +250,28 @@ export interface IOptionsFilterTratamento {
 
 export type IOptionsFilterTratamentoQuests = Exclude<keyof IOptionsFilterTratamento, 'onlyComments'>
 
+// --- Quimio (NPS Tratamento - GetListNpsTratamentos) ---
+
+export interface IRatingQuimio extends IRatingTratamento {
+  // quest1: Facilidade de agendamento (stars)
+  // quest2: Atendimento na recepção (stars)
+  // quest3: Tempo de espera (stars)
+  // quest4: Acolhimento e atenção da enfermagem (stars)
+  // quest5: Acesso a equipe médica e enfermagem (stars)
+  // quest6: Satisfação com o tratamento (stars)
+  // quest7: NPS (0-10)
+  quest8?: string | null  // Deseja receber retorno?
+}
+
+export interface IOptionsFilterQuimio {
+  onlyComments?: boolean
+  unidade?: string[]
+  profissional?: string[]
+  convenio?: string[]
+}
+
+export type IOptionsFilterQuimioQuests = Exclude<keyof IOptionsFilterQuimio, 'onlyComments'>
+
 export interface ICustomMessageTratamento {
   npsTratamentoId: string
   customMessage: string

@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import Sortable from 'sortablejs'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../ui/Card'
 import { FileText, Eye, Clock, User } from 'lucide-react'
 
 interface PdfItem {
