@@ -23,8 +23,8 @@ class TokenCacheService {
       // Verifica se o Redis está disponível
       if (typeof window === 'undefined') {
         // Apenas no server-side
-        const { Redis } = await import('ioredis')
-        this.redis = new Redis({
+        const IORedis = (await import('ioredis')).default
+        this.redis = new IORedis({
           host: process.env.REDIS_HOST || 'localhost',
           port: parseInt(process.env.REDIS_PORT || '6379'),
           password: process.env.REDIS_PASSWORD,
