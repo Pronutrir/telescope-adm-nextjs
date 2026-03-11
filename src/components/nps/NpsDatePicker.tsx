@@ -6,7 +6,6 @@ import { ptBR } from 'date-fns/locale'
 import { CalendarDays } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/contexts/ThemeContext'
-// @ts-expect-error css module
 import 'react-datepicker/dist/react-datepicker.css'
 
 registerLocale('pt-BR', ptBR)

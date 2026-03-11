@@ -37,7 +37,7 @@ function SatisfChart({ title, data }: SatisfChartProps) {
             outerRadius={80}
             paddingAngle={2}
             dataKey="value"
-            label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+            label={(props: Record<string, unknown>) => `${((props.percent as number) * 100).toFixed(0)}%`}
             labelLine={false}
           >
             {chartData.map((entry, index) => (
