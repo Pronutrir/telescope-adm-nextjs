@@ -6,8 +6,9 @@
 // (removido) helper requireEnv não utilizado
 
 // Configurações da API principal
+// API_URL (private) é lida em runtime no servidor; NEXT_PUBLIC_API_URL é baked in no build
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || '',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || '',
   TIMEOUT: parseInt(process.env.API_TIMEOUT || '10000'),
 } as const
 
@@ -20,10 +21,11 @@ export const PDF_API_CONFIG = {
 } as const
 
 // URLs dos serviços específicos
+// As variáveis NEXT_PUBLIC_* são baked in no build; as privadas (sem prefixo) são lidas em runtime
 export const SERVICES_CONFIG = {
-  USERSHIELD: process.env.NEXT_PUBLIC_USERSHIELD_URL || `${API_CONFIG.BASE_URL}/usershield`,
-  APITASY: process.env.NEXT_PUBLIC_APITASY_URL || `${API_CONFIG.BASE_URL}/apitasy`,
-  NOTIFY: process.env.NEXT_PUBLIC_NOTIFY_URL || `${API_CONFIG.BASE_URL}/notify`,
+  USERSHIELD: process.env.NEXT_PUBLIC_USERSHIELD_URL || process.env.USERSHIELD_URL || `${API_CONFIG.BASE_URL}/usershield`,
+  APITASY: process.env.NEXT_PUBLIC_APITASY_URL || process.env.APITASY_URL || `${API_CONFIG.BASE_URL}/apitasy`,
+  NOTIFY: process.env.NEXT_PUBLIC_NOTIFY_URL || process.env.NOTIFY_URL || `${API_CONFIG.BASE_URL}/notify`,
 } as const
 
 // Configurações do Google Analytics
