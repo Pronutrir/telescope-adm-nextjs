@@ -237,6 +237,12 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_APITASY_URL=${{ secrets.NEXT_PUBLIC_APITASY_URL }}
+            NEXT_PUBLIC_NOTIFY_URL=${{ secrets.NEXT_PUBLIC_NOTIFY_URL }}
+            NEXT_PUBLIC_USERSHIELD_URL=${{ secrets.NEXT_PUBLIC_USERSHIELD_URL }}
+            NEXT_PUBLIC_PDF_API_URL=${{ secrets.NEXT_PUBLIC_PDF_API_URL }}
 
   # ===============================================
   # JOB 7: DEPLOY STAGING (Auto - apenas main/master)
