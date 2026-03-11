@@ -146,7 +146,7 @@ export class UserProfileService {
    * Busca as atividades recentes do usuário
    * TODO: Implementar quando o endpoint estiver disponível
    */
-  static async getUserActivities(userId: number | string, _page: number = 1, _limit: number = 10) {
+  static async getUserActivities(_userId: number | string, _page: number = 1, _limit: number = 10) {
     try {
       // TODO: Implementar quando o endpoint estiver disponível
       // const response = await Api.get(`Usuarios/${userId}/activities`, {

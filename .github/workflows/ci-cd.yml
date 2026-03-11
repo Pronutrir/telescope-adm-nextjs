@@ -168,6 +168,11 @@ jobs:
         env:
           NODE_ENV: production
           NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_API_URL: https://placeholder.example.com
+          NEXT_PUBLIC_APITASY_URL: https://placeholder.example.com/apitasy
+          NEXT_PUBLIC_NOTIFY_URL: https://placeholder.example.com/notify
+          NEXT_PUBLIC_USERSHIELD_URL: https://placeholder.example.com/usershield
+          NEXT_PUBLIC_PDF_API_URL: https://placeholder.example.com/pdfs
 
       - name: 📦 Package Build Artifacts
         run: |
