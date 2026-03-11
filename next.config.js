@@ -2,8 +2,11 @@
 const nextConfig = {
   output: "standalone",
   async rewrites() {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br'
-    const pdfApiBaseUrl = process.env.PDF_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5656/api/v1' : '')
+    const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servicesapp.pronutrir.com.br'
+    const apiBaseUrl = rawApiUrl.startsWith('http') ? rawApiUrl : `https://${rawApiUrl}`
+
+    const rawPdfUrl = process.env.PDF_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5656/api/v1' : '')
+    const pdfApiBaseUrl = rawPdfUrl && !rawPdfUrl.startsWith('http') ? `https://${rawPdfUrl}` : rawPdfUrl
 
     // Extrair path dinâmico do APITASY da URL do .env
     const apitasyUrl = process.env.NEXT_PUBLIC_APITASY_URL || `${apiBaseUrl}/apitasy`

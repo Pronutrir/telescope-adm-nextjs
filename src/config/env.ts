@@ -8,7 +8,7 @@
 // Configurações da API principal
 // API_URL (private) é lida em runtime no servidor; NEXT_PUBLIC_API_URL é baked in no build
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || '',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://servicesapp.pronutrir.com.br',
   TIMEOUT: parseInt(process.env.API_TIMEOUT || '10000'),
 } as const
 
