@@ -257,16 +257,16 @@ jobs:
           script: |
             set -e
             echo "🐳 Baixando nova imagem do Docker Hub..."
-            docker compose -f ~/telescope/docker-compose.yml pull telescope-adm-nextjs
+            docker compose -f ~/Documents/telescope-adm-nextjs/docker-compose.yml pull telescope-adm-nextjs
 
             echo "🚀 Subindo nova versão..."
-            docker compose -f ~/telescope/docker-compose.yml up -d --no-deps telescope-adm-nextjs
+            docker compose -f ~/Documents/telescope-adm-nextjs/docker-compose.yml up -d --no-deps telescope-adm-nextjs
 
             echo "🧹 Removendo imagens antigas..."
             docker image prune -f
 
             echo "✅ Deploy concluído!"
-            docker compose -f ~/telescope/docker-compose.yml ps telescope-adm-nextjs
+            docker compose -f ~/Documents/telescope-adm-nextjs/docker-compose.yml ps telescope-adm-nextjs
 
       - name: 🔍 Health Check
         uses: appleboy/ssh-action@v1.2.0
@@ -278,13 +278,13 @@ jobs:
           script: |
             echo "🏥 Verificando status do container..."
             sleep 5
-            STATUS=$(docker compose -f ~/telescope/docker-compose.yml ps --format json telescope-adm-nextjs | grep -o '"State":"[^"]*"' | head -1)
+            STATUS=$(docker compose -f ~/Documents/telescope-adm-nextjs/docker-compose.yml ps --format json telescope-adm-nextjs | grep -o '"State":"[^"]*"' | head -1)
             echo "Status: $STATUS"
             if echo "$STATUS" | grep -q '"running"'; then
               echo "✅ Container está saudável!"
             else
               echo "❌ Container não está rodando!"
-              docker compose -f ~/telescope/docker-compose.yml logs --tail=50 telescope-adm-nextjs
+              docker compose -f ~/Documents/telescope-adm-nextjs/docker-compose.yml logs --tail=50 telescope-adm-nextjs
               exit 1
             fi
 
