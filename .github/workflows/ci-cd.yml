@@ -94,7 +94,7 @@ jobs:
 
       - name: 🎯 Dependency Vulnerability Check
         uses: actions/dependency-review-action@v4
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && vars.ENABLE_DEPENDENCY_REVIEW == 'true'
         with:
           fail-on-severity: high
 
