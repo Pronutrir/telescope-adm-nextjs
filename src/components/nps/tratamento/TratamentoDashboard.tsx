@@ -82,11 +82,11 @@ const TratamentoDashboard: React.FC = () => {
       <div ref={printRef} className="bg-white dark:bg-[#212845] rounded-xl p-6 border border-gray-200 dark:border-gray-700/20 shadow-sm">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl 2xl:text-3xl font-semibold text-gray-800 dark:text-white font-[Poppins]">
+            <h1 className="text-2xl 2xl:text-3xl font-semibold text-gray-800 dark:text-white">
               Pesquisa de Satisfação Tratamentos
             </h1>
             {periodLegend && (
-              <p className="text-lg 2xl:text-xl font-bold text-cyan-400 font-[Poppins]">
+              <p className="text-lg 2xl:text-xl font-bold text-cyan-400">
                 {periodLegend}
               </p>
             )}
@@ -96,7 +96,7 @@ const TratamentoDashboard: React.FC = () => {
         <DashboardCards data={dashboardValues} />
 
         <div className="flex items-center gap-3 mt-8">
-          <h2 className="text-lg 2xl:text-2xl font-semibold text-gray-800 dark:text-white font-[Poppins]">
+          <h2 className="text-lg 2xl:text-2xl font-semibold text-gray-800 dark:text-white">
             Quantitativo de classificações por motivos
           </h2>
           <SubclassificationFilter values={filter} onChange={handleChangeFilter} />

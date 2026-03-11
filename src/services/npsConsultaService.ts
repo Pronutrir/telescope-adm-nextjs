@@ -16,10 +16,15 @@ import type {
 // --- Listagem NPS ---
 
 export async function getListaNps(queryDate: string): Promise<IRating[]> {
-  const { data } = await ApiNotify.get<IRating[]>(
-    `Nps/GetListNpsConsulta?querydate=${queryDate}`,
-  )
-  return data
+  try {
+    const { data } = await ApiNotify.get<IRating[]>(
+      `Nps/GetListNpsConsulta?querydate=${queryDate}`,
+    )
+    return data ?? []
+  } catch (err: any) {
+    if (err?.response?.status === 404) return []
+    throw err
+  }
 }
 
 // --- Envio de mensagens ---

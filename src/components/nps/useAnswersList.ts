@@ -42,7 +42,7 @@ export function useAnswersList() {
     const seen = new Set<number>()
     return medicos
       .filter((m) => m.cD_ESPECIALIDADE && !seen.has(m.cD_ESPECIALIDADE) && seen.add(m.cD_ESPECIALIDADE))
-      .map((m) => ({ cD_ESPECIALIDADE: m.cD_ESPECIALIDADE, dS_ESPECIALIDADE: m.dS_ESPECIALIDADE }))
+      .map((m) => ({ cD_ESPECIALIDADE: m.cD_ESPECIALIDADE, dS_ESPECIALIDADE: m.dS_ESPECIALIDADE } as import('@/types/nps').IEspecialidade))
       .sort((a, b) => a.dS_ESPECIALIDADE.localeCompare(b.dS_ESPECIALIDADE))
   }, [medicosQ.data])
 

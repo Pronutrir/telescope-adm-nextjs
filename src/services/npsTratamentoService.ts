@@ -16,10 +16,15 @@ import type {
 // --- Listagem NPS ---
 
 export async function getListaNps(startDate: string, endDate: string): Promise<IRatingTratamento[]> {
-  const { data } = await ApiNotify.get<IRatingTratamento[]>(
-    `Nps/GetListNpsTratamentosNovos?start=${startDate}&end=${endDate}&PageNumber=1&RowsOfPage=100`,
-  )
-  return data
+  try {
+    const { data } = await ApiNotify.get<IRatingTratamento[]>(
+      `Nps/GetListNpsTratamentosNovos?start=${startDate}&end=${endDate}&PageNumber=1&RowsOfPage=100`,
+    )
+    return data ?? []
+  } catch (err: any) {
+    if (err?.response?.status === 404) return []
+    throw err
+  }
 }
 
 // --- Envio de mensagens ---
@@ -80,10 +85,15 @@ export async function getClassificationHistory(npsTratamentoId: string): Promise
 // --- Listagem Quimio (GetListNpsTratamentos - data única) ---
 
 export async function getListaNpsQuimio(date: string): Promise<IRatingQuimio[]> {
-  const { data } = await ApiNotify.get<IRatingQuimio[]>(
-    `Nps/GetListNpsTratamentos?start=${date}&end=${date}&PageNumber=1&RowsOfPage=100`,
-  )
-  return data
+  try {
+    const { data } = await ApiNotify.get<IRatingQuimio[]>(
+      `Nps/GetListNpsTratamentos?start=${date}&end=${date}&PageNumber=1&RowsOfPage=100`,
+    )
+    return data ?? []
+  } catch (err: any) {
+    if (err?.response?.status === 404) return []
+    throw err
+  }
 }
 
 // --- Dashboard ---

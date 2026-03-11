@@ -51,7 +51,7 @@ export function NpsTable<T>({
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500 dark:text-gray-400">
         <PackageOpen size={60} strokeWidth={1} />
-        <p className="font-[Poppins]">Não existem itens a serem exibidos</p>
+        <p className="">Não existem itens a serem exibidos</p>
       </div>
     )
   }

@@ -9,10 +9,15 @@ import type {
 } from '@/types/nps'
 
 export async function getListaNps(date: string): Promise<IResponseRecepcionistas | null> {
-  const { data } = await ApiNotify.get<IResponseRecepcionistas>(
-    `Quizzes/GetListPercentQuizRecepcionistas?start=${date}&end=${date}&PageNumber=1&RowsOfPage=100`,
-  )
-  return data
+  try {
+    const { data } = await ApiNotify.get<IResponseRecepcionistas>(
+      `Quizzes/GetListPercentQuizRecepcionistas?start=${date}&end=${date}&PageNumber=1&RowsOfPage=100`,
+    )
+    return data ?? null
+  } catch (err: any) {
+    if (err?.response?.status === 404) return null
+    throw err
+  }
 }
 
 export async function postDefaultMessages(items: IRatingRecepcionistas[]) {

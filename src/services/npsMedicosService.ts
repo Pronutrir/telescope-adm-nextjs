@@ -27,10 +27,15 @@ export async function getMedicoDashboard(
   endDate: string,
   listCdMedico: string,
 ): Promise<INPSMedicoValues[]> {
-  const { data } = await ApiNotify.get<INPSMedicoValues[]>(
-    `Nps/GetListNpsConsultaMedicoMultiple?start=${startDate}&end=${endDate}&list_cd_medico=${listCdMedico}`,
-  )
-  return data
+  try {
+    const { data } = await ApiNotify.get<INPSMedicoValues[]>(
+      `Nps/GetListNpsConsultaMedicoMultiple?start=${startDate}&end=${endDate}&list_cd_medico=${listCdMedico}`,
+    )
+    return data ?? []
+  } catch (err: any) {
+    if (err?.response?.status === 404) return []
+    throw err
+  }
 }
 
 export async function getConvenioDashboard(

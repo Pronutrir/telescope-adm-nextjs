@@ -1,6 +1,7 @@
 'use client'
 
-import NpsCard from './NpsCard'
+import { ClipboardList, MessageSquare, MessageSquareOff, CheckCircle2, Clock } from 'lucide-react'
+import { NpsSummaryCard, type NpsSummaryCardProps } from './NpsSummaryCard'
 import type { IRating } from '@/types/nps'
 
 interface AnswersListCardsProps {
@@ -15,29 +16,19 @@ export function AnswersListCards({ data, isSuccess, calcPercent }: AnswersListCa
   const withoutComments = total - withComments
   const replied = data.filter((i) => i.reply).length
   const notReplied = data.filter((i) => !i.reply).length
-  const pct = (n: number) => (isSuccess && total > 0 ? `${calcPercent(total, n)}%` : '0%')
+  const pct = (n: number) => (isSuccess && total > 0 ? `${calcPercent(total, n)}%` : undefined)
 
-  const cards = [
-    { value: total, label: 'Total de pesquisas' },
-    { value: withComments, label: 'Total com comentários', pct: pct(withComments) },
-    { value: withoutComments, label: 'Total sem comentários', pct: pct(withoutComments) },
-    { value: replied, label: 'Total respondidos', pct: pct(replied) },
-    { value: notReplied, label: 'Total não respondidos', pct: pct(notReplied) },
+  const cards: NpsSummaryCardProps[] = [
+    { icon: ClipboardList,    color: 'text-cyan-600 dark:text-cyan-400',    bg: 'bg-cyan-50 dark:bg-cyan-500/10',       label: 'Total de pesquisas', value: total },
+    { icon: MessageSquare,    color: 'text-amber-600 dark:text-amber-400',  bg: 'bg-amber-50 dark:bg-amber-500/10',     label: 'Com comentários',    value: withComments,    pct: pct(withComments) },
+    { icon: MessageSquareOff, color: 'text-gray-500 dark:text-gray-400',    bg: 'bg-gray-100 dark:bg-white/5',          label: 'Sem comentários',    value: withoutComments, pct: pct(withoutComments) },
+    { icon: CheckCircle2,     color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10', label: 'Respondidos',     value: replied,         pct: pct(replied) },
+    { icon: Clock,            color: 'text-rose-600 dark:text-rose-400',    bg: 'bg-rose-50 dark:bg-rose-500/10',       label: 'Não respondidos',    value: notReplied,      pct: pct(notReplied) },
   ]
 
   return (
-    <div className="flex flex-wrap gap-4">
-      {cards.map((c) => (
-        <div key={c.label} className="flex-1 min-w-[140px] max-w-[200px]">
-          <NpsCard.Root height="7.5rem" className="gap-0">
-            <NpsCard.Wrapper>
-              <NpsCard.TotalText>{c.value}</NpsCard.TotalText>
-            </NpsCard.Wrapper>
-            <NpsCard.Legend>{c.label}</NpsCard.Legend>
-            {c.pct && <NpsCard.Legend>{c.pct}</NpsCard.Legend>}
-          </NpsCard.Root>
-        </div>
-      ))}
+    <div className="flex flex-wrap gap-3">
+      {cards.map((c) => <NpsSummaryCard key={c.label} {...c} />)}
     </div>
   )
 }

@@ -74,10 +74,10 @@ export function CustomMessageModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={handleClose}>
       <div
         onClick={(e) => e.stopPropagation()}
-        className="mx-4 max-h-[90vh] w-full max-w-lg overflow-auto rounded-xl border border-gray-700 bg-[#1b2030] shadow-2xl"
+        className="mx-4 max-h-[90vh] w-full max-w-lg overflow-auto rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1b2030] shadow-2xl"
       >
-        <div className="border-b border-gray-700 px-6 py-4 text-center">
-          <h2 className="font-[Poppins] text-lg font-medium text-white">{title}</h2>
+        <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4 text-center">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-white">{title}</h2>
         </div>
 
         <div className="px-6 py-4">
@@ -156,14 +156,14 @@ function ContentAnswer24h({
 }) {
   return (
     <div className="space-y-3">
-      <p className="text-sm text-gray-300"><b>Cliente:</b> {dataSend?.cliente}</p>
-      <p className="text-sm text-gray-300"><b>Comentário:</b> {dataSend?.comentario}</p>
+      <p className="text-sm text-gray-700 dark:text-gray-300"><b>Cliente:</b> {dataSend?.cliente}</p>
+      <p className="text-sm text-gray-700 dark:text-gray-300"><b>Comentário:</b> {dataSend?.comentario}</p>
       <textarea
         placeholder="Escreva uma mensagem personalizada..."
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         rows={4}
-        className="w-full rounded-lg border border-gray-600 bg-transparent px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+        className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:outline-none"
       />
       <div className="flex justify-end">
         <ActionButton label="Enviar mensagem" disabled={!message} onClick={onSend} isLoading={isLoading} />
@@ -191,16 +191,16 @@ function ContentAnswer72h({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-md border border-yellow-600/40 bg-yellow-900/20 px-3 py-2 text-sm text-yellow-300">
+      <div className="rounded-md border border-yellow-500/40 dark:border-yellow-600/40 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-2 text-sm text-yellow-700 dark:text-yellow-300">
         Resposta após 24h (janela 72h). Você pode usar um modelo ou escrever do zero.
       </div>
-      <p className="text-sm text-gray-300"><b>Cliente:</b> {dataSend?.cliente}</p>
-      <p className="text-sm text-gray-300"><b>Comentário:</b> {dataSend?.comentario}</p>
+      <p className="text-sm text-gray-700 dark:text-gray-300"><b>Cliente:</b> {dataSend?.cliente}</p>
+      <p className="text-sm text-gray-700 dark:text-gray-300"><b>Comentário:</b> {dataSend?.comentario}</p>
 
       <select
         value={templatePreset}
         onChange={(e) => handleSelectTemplate(e.target.value)}
-        className="w-full rounded border border-gray-600 bg-transparent px-3 py-2 text-sm text-white"
+        className="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white"
       >
         <option value="">Selecione um modelo</option>
         {TEMPLATES_72H.map((t) => (
@@ -213,14 +213,14 @@ function ContentAnswer72h({
         placeholder='Situação (ex.: "seu feedback")'
         value={situacao}
         onChange={(e) => setSituacao(e.target.value)}
-        className="w-full rounded border border-gray-600 bg-transparent px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+        className="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:outline-none"
       />
       <textarea
         placeholder="Escreva uma mensagem personalizada..."
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         rows={3}
-        className="w-full rounded-lg border border-gray-600 bg-transparent px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+        className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:outline-none"
       />
       <div className="flex justify-end">
         <ActionButton label="Enviar mensagem" disabled={!situacao || !message} onClick={onSend} isLoading={isLoading} />
@@ -245,15 +245,15 @@ function ContentClassification({
 }) {
   return (
     <div className="space-y-3">
-      <p className="text-sm text-gray-300"><b>Cliente:</b> {dataSend?.cliente}</p>
+      <p className="text-sm text-gray-700 dark:text-gray-300"><b>Cliente:</b> {dataSend?.cliente}</p>
 
       {/* Classification select */}
       <div>
-        <label className="mb-1 block text-xs font-medium text-gray-400">Classificação</label>
+        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Classificação</label>
         <select
           value={classification}
           onChange={(e) => { setClassification(e.target.value); setSubClassification('') }}
-          className="w-full rounded border border-gray-600 bg-transparent px-3 py-2 text-sm text-white"
+          className="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white"
         >
           <option value="">Selecione</option>
           {classificationsQuery.data?.map((c, idx) => (
@@ -265,14 +265,14 @@ function ContentClassification({
       {/* Subclassification select */}
       {classification && (
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-400">Subclassificação</label>
+          <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Subclassificação</label>
           {subclassificationsQuery.isLoading ? (
             <Loader2 className="animate-spin text-gray-400" size={20} />
           ) : (
             <select
               value={subClassification}
               onChange={(e) => setSubClassification(e.target.value)}
-              className="w-full rounded border border-gray-600 bg-transparent px-3 py-2 text-sm text-white"
+              className="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white"
             >
               <option value="">Selecione</option>
               {subclassificationsQuery.data?.map((s, idx) => (
@@ -285,7 +285,7 @@ function ContentClassification({
 
       {/* Historic */}
       <div>
-        <label className="mb-1 block text-xs font-medium text-gray-400">Histórico</label>
+        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Histórico</label>
         <div className="max-h-[200px] space-y-2 overflow-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600">
           {historicQuery.isLoading && (
             <div className="flex justify-center py-4">
@@ -294,8 +294,8 @@ function ContentClassification({
           )}
           {historicQuery.data && historicQuery.data.length > 0
             ? historicQuery.data.map((h) => (
-                <div key={h.id} className="rounded-lg border border-gray-700 bg-[#f4f7ff] px-3 py-2">
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#73808D]">
+                <div key={h.id} className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#252d45] px-3 py-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600 dark:text-[#73808D]">
                     <span><b>Classificação:</b> {renderClassificationName(h.classification)}</span>
                     <span><b>Motivo:</b> {renderSubclassificationName(h.subclassification)}</span>
                     <span><b>Data:</b> {moment(h.dt_Register).format('DD/MM/YYYY HH:mm')}</span>

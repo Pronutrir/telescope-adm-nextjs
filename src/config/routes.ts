@@ -7,7 +7,6 @@ import {
   BarChart2,
   Activity,
   ClipboardCheck,
-  ClipboardList,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -119,58 +118,16 @@ export const routes: Route[] = [
     roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor', 'Doctors', 'Nursing']
   },
 
-  // NPS - Pesquisa de Satisfação
+  // NPS - Net Promoter Score (página unificada)
   {
-    path: '/nps/consultas',
+    path: '/nps',
     name: 'NPS',
     icon: ClipboardCheck,
     iconColor: 'Success',
     layout: '/admin',
     private: false,
     search: true,
-    component: 'NpsConsultas',
-    visible: true,
-    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
-  },
-
-  // NPS Tratamentos
-  {
-    path: '/nps/tratamentos',
-    name: 'NPS Tratamentos novos',
-    icon: ClipboardList,
-    iconColor: 'Success',
-    layout: '/admin',
-    private: false,
-    search: true,
-    component: 'NpsTratamentos',
-    visible: true,
-    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
-  },
-
-  // NPS Tratamento (Quimioterapia)
-  {
-    path: '/nps/tratamento',
-    name: 'NPS Tratamento',
-    icon: ClipboardList,
-    iconColor: 'Success',
-    layout: '/admin',
-    private: false,
-    search: true,
-    component: 'NpsTratamento',
-    visible: true,
-    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
-  },
-
-  // NPS Recepcionistas
-  {
-    path: '/nps/recepcionistas',
-    name: 'NPS Recepcionistas',
-    icon: ClipboardList,
-    iconColor: 'Success',
-    layout: '/admin',
-    private: false,
-    search: true,
-    component: 'NpsRecepcionistas',
+    component: 'Nps',
     visible: true,
     roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
   },

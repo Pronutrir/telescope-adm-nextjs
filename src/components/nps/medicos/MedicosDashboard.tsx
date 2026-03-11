@@ -70,11 +70,11 @@ const MedicosDashboard: React.FC = () => {
 
       {/* Dashboard exportável */}
       <div ref={printRef} className="bg-white dark:bg-[#212845] rounded-xl p-6 border border-gray-200 dark:border-gray-700/20 shadow-sm">
-        <h1 className="text-2xl font-semibold text-gray-800 dark:text-white font-[Poppins]">
+        <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">
           NPS Médicos
         </h1>
         {periodLegend && (
-          <p className="text-lg font-bold text-cyan-400 font-[Poppins]">{periodLegend}</p>
+          <p className="text-lg font-bold text-cyan-400">{periodLegend}</p>
         )}
         <MedicosDashboardCards data={aggregated} mode="medico" />
         {aggregated && (
