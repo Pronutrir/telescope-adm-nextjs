@@ -1,0 +1,1 @@
+export { AlterarSenhaForm } from './AlterarSenhaForm'

@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireApiBaseUrl } from '@/config/env'
 import { logger } from '@/lib/logger'
-import { sessionManager } from '@/lib/session'
+import { sessionManager } from '@/services/session'
 // Removido import do zod - validação manual
 
 // ✅ Função de validação manual (permite string no campo email/username)

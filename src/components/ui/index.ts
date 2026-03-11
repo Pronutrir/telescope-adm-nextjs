@@ -1,4 +1,4 @@
-// Componentes de UI
+// Componentes de UI — apenas primitivos genéricos
 export {
   Card,
   CardHeader,
@@ -29,8 +29,6 @@ export * from './FlyonSidebar'
 export * from './Container'
 export * from './Layout'
 export * from './Dropdown'
-export * from './DropdownTest'
 export * from './DropdownWithTitle'
-export * from './NavbarDropdown'
-export * from './AutocompletePessoa'
-export * from './PowerBIReport'
+export * from './RichTextEditor'
+

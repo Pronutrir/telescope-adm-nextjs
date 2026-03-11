@@ -29,6 +29,7 @@ const DEFAULT_VISIBILITY: Record<string, boolean> = {
     'Dashboard': true,
     'Biblioteca de Componentes': true,
     'Gerenciador de PDFs': true,
+    'NPS': true,
     'Usuários': true,
     'Seu Perfil': true
 }

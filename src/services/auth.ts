@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { IAuthLoginResponse, IUserResponse } from '@/lib/auth-types'
+import type { IAuthLoginResponse, IUserResponse } from '@/types/auth'
 
 export const ApiAuth = axios.create({
   baseURL: '/api/auth',

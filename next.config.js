@@ -52,7 +52,7 @@ const nextConfig = {
       // Rota específica para SignalR Hub
       {
         source: '/signalr/:path*',
-        destination: `${apiBaseUrl}${'/apitasy'}/:path*`,
+        destination: `${apiBaseUrl}${apitasyPath}/:path*`,
       },
     ]
   },
@@ -82,6 +82,14 @@ const nextConfig = {
     }
 
     return config
+  },
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    },
   },
   compiler: {
     emotion: true,

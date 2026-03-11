@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { tokenCacheService } from '@/services/tokenCacheService'
 import { SERVICES_CONFIG } from '@/config/env'
 
-const USERSHIELD_API_URL = `${SERVICES_CONFIG.USERSHIELD}/api/v1`
+const USERSHIELD_API_URL = `${SERVICES_CONFIG.USERSHIELD}/v1`
 
 /**
  * GET /api/usershield/usuarios/[id]

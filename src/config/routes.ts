@@ -5,7 +5,9 @@ import {
   Layout,
   FileText,
   BarChart2,
-  ClipboardCheck
+  Activity,
+  ClipboardCheck,
+  ClipboardList,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -90,20 +92,6 @@ export const routes: Route[] = [
     roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
   },
 
-  // NPS - Net Promoter Score (página unificada)
-  {
-    path: '/nps',
-    name: 'NPS',
-    icon: ClipboardCheck,
-    iconColor: 'Success',
-    layout: '/admin',
-    private: false,
-    search: true,
-    component: 'Nps',
-    visible: true,
-    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
-  },
-
   // Usuários
   {
     path: '/usuarios',
@@ -115,6 +103,76 @@ export const routes: Route[] = [
     search: true,
     component: 'Usuarios',
     roles: ['default_fullstackdev', 'Administrador']
+  },
+
+  // Evolução Paciente
+  {
+    path: '/evolucao-paciente',
+    name: 'Evolução Paciente',
+    icon: Activity,
+    iconColor: 'Primary',
+    layout: '/admin',
+    private: false,
+    search: true,
+    component: 'EvolucaoPaciente',
+    visible: true,
+    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor', 'Doctors', 'Nursing']
+  },
+
+  // NPS - Pesquisa de Satisfação
+  {
+    path: '/nps/consultas',
+    name: 'NPS',
+    icon: ClipboardCheck,
+    iconColor: 'Success',
+    layout: '/admin',
+    private: false,
+    search: true,
+    component: 'NpsConsultas',
+    visible: true,
+    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
+  },
+
+  // NPS Tratamentos
+  {
+    path: '/nps/tratamentos',
+    name: 'NPS Tratamentos novos',
+    icon: ClipboardList,
+    iconColor: 'Success',
+    layout: '/admin',
+    private: false,
+    search: true,
+    component: 'NpsTratamentos',
+    visible: true,
+    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
+  },
+
+  // NPS Tratamento (Quimioterapia)
+  {
+    path: '/nps/tratamento',
+    name: 'NPS Tratamento',
+    icon: ClipboardList,
+    iconColor: 'Success',
+    layout: '/admin',
+    private: false,
+    search: true,
+    component: 'NpsTratamento',
+    visible: true,
+    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
+  },
+
+  // NPS Recepcionistas
+  {
+    path: '/nps/recepcionistas',
+    name: 'NPS Recepcionistas',
+    icon: ClipboardList,
+    iconColor: 'Success',
+    layout: '/admin',
+    private: false,
+    search: true,
+    component: 'NpsRecepcionistas',
+    visible: true,
+    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor']
   },
 
   // Seu Perfil

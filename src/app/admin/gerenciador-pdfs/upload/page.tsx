@@ -20,7 +20,7 @@ import {
 import { twMerge } from 'tailwind-merge'
 import { UploadFileInfo, UploadState, NomeComposicao } from '@/types/pdf'
 import { PDFManagerService } from '@/services/pdfManager/pdfManagerService'
-import { AutocompletePessoa } from '@/components/ui/AutocompletePessoa'
+import { AutocompletePessoa } from '@/components/pdf/AutocompletePessoa'
 const UploadGerenciadorPDFsPage = () => {
     // 🎯 STEP 1: ANÁLISE - Contextos obrigatórios conforme AGENT-CONTEXT
     const { isDark } = useTheme()

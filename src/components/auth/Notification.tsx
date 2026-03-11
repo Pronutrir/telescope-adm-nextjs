@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react'
 import { clsx } from 'clsx'
-import type { INotification } from '@/lib/auth-types'
+import type { INotification } from '@/types/auth'
 
 interface NotificationProps {
     notification: INotification

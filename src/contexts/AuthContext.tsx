@@ -3,10 +3,10 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react'
 import { authService } from '@/services/auth'
 import { tokenStorage } from '@/services/token'
-import { axiosConfig } from '@/lib/axios-config'
+import { axiosConfig } from '@/lib/api'
 import { cleanupService } from '@/services/cleanup'
-// 🚫 REMOVIDO: import { tokenInterceptor } from '@/services/tokenInterceptor'
-import type { IAuthState, IUser, INotification } from '@/lib/auth-types'
+import { setApiToken } from '@/lib/api'
+import type { IAuthState, IUser, INotification } from '@/types/auth'
 
 interface AuthContextType extends IAuthState {
     login: (username: string, password: string) => Promise<void>
@@ -101,10 +101,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 
                 if (!response.ok) {
                     console.warn('⚠️ [AuthContext] Sessão expirada durante uso')
+                    setApiToken(null)
                     dispatch({ type: 'LOGOUT' })
                 }
             } catch (error) {
                 console.error('❌ [AuthContext] Erro ao verificar sessão:', error)
+                setApiToken(null)
                 dispatch({ type: 'LOGOUT' })
             }
         }
@@ -140,6 +142,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 }
                 
                 const userData = await response.json()
+                
+                // Setar token JWT do Redis para as instâncias Axios (Api/ApiNotify)
+                if (userData.token) {
+                    setApiToken(userData.token)
+                }
+                
                 dispatch({ type: 'SET_USER', payload: userData })
 
             } catch (error) {
@@ -170,11 +178,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     .then(response => {
                         if (!response.ok) {
                             console.warn('⚠️ [AuthContext] Sessão expirada ao retornar')
+                            setApiToken(null)
                             dispatch({ type: 'LOGOUT' })
                         }
                     })
                     .catch(() => {
                         console.error('❌ [AuthContext] Erro ao verificar sessão')
+                        setApiToken(null)
                         dispatch({ type: 'LOGOUT' })
                     })
             }
@@ -291,6 +301,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const logout = async () => {
         console.log('🚪 Logout simples - apenas limpando estado local...')
+
+        // Limpar token das instâncias Axios
+        setApiToken(null)
 
         // ✅ Limpeza mínima e rápida
         try {

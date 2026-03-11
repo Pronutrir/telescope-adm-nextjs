@@ -47,8 +47,8 @@ async function performLogin(loginUrl: string): Promise<string | null> {
 
 export async function GET() {
   const USERSHIELD_BASE_URL = `${getServiceUrl('USERSHIELD')}`
-  const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}/api/v1/Auth/login`
-  const USERSHIELD_PERFIS_URL = `${USERSHIELD_BASE_URL}/api/v1/Perfis`
+  const USERSHIELD_LOGIN_URL = `${USERSHIELD_BASE_URL}/v1/Auth/login`
+  const USERSHIELD_PERFIS_URL = `${USERSHIELD_BASE_URL}/v1/Perfis`
   
   try {
     logger.info('API Route UserShield Perfis: Iniciada')

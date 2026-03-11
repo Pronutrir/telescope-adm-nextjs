@@ -2,7 +2,7 @@ import React from 'react'
 import { PageWrapper } from '@/components/layout'
 import { BarChart3, AlertCircle } from 'lucide-react'
 import { listPowerBIReports } from '@/app/actions/powerbi/embed'
-import { PowerBIClient } from './PowerBIClient'
+import { PowerBIClient } from '@/components/powerbi/PowerBIClient'
 
 /**
  * 📊 Página de Relatórios Power BI (Server Component)

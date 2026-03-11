@@ -1,5 +1,5 @@
 import { routes, Route } from '@/config/routes'
-import { IUser } from '@/lib/auth-types'
+import { IUser } from '@/types/auth'
 
 /**
  * Verifica se o usuário tem permissão para acessar uma rota específica
@@ -23,7 +23,7 @@ export const hasRouteAccess = (route: Route, userRoles: string[]): boolean => {
 export const getFirstAvailableRoute = (user: IUser | null, preferredHomePage?: string): string => {
   // Se não há usuário, redireciona para login
   if (!user) {
-    return '/auth/login'
+    return '/auth/server-login'
   }
 
   // Extrai as roles do usuário

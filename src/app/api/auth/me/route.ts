@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { sessionManager } from '@/lib/session'
+import { sessionManager } from '@/services/session'
 import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
@@ -56,11 +56,12 @@ export async function GET(request: NextRequest) {
       id: sessionData.userId,
       nomeCompleto: sessionData.name,
       email: sessionData.email,
-      roles: sessionData.permissions || [],  // Mantém por compatibilidade
-      permissions: sessionData.permissions || [],  // Mantém por compatibilidade
-      perfis: perfis,  // ✅ NOVO: Array completo com metadata (id, statusPerfil, dataRegistro, dataAtualizacao, usuario, roleId)
-      requiresPasswordChange: sessionData.requiresPasswordChange || false,  // 🔐 Flag de alteração obrigatória
-      preferredHomePage: sessionData.preferredHomePage || '/admin/dashboard'  // 🏠 Página inicial preferida
+      roles: sessionData.permissions || [],
+      permissions: sessionData.permissions || [],
+      perfis: perfis,
+      requiresPasswordChange: sessionData.requiresPasswordChange || false,
+      preferredHomePage: sessionData.preferredHomePage || '/admin/dashboard',
+      token: sessionData.token || null,  // JWT do UserShield para chamadas API (Tasy/Notify)
     })
 
   } catch (error) {

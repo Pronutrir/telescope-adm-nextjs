@@ -32,6 +32,13 @@ class TokenCacheService {
           lazyConnect: true
         })
 
+        this.redis.on('error', (err: Error) => {
+          if (this.isRedisAvailable) {
+            logger.warn('Redis connection error:', err.message)
+            this.isRedisAvailable = false
+          }
+        })
+
   await this.redis.ping()
   this.isRedisAvailable = true
   logger.info('Redis conectado para cache de tokens')

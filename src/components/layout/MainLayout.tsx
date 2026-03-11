@@ -1,9 +1,11 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useLayout } from '@/contexts/LayoutContext'
+import { useTheme } from '@/contexts/ThemeContext'
+import { cn } from '@/lib/utils'
 import { MenuVisibilityProvider } from '@/contexts/MenuVisibilityContext'
-import MenuVisibilityModal from '@/components/ui/MenuVisibilityModal'
+import MenuVisibilityModal from './MenuVisibilityModal'
 import Navbar from './Navbar'
 import Sidebar from './Sidebar'
 import ClientOnly from './ClientOnly'
@@ -11,66 +13,17 @@ import type { LayoutProps } from '@/types/layout'
 
 const MainLayout: React.FC<LayoutProps> = ({ children }) => {
     const { sidebarOpen, sidebarCollapsed, isMobile, toggleSidebar } = useLayout()
-    const [ isDark, setIsDark ] = useState(false)
+    const { isDark } = useTheme()
 
-    // Detectar tema atual
-    useEffect(() => {
-        const checkTheme = () => {
-            setIsDark(document.documentElement.classList.contains('dark'))
-        }
-
-        checkTheme()
-
-        // Observer para mudanças no tema
-        const observer = new MutationObserver(checkTheme)
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: [ 'class' ]
-        })
-
-        return () => observer.disconnect()
-    }, [])
-
-    // Background dinâmico baseado no tema com melhor contraste
-    const getMainBackground = () => {
-        if (isDark) {
-            // Tema escuro: gradiente sofisticado com outer_space e night
-            return 'linear-gradient(135deg, rgba(11, 14, 14, 0.98) 0%, rgba(22, 27, 29, 0.95) 50%, rgba(34, 41, 43, 0.92) 100%)'
-        } else {
-            // Tema claro: gradiente limpo com tons neutros
-            return 'linear-gradient(135deg, rgba(248, 250, 252, 0.98) 0%, rgba(241, 245, 249, 0.95) 50%, rgba(226, 232, 240, 0.92) 100%)'
-        }
-    }
-
-    // Estilo de container para melhor contraste e distribuição
-    const getContainerStyles = () => {
-        if (isDark) {
-            return {
-                backgroundColor: 'rgba(34, 41, 43, 0.3)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(57, 69, 72, 0.2)'
-            }
-        } else {
-            return {
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(203, 213, 225, 0.3)'
-            }
-        }
-    }
-
-    // Single layout approach - optimized for sidebar interaction
     return (
         <MenuVisibilityProvider>
             <div
-                className="min-h-screen transition-all duration-300"
-                style={{
-                    background: getMainBackground(),
-                    overflowX: 'hidden',
-                    overflowY: 'auto',
-                    width: '100vw',
-                    minHeight: '100vh'
-                }}
+                className={cn(
+                    'min-h-screen w-screen overflow-x-hidden transition-all duration-300',
+                    isDark
+                        ? 'bg-gradient-to-br from-[rgba(11,14,14,0.98)] via-[rgba(22,27,29,0.95)] to-[rgba(34,41,43,0.92)]'
+                        : 'bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200'
+                )}
             >
                 {/* Navbar */}
                 <Navbar />
@@ -90,46 +43,36 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
                         )}
                     </ClientOnly>
 
-                    {/* Main Content Area - Dynamic Responsive Layout */}
-                    <main className={`
-                    pt-16 min-h-screen transition-all duration-300 ease-in-out
-                    ${isMobile
-                            ? 'ml-0'
-                            : sidebarCollapsed
-                                ? 'ml-16'
-                                : 'ml-64'
-                        }
-                `} style={{
-                            width: isMobile
-                                ? '100%'
+                    {/* Main Content Area */}
+                    <main
+                        className={cn(
+                            'pt-16 min-h-screen transition-all duration-300 ease-in-out overflow-x-hidden',
+                            isMobile
+                                ? 'ml-0 w-full'
                                 : sidebarCollapsed
-                                    ? 'calc(100vw - 64px)'
-                                    : 'calc(100vw - 256px)',
-                            maxWidth: '100vw',
-                            position: 'relative',
-                            overflowX: 'hidden'
-                        }}>
-                        {/* Content Container - Responsive to Sidebar State */}
-                        <div className="h-full w-full max-w-full">
-                            <div className="h-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 w-full">
-                                {/* Content Wrapper - Natural Height Flow */}
+                                    ? 'ml-16 w-[calc(100vw-64px)]'
+                                    : 'ml-64 w-[calc(100vw-256px)]'
+                        )}
+                    >
+                        <div className="h-full w-full max-w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+                            {/* Content Container */}
+                            <div
+                                className={cn(
+                                    'flex flex-col rounded-2xl shadow-lg transition-all duration-300 w-full',
+                                    'backdrop-blur-xl border',
+                                    isDark
+                                        ? 'bg-[rgba(34,41,43,0.3)] border-slate-700/20'
+                                        : 'bg-white/80 border-slate-200/30'
+                                )}
+                            >
                                 <div
-                                    className="flex flex-col rounded-2xl shadow-lg transition-all duration-300 w-full"
-                                    style={{
-                                        ...getContainerStyles(),
-                                        maxWidth: '100%',
-                                        position: 'relative'
-                                    }}
+                                    className={cn(
+                                        'p-6 transition-colors duration-300 overflow-x-hidden',
+                                        isDark ? 'text-gray-100' : 'text-gray-900'
+                                    )}
                                 >
-                                    {/* Content Area - Natural Flow without Height Constraints */}
-                                    <div className={`
-                                    p-6 transition-colors duration-300 overflow-x-hidden
-                                    ${isDark ? 'text-gray-100' : 'text-gray-900'}
-                                `}>
-                                        <div className="flex flex-col space-y-4 lg:space-y-6 w-full">
-                                            {/* Children - Main Page Content */}
-                                            {children}
-                                        </div>
+                                    <div className="flex flex-col space-y-4 lg:space-y-6 w-full">
+                                        {children}
                                     </div>
                                 </div>
                             </div>
@@ -137,7 +80,7 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
                     </main>
                 </div>
 
-                {/* Modal de Configuração - Renderizado fora do layout para aparecer sobre toda a aplicação */}
+                {/* Modal de Configuração */}
                 <MenuVisibilityModal />
             </div>
         </MenuVisibilityProvider>

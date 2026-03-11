@@ -18,4 +18,4 @@ export {
 } from '@/contexts/NotificationContext'
 
 // Componente visual
-export { default as NotificationContainer } from '@/components/ui/NotificationContainer'
+export { default as NotificationContainer } from './NotificationContainer'
