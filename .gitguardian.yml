@@ -6,3 +6,9 @@ ignore-paths:
   - "**/*.spec.tsx"
   - "**/__tests__/**"
   - "**/test/**"
+
+ignored-matches:
+  - name: "Test passwords in AlterarSenhaForm tests"
+    match: "senhaTemp123!"
+  - name: "Test passwords in AlterarSenhaForm tests"
+    match: "NovaSenh@1"
