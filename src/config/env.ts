@@ -8,24 +8,23 @@
 // Configurações da API principal
 // API_URL (private) é lida em runtime no servidor; NEXT_PUBLIC_API_URL é baked in no build
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://servicesapp.pronutrir.com.br',
+  BASE_URL: 'https://servicesapp.pronutrir.com.br',
   TIMEOUT: parseInt(process.env.API_TIMEOUT || '10000'),
 } as const
 
 // Configurações da API de PDFs
 export const PDF_API_CONFIG = {
-  BASE_URL: process.env.PDF_API_URL || '',
-  // PUBLIC_URL prioriza a var pública, mas faz fallback para a interna quando não definida
-  PUBLIC_URL: process.env.NEXT_PUBLIC_PDF_API_URL || process.env.PDF_API_URL || '',
+  BASE_URL: 'http://20.65.208.119:5656/api/v1',
+  PUBLIC_URL: 'http://20.65.208.119:5656/api/v1',
   TIMEOUT: parseInt(process.env.PDF_API_TIMEOUT || '30000'),
 } as const
 
 // URLs dos serviços específicos
 // As variáveis NEXT_PUBLIC_* são baked in no build; as privadas (sem prefixo) são lidas em runtime
 export const SERVICES_CONFIG = {
-  USERSHIELD: process.env.NEXT_PUBLIC_USERSHIELD_URL || process.env.USERSHIELD_URL || `${API_CONFIG.BASE_URL}/usershield`,
-  APITASY: process.env.NEXT_PUBLIC_APITASY_URL || process.env.APITASY_URL || `${API_CONFIG.BASE_URL}/apitasy`,
-  NOTIFY: process.env.NEXT_PUBLIC_NOTIFY_URL || process.env.NOTIFY_URL || `${API_CONFIG.BASE_URL}/notify`,
+  USERSHIELD: 'https://servicesapp.pronutrir.com.br/usershield/api/',
+  APITASY: 'https://servicesapp.pronutrir.com.br/apitasy',
+  NOTIFY: 'https://servicesapp.pronutrir.com.br/notify/api/',
 } as const
 
 // Configurações do Google Analytics
