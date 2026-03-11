@@ -188,11 +188,6 @@ jobs:
             .next/
           retention-days: 5
 
-      - name: 📏 Bundle Analyzer (PR only)
-        if: github.event_name == 'pull_request'
-        run: |
-          npx @next/bundle-analyzer
-          echo "✅ Bundle analysis completed"
 
   # ===============================================
   # JOB 6: DOCKER BUILD (Paralelo ao build - ~7 min)
