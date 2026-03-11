@@ -240,32 +240,53 @@ jobs:
   # JOB 7: DEPLOY STAGING (Auto - apenas main/master)
   # ===============================================
   deploy-staging:
-    name: 🚀 Deploy to Staging
+    name: 🚀 Deploy Azure VM
     runs-on: ubuntu-latest
     needs: [build, docker]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
-      - name: 📥 Download Build Artifacts
-        uses: actions/download-artifact@v8
+      - name: 🚀 Deploy via SSH na VM Azure
+        uses: appleboy/ssh-action@v1.2.0
         with:
-          name: build-artifacts
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            echo "🐳 Baixando nova imagem do Docker Hub..."
+            docker compose -f ~/telescope/docker-compose.yml pull telescope-adm-nextjs
 
-      - name: 🚀 Deploy to Staging Environment
-        run: |
-          echo "🚀 Deploying to staging environment..."
-          echo "📦 Extracting build artifacts..."
-          # Aqui você adicionaria os comandos reais de deploy
-          # Exemplo: scp, rsync, kubectl, etc.
-          echo "✅ Staging deployment completed successfully"
+            echo "🚀 Subindo nova versão..."
+            docker compose -f ~/telescope/docker-compose.yml up -d --no-deps telescope-adm-nextjs
 
-      - name: 🔍 Health Check Staging
-        run: |
-          echo "🏥 Running health checks on staging..."
-          # Aqui você adicionaria health checks reais
-          # curl -f https://staging.telescope.com/api/health
-          echo "✅ Staging health checks passed"
+            echo "🧹 Removendo imagens antigas..."
+            docker image prune -f
+
+            echo "✅ Deploy concluído!"
+            docker compose -f ~/telescope/docker-compose.yml ps telescope-adm-nextjs
+
+      - name: 🔍 Health Check
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            echo "🏥 Verificando status do container..."
+            sleep 5
+            STATUS=$(docker compose -f ~/telescope/docker-compose.yml ps --format json telescope-adm-nextjs | grep -o '"State":"[^"]*"' | head -1)
+            echo "Status: $STATUS"
+            if echo "$STATUS" | grep -q '"running"'; then
+              echo "✅ Container está saudável!"
+            else
+              echo "❌ Container não está rodando!"
+              docker compose -f ~/telescope/docker-compose.yml logs --tail=50 telescope-adm-nextjs
+              exit 1
+            fi
 
   # ===============================================
   # JOB 8: NOTIFICATION (Sempre executa)
