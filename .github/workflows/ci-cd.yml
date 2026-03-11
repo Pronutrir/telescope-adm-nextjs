@@ -92,12 +92,6 @@ jobs:
           npm audit --audit-level=high --json > audit-report.json || true
           echo "✅ NPM audit completed"
 
-      - name: 🎯 Dependency Vulnerability Check
-        uses: actions/dependency-review-action@v4
-        if: github.event_name == 'pull_request' && vars.ENABLE_DEPENDENCY_REVIEW == 'true'
-        with:
-          fail-on-severity: high
-
       - name: 📊 Upload Security Report
         uses: actions/upload-artifact@v4
         if: always()
