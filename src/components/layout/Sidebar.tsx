@@ -202,7 +202,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
                     )}
                     <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
                         <p className="font-medium">Telescope ADM</p>
-                        <p>v2.0.0 - FlyonUI</p>
+                        <p>v{process.env.NEXT_PUBLIC_APP_VERSION || 'dev'}</p>
                     </div>
                 </div>
             )}
