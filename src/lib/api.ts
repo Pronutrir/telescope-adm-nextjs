@@ -3,7 +3,15 @@ import { SERVICES_CONFIG } from '@/config/env'
 import { ApiAuth } from '@/services/auth'
 
 // Extrair path de SERVICES_CONFIG.APITASY e garantir sufixo /api/v1/
-const apitasyRaw = new URL(SERVICES_CONFIG.APITASY).pathname.replace(/\/+$/, '')
+// Suporta URL absoluta (https://host/apitasy) e path relativo (/apitasy)
+function parseApitasyPath(url: string): string {
+  try {
+    return new URL(url).pathname.replace(/\/+$/, '')
+  } catch {
+    return url.replace(/\/+$/, '') || '/apitasy'
+  }
+}
+const apitasyRaw = parseApitasyPath(SERVICES_CONFIG.APITASY)
 const apitasyBase = apitasyRaw.replace(/\/api(\/v1)?$/, '')
 const apitasyPath = `${apitasyBase}/api/v1`
 
