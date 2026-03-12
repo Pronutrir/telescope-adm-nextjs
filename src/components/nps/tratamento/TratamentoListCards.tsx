@@ -12,7 +12,7 @@ interface TratamentoListCardsProps {
 
 export function TratamentoListCards({ data, isSuccess, calcPercent }: TratamentoListCardsProps) {
   const total = data.length
-  const withComments = data.filter((i) => Boolean(i.quest7)).length
+  const withComments = data.filter((i) => Boolean(i.quest9)).length
   const withoutComments = total - withComments
   const replied = data.filter((i) => i.reply).length
   const notReplied = data.filter((i) => !i.reply).length

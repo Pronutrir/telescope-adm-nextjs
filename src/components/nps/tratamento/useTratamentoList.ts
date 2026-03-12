@@ -126,9 +126,9 @@ export function useTratamentoList() {
   // --- Filter logic ---
   function filterRatings(ratings: IRatingTratamento[], opts: IOptionsFilterTratamento) {
     return ratings.filter((r) => {
-      if (opts.onlyComments && !r.quest7) return false
+      if (opts.onlyComments && !r.quest9) return false
       if (opts.nota?.length) {
-        const nps = parseInt(r.quest6 ?? '0')
+        const nps = parseInt(r.quest7 ?? '0')
         const cat = nps < 7 ? 'Detrator' : nps <= 8 ? 'Neutro' : 'Promotor'
         if (!opts.nota.includes(cat)) return false
       }
@@ -171,7 +171,7 @@ export function useTratamentoList() {
     isFetching: listQuery.isFetching, isSuccess: listQuery.isSuccess,
     medicos: medicosQ.data ?? [], convenios: conveniosQ.data ?? [],
     isLoadingSend: sendMessagesMut.isPending,
-    isLoadingModal: sendCustomMut.isPending || classificationMut.isPending,
+    isLoadingModal: sendCustomMut.isPending || sendCustom72hMut.isPending || classificationMut.isPending,
     handleSearch, handleRequestSort, isSelected, isCheckedAll,
     handleSelected, handleSelectedAll, handleOpenModal, handleCloseModal,
     handleSendMessages: () => sendMessagesMut.mutateAsync(),

@@ -5,6 +5,26 @@ import { CheckCheck, X, PenSquare, Smile, Frown, Annoyed } from 'lucide-react'
 import type { IRatingQuimio, NpsColumn, Order } from '@/types/nps'
 import { renderUnidadeName, renderClassification, renderSubclassification, renderQuestStars } from '../npsHelpers'
 
+const QUEST_LABELS: Record<string, string> = {
+  quest1: 'Facilidade de agendamento',
+  quest2: 'Atendimento na recepção',
+  quest3: 'Tempo de espera',
+  quest4: 'Acolhimento e atenção da enfermagem',
+  quest5: 'Acesso a equipe médica e enfermagem',
+  quest6: 'Satisfação com o tratamento',
+}
+
+function renderStarCell(valor?: string | null) {
+  if (!valor) return <span className="text-gray-500 text-xs">--</span>
+  const stars = renderQuestStars(valor)
+  return (
+    <span className="flex items-center justify-center gap-2 text-xs">
+      {valor}
+      {stars && <span>{stars}</span>}
+    </span>
+  )
+}
+
 function renderNpsIcon(valor?: string | null) {
   if (!valor) return <span className="text-gray-500 text-xs">--</span>
   const n = parseInt(valor)
@@ -46,18 +66,32 @@ export function useQuimioListColumns(deps: ColumnDeps): NpsColumn<IRatingQuimio>
     },
     { id: 'medico', label: 'Médico', align: 'center', minWidth: 200 },
     { id: 'fone', label: 'Fone', align: 'center', minWidth: 130 },
-    ...((['quest1', 'quest2', 'quest3', 'quest4', 'quest5', 'quest6'] as const).map((q, i) => ({
+    // quest1-quest6: perguntas com estrelas (1-5)
+    ...((['quest1', 'quest2', 'quest3', 'quest4', 'quest5', 'quest6'] as const).map((q) => ({
       id: q,
-      label: ['Facilidade Agendamento', 'Atend. Recepção', 'Tempo Espera', 'Acolhimento Enf.', 'Acesso Med/Enf', 'Satisf. Tratamento'][i],
-      align: 'center' as const, minWidth: 130,
-      renderValue: (row: IRatingQuimio) => {
-        const stars = renderQuestStars(row[q])
-        return stars ? <span>{stars}</span> : <span className="text-gray-500 text-xs">--</span>
-      },
+      label: QUEST_LABELS[q],
+      align: 'center' as const,
+      minWidth: 130,
+      renderValue: (row: IRatingQuimio) => renderStarCell(row[q]),
     }))),
+    // quest7: NPS (0-10) com ícone emoji
     {
-      id: 'nps', label: 'NPS', align: 'center', minWidth: 80,
+      id: 'quest7', label: 'NPS', align: 'center', minWidth: 80,
       renderValue: (row) => renderNpsIcon(row.quest7),
+    },
+    // quest8: Deseja receber retorno?
+    {
+      id: 'quest8', label: 'Deseja receber retorno?', align: 'center', minWidth: 130,
+      renderValue: (row) => <span>{row.quest8 === '1' ? 'Sim' : row.quest8 === '0' ? 'Não' : '--'}</span>,
+    },
+    // quest9: Comentário
+    {
+      id: 'quest9', label: 'Comentário', align: 'center', minWidth: 300, maxWidth: 450,
+      renderValue: (row) => (
+        <div className="max-h-[60px] max-w-[450px] overflow-auto px-2 text-left text-xs scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600">
+          {row.quest9 || '--'}
+        </div>
+      ),
     },
     {
       id: 'cd_estabelecimento', label: 'Unidade', align: 'center', minWidth: 160,
@@ -89,10 +123,11 @@ export function useQuimioListColumns(deps: ColumnDeps): NpsColumn<IRatingQuimio>
       id: 'acao', label: 'Resposta', align: 'center', sticky: true, stickyRight: 0, minWidth: 60,
       renderValue: (row) => {
         const is24h = !row.isExpired
+        const isDisabled = row.reply || row.quest8 === '0'
         return (
           <button
-            disabled={row.reply}
-            title={row.reply ? 'Já respondido' : is24h ? 'Resposta 24h' : 'Resposta 72h'}
+            disabled={isDisabled}
+            title={isDisabled ? (row.reply ? 'Já respondido' : 'Não deseja retorno') : is24h ? 'Resposta 24h' : 'Resposta 72h'}
             onClick={() => handleOpenModal(is24h ? 'answer' : 'answer72h', row)}
             className="rounded p-1 text-white transition-colors hover:bg-gray-600 disabled:opacity-30"
           >

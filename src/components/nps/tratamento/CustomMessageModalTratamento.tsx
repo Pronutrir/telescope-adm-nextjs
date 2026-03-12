@@ -44,7 +44,7 @@ export function CustomMessageModalTratamento({ open, title, type, onClose, dataS
           {type === 'answer' && (
             <div className="space-y-3">
               <p className="text-sm text-gray-700 dark:text-gray-300"><b>Cliente:</b> {dataSend?.cliente}</p>
-              <p className="text-sm text-gray-700 dark:text-gray-300"><b>Comentário:</b> {dataSend?.quest7}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300"><b>Comentário:</b> {dataSend?.quest9}</p>
               <textarea
                 placeholder="Escreva uma mensagem personalizada..."
                 value={hook.message24h}
@@ -64,7 +64,7 @@ export function CustomMessageModalTratamento({ open, title, type, onClose, dataS
                 Resposta após 24h (janela 72h). Você pode usar um modelo ou escrever do zero.
               </div>
               <p className="text-sm text-gray-700 dark:text-gray-300"><b>Cliente:</b> {dataSend?.cliente}</p>
-              <p className="text-sm text-gray-700 dark:text-gray-300"><b>Comentário:</b> {dataSend?.quest7}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300"><b>Comentário:</b> {dataSend?.quest9}</p>
               <select
                 value={hook.templatePreset}
                 onChange={(e) => { const t = TEMPLATES_72H.find((t) => t.key === e.target.value); hook.setTemplatePreset(e.target.value); if (t) { hook.setSituacao(t.situacao); hook.setMessage72h(t.message) } }}
