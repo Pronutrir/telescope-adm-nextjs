@@ -11,6 +11,9 @@ import type { IRatingRecepcionistas } from '@/types/nps'
 
 export function useCustomMessageModalRecepcionistas(dataSend: IRatingRecepcionistas | null) {
   const [message, setMessage] = useState('')
+  const [situacao, setSituacao] = useState('')
+  const [message72h, setMessage72h] = useState('')
+  const [templatePreset, setTemplatePreset] = useState('')
   const [classification, setClassification] = useState('')
   const [subClassification, setSubClassification] = useState('')
 
@@ -36,12 +39,18 @@ export function useCustomMessageModalRecepcionistas(dataSend: IRatingRecepcionis
 
   function resetAll() {
     setMessage('')
+    setSituacao('')
+    setMessage72h('')
+    setTemplatePreset('')
     setClassification('')
     setSubClassification('')
   }
 
   return {
     message, setMessage,
+    situacao, setSituacao,
+    message72h, setMessage72h,
+    templatePreset, setTemplatePreset,
     classification, setClassification,
     subClassification, setSubClassification,
     classificationsQuery,

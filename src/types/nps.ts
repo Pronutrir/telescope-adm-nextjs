@@ -225,13 +225,15 @@ export interface IRatingTratamento {
   cd_convenio: string
   convenio: string
   fone: string
-  quest1?: string | null   // Auxílio navegação (estrelas)
-  quest2?: string | null   // Equipe multidisciplinar (estrelas)
-  quest3?: string | null   // Orientações (estrelas)
-  quest4?: string | null   // Tempo espera (estrelas)
-  quest5?: string | null   // Atendimento enfermagem (estrelas)
-  quest6?: string | null   // NPS geral (0-10)
-  quest7?: string | null   // Comentário livre
+  quest1?: string | null   // Facilidade de agendamento (estrelas 1-5)
+  quest2?: string | null   // Atendimento na recepção (estrelas 1-5)
+  quest3?: string | null   // Tempo de espera (estrelas 1-5)
+  quest4?: string | null   // Acolhimento e atenção da enfermagem (estrelas 1-5)
+  quest5?: string | null   // Acesso a equipe médica e enfermagem (estrelas 1-5)
+  quest6?: string | null   // Satisfação com o tratamento (estrelas 1-5)
+  quest7?: string | null   // NPS geral (0-10)
+  quest8?: string | null   // Deseja receber retorno? (1=Sim, 0=Não)
+  quest9?: string | null   // Comentário livre
   data_resposta: string | null
   cd_estabelecimento: string
   reply: boolean
@@ -251,17 +253,8 @@ export interface IOptionsFilterTratamento {
 export type IOptionsFilterTratamentoQuests = Exclude<keyof IOptionsFilterTratamento, 'onlyComments'>
 
 // --- Quimio (NPS Tratamento - GetListNpsTratamentos) ---
-
-export interface IRatingQuimio extends IRatingTratamento {
-  // quest1: Facilidade de agendamento (stars)
-  // quest2: Atendimento na recepção (stars)
-  // quest3: Tempo de espera (stars)
-  // quest4: Acolhimento e atenção da enfermagem (stars)
-  // quest5: Acesso a equipe médica e enfermagem (stars)
-  // quest6: Satisfação com o tratamento (stars)
-  // quest7: NPS (0-10)
-  quest8?: string | null  // Deseja receber retorno?
-}
+// IRatingQuimio é o mesmo que IRatingTratamento (quest1-quest9)
+export type IRatingQuimio = IRatingTratamento
 
 export interface IOptionsFilterQuimio {
   onlyComments?: boolean
@@ -354,6 +347,13 @@ export type IOptionsFilterRecepcionistasQuests = Exclude<keyof IOptionsFilterRec
 export interface ICustomMessageRecepcionistas {
   npsId: string
   customMessage: string
+  fone: string
+}
+
+export interface ICustomMessage72hRecepcionistas {
+  npsId: string
+  situacao: string
+  message: string
   fone: string
 }
 

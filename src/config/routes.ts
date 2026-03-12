@@ -7,6 +7,7 @@ import {
   BarChart2,
   Activity,
   ClipboardCheck,
+  Timer,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -116,6 +117,20 @@ export const routes: Route[] = [
     component: 'EvolucaoPaciente',
     visible: true,
     roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor', 'Doctors', 'Nursing']
+  },
+
+  // Stopwatch Hospitalar
+  {
+    path: '/stopwatchH',
+    name: 'Stopwatch',
+    icon: Timer,
+    iconColor: 'Warning',
+    layout: '/admin',
+    private: false,
+    search: true,
+    component: 'StopwatchH',
+    visible: true,
+    roles: ['default_fullstackdev', 'Administrador', 'Gerencial', 'Diretor', 'Nursing', 'Doctors']
   },
 
   // NPS - Net Promoter Score (página unificada)

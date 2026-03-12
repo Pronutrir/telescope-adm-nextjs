@@ -128,7 +128,7 @@ export function useQuimioList() {
   // --- Filter logic ---
   function filterRatings(ratings: IRatingQuimio[], opts: IOptionsFilterQuimio) {
     return ratings.filter((r) => {
-      if (opts.onlyComments && !r.quest7) return false
+      if (opts.onlyComments && !r.quest9) return false
       if (opts.unidade?.length && !opts.unidade.includes(r.cd_estabelecimento)) return false
       if (opts.profissional?.length && !opts.profissional.includes(r.cd_medico)) return false
       if (opts.convenio?.length && !opts.convenio.includes(r.cd_convenio)) return false
@@ -168,7 +168,7 @@ export function useQuimioList() {
     isFetching: listQuery.isFetching, isSuccess: listQuery.isSuccess,
     medicos: medicosQ.data ?? [], convenios: conveniosQ.data ?? [],
     isLoadingSend: sendMessagesMut.isPending,
-    isLoadingModal: sendCustomMut.isPending || classificationMut.isPending,
+    isLoadingModal: sendCustomMut.isPending || sendCustom72hMut.isPending || classificationMut.isPending,
     handleSearch, handleRequestSort, isSelected, isCheckedAll,
     handleSelected, handleSelectedAll, handleOpenModal, handleCloseModal,
     handleSendMessages: () => sendMessagesMut.mutateAsync(),

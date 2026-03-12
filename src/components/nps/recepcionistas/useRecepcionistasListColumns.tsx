@@ -15,7 +15,7 @@ interface ColumnDeps {
   handleSelected: (item: IRatingRecepcionistas) => void
   handleSelectedAll: (checked: boolean, data: IRatingRecepcionistas[]) => void
   handleRequestSort: (property: keyof IRatingRecepcionistas) => void
-  handleOpenModal: (type: 'classification' | 'answer', data: IRatingRecepcionistas) => void
+  handleOpenModal: (type: 'classification' | 'answer' | 'answer72h', data: IRatingRecepcionistas) => void
 }
 
 export function useRecepcionistasListColumns(deps: ColumnDeps): NpsColumn<IRatingRecepcionistas>[] {
@@ -95,16 +95,19 @@ export function useRecepcionistasListColumns(deps: ColumnDeps): NpsColumn<IRatin
     },
     {
       id: 'acao', label: '', align: 'center', sticky: true, stickyRight: 0, minWidth: 60,
-      renderValue: (row) => (
-        <button
-          disabled={row.reply || row.isExpired || !row.fone}
-          title={row.reply || row.isExpired ? 'Não disponível' : 'Escrever mensagem personalizada'}
-          onClick={() => handleOpenModal('answer', row)}
-          className="rounded p-1 text-white transition-colors hover:bg-gray-600 disabled:opacity-30"
-        >
-          <PenSquare size={18} />
-        </button>
-      ),
+      renderValue: (row) => {
+        const is24h = !row.isExpired
+        return (
+          <button
+            disabled={row.reply || !row.fone}
+            title={row.reply ? 'Já respondido' : !row.fone ? 'Sem telefone' : is24h ? 'Resposta 24h' : 'Resposta 72h'}
+            onClick={() => handleOpenModal(is24h ? 'answer' : 'answer72h', row)}
+            className="rounded p-1 text-white transition-colors hover:bg-gray-600 disabled:opacity-30"
+          >
+            <PenSquare size={18} />
+          </button>
+        )
+      },
     },
   ], [data, selected, isSelected, isCheckedAll, handleSelected, handleSelectedAll, handleOpenModal])
 }

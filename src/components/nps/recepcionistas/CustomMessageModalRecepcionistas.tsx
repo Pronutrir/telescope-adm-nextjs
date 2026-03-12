@@ -7,6 +7,35 @@ import type { IRatingRecepcionistas, DialogType } from '@/types/nps'
 import { renderClassificationName, renderSubclassificationName } from '../npsHelpers'
 import { useCustomMessageModalRecepcionistas } from './useCustomMessageModalRecepcionistas'
 
+// --- Templates 72h ---
+
+const TEMPLATES_72H = [
+  {
+    key: 'elogio_promotor',
+    label: 'Elogio (Promotor)',
+    situacao: 'sua experiência positiva',
+    message: 'Ficamos muito felizes em saber que você teve um bom atendimento!',
+  },
+  {
+    key: 'reclamacao_detrator',
+    label: 'Reclamação (Detrator)',
+    situacao: 'os pontos de melhoria',
+    message: 'Sentimos muito que sua experiência não tenha sido boa. Estamos analisando o seu relato com as áreas envolvidas com prioridade.',
+  },
+  {
+    key: 'duvida_tecnica',
+    label: 'Dúvida Técnica',
+    situacao: 'sua dúvida enviada',
+    message: 'Nossa equipe técnica vai analisar o seu relato e te dará um retorno detalhado em breve.',
+  },
+  {
+    key: 'generico',
+    label: 'Genérico',
+    situacao: 'seu feedback',
+    message: 'Agradecemos por nos ajudar a melhorar nossos processos continuamente.',
+  },
+]
+
 interface Props {
   open: boolean
   title: string
@@ -14,11 +43,12 @@ interface Props {
   onClose: () => void
   dataSend: IRatingRecepcionistas | null
   sendCustomMessage: (message: string, item: IRatingRecepcionistas) => Promise<unknown>
+  sendCustomMessage72h: (payload: { npsId: string; situacao: string; message: string; fone: string }) => Promise<unknown>
   sendClassification: (classification: string, subclassification: string | null, item: IRatingRecepcionistas) => Promise<unknown>
   isLoading: boolean
 }
 
-export function CustomMessageModalRecepcionistas({ open, title, type, onClose, dataSend, sendCustomMessage, sendClassification, isLoading }: Props) {
+export function CustomMessageModalRecepcionistas({ open, title, type, onClose, dataSend, sendCustomMessage, sendCustomMessage72h, sendClassification, isLoading }: Props) {
   const hook = useCustomMessageModalRecepcionistas(dataSend)
 
   if (!open) return null
@@ -34,108 +64,223 @@ export function CustomMessageModalRecepcionistas({ open, title, type, onClose, d
 
         <div className="px-6 py-4">
           {type === 'answer' && (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-700 dark:text-gray-300"><b>Cliente:</b> {dataSend?.name}</p>
-              <p className="text-sm text-gray-300"><b>Comentário:</b> {dataSend?.resp2}</p>
-              <textarea
-                placeholder="Escreva uma mensagem personalizada..."
-                value={hook.message}
-                onChange={(e) => hook.setMessage(e.target.value)}
-                rows={4}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:outline-none"
-              />
-              <div className="flex justify-end">
-                <ActionButton
-                  label="Enviar mensagem"
-                  disabled={!hook.message}
-                  onClick={async () => {
-                    if (hook.message && dataSend) {
-                      await sendCustomMessage(hook.message, dataSend)
-                      hook.setMessage('')
-                    }
-                  }}
-                  isLoading={isLoading}
-                />
-              </div>
-            </div>
+            <ContentAnswer24h
+              dataSend={dataSend}
+              message={hook.message}
+              setMessage={hook.setMessage}
+              onSend={async () => {
+                if (hook.message && dataSend) {
+                  await sendCustomMessage(hook.message, dataSend)
+                  hook.setMessage('')
+                }
+              }}
+              isLoading={isLoading}
+            />
+          )}
+
+          {type === 'answer72h' && (
+            <ContentAnswer72h
+              dataSend={dataSend}
+              situacao={hook.situacao}
+              setSituacao={hook.setSituacao}
+              message={hook.message72h}
+              setMessage={hook.setMessage72h}
+              templatePreset={hook.templatePreset}
+              setTemplatePreset={hook.setTemplatePreset}
+              onSend={async () => {
+                if (dataSend && hook.situacao && hook.message72h) {
+                  await sendCustomMessage72h({
+                    npsId: dataSend.id,
+                    situacao: hook.situacao,
+                    message: hook.message72h,
+                    fone: dataSend.fone ?? '',
+                  })
+                  hook.setSituacao('')
+                  hook.setMessage72h('')
+                }
+              }}
+              isLoading={isLoading}
+            />
           )}
 
           {type === 'classification' && (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-700 dark:text-gray-300"><b>Cliente:</b> {dataSend?.name}</p>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Classificação</label>
-                <select
-                  value={hook.classification}
-                  onChange={(e) => { hook.setClassification(e.target.value); hook.setSubClassification('') }}
-                  className="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white"
-                >
-                  <option value="">Selecione</option>
-                  {hook.classificationsQuery.data?.map((c, idx) => (
-                    <option key={`${c.dominio_Id}-${idx}`} value={c.vl_Dominio}>{c.ds_Valor_Dominio}</option>
-                  ))}
-                </select>
-              </div>
-              {hook.classification && (
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Subclassificação</label>
-                  {hook.subclassificationsQuery.isLoading ? (
-                    <Loader2 className="animate-spin text-gray-400" size={20} />
-                  ) : (
-                    <select
-                      value={hook.subClassification}
-                      onChange={(e) => hook.setSubClassification(e.target.value)}
-                      className="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white"
-                    >
-                      <option value="">Selecione</option>
-                      {hook.subclassificationsQuery.data?.map((s, idx) => (
-                        <option key={`${s.dominio_Id}-${idx}`} value={s.vl_Dominio}>{s.ds_Valor_Dominio}</option>
-                      ))}
-                    </select>
-                  )}
-                </div>
-              )}
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Histórico</label>
-                <div className="max-h-[200px] space-y-2 overflow-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600">
-                  {hook.historicQuery.isLoading && (
-                    <div className="flex justify-center py-4">
-                      <Loader2 className="animate-spin text-gray-400" size={32} />
-                    </div>
-                  )}
-                  {hook.historicQuery.data && hook.historicQuery.data.length > 0
-                    ? hook.historicQuery.data.map((h) => (
-                        <div key={h.id} className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#252d45] px-3 py-2">
-                          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600 dark:text-[#73808D]">
-                            <span><b>Classificação:</b> {renderClassificationName(h.classification)}</span>
-                            <span><b>Motivo:</b> {renderSubclassificationName(h.subclassification)}</span>
-                            <span><b>Data:</b> {moment(h.dt_Register).format('DD/MM/YYYY HH:mm')}</span>
-                          </div>
-                        </div>
-                      ))
-                    : !hook.historicQuery.isLoading && (
-                        <p className="py-4 text-center text-sm text-gray-500">Não há dados a serem exibidos</p>
-                      )}
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <ActionButton
-                  label="Salvar Classificação"
-                  disabled={!hook.classification}
-                  onClick={async () => {
-                    if (hook.classification && dataSend) {
-                      await sendClassification(hook.classification, hook.subClassification || null, dataSend)
-                      hook.setClassification('')
-                      hook.setSubClassification('')
-                      hook.historicQuery.refetch()
-                    }
-                  }}
-                  isLoading={isLoading}
-                />
-              </div>
-            </div>
+            <ContentClassification
+              dataSend={dataSend}
+              hook={hook}
+              onSend={async () => {
+                if (hook.classification && dataSend) {
+                  await sendClassification(hook.classification, hook.subClassification || null, dataSend)
+                  hook.setClassification('')
+                  hook.setSubClassification('')
+                  hook.historicQuery.refetch()
+                }
+              }}
+              isLoading={isLoading}
+            />
           )}
         </div>
+      </div>
+    </div>
+  )
+}
+
+// --- 24h Content ---
+
+function ContentAnswer24h({
+  dataSend, message, setMessage, onSend, isLoading,
+}: {
+  dataSend: IRatingRecepcionistas | null; message: string; setMessage: (v: string) => void
+  onSend: () => Promise<void>; isLoading: boolean
+}) {
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-gray-700 dark:text-gray-300"><b>Cliente:</b> {dataSend?.name}</p>
+      <p className="text-sm text-gray-700 dark:text-gray-300"><b>Comentário:</b> {dataSend?.resp2}</p>
+      <textarea
+        placeholder="Escreva uma mensagem personalizada..."
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        rows={4}
+        className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+      />
+      <div className="flex justify-end">
+        <ActionButton label="Enviar mensagem" disabled={!message} onClick={onSend} isLoading={isLoading} />
+      </div>
+    </div>
+  )
+}
+
+// --- 72h Content ---
+
+function ContentAnswer72h({
+  dataSend, situacao, setSituacao, message, setMessage,
+  templatePreset, setTemplatePreset, onSend, isLoading,
+}: {
+  dataSend: IRatingRecepcionistas | null; situacao: string; setSituacao: (v: string) => void
+  message: string; setMessage: (v: string) => void
+  templatePreset: string; setTemplatePreset: (v: string) => void
+  onSend: () => Promise<void>; isLoading: boolean
+}) {
+  function handleSelectTemplate(key: string) {
+    setTemplatePreset(key)
+    const t = TEMPLATES_72H.find((t) => t.key === key)
+    if (t) { setSituacao(t.situacao); setMessage(t.message) }
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-md border border-yellow-500/40 dark:border-yellow-600/40 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-2 text-sm text-yellow-700 dark:text-yellow-300">
+        Resposta após 24h (janela 72h). Você pode usar um modelo ou escrever do zero.
+      </div>
+      <p className="text-sm text-gray-700 dark:text-gray-300"><b>Cliente:</b> {dataSend?.name}</p>
+      <p className="text-sm text-gray-700 dark:text-gray-300"><b>Comentário:</b> {dataSend?.resp2}</p>
+
+      <select
+        value={templatePreset}
+        onChange={(e) => handleSelectTemplate(e.target.value)}
+        className="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white"
+      >
+        <option value="">Selecione um modelo</option>
+        {TEMPLATES_72H.map((t) => (
+          <option key={t.key} value={t.key}>{t.label}</option>
+        ))}
+      </select>
+
+      <input
+        type="text"
+        placeholder='Situação (ex.: "seu feedback")'
+        value={situacao}
+        onChange={(e) => setSituacao(e.target.value)}
+        className="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+      />
+      <textarea
+        placeholder="Escreva uma mensagem personalizada..."
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        rows={3}
+        className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+      />
+      <div className="flex justify-end">
+        <ActionButton label="Enviar mensagem" disabled={!situacao || !message} onClick={onSend} isLoading={isLoading} />
+      </div>
+    </div>
+  )
+}
+
+// --- Classification Content ---
+
+function ContentClassification({
+  dataSend, hook, onSend, isLoading,
+}: {
+  dataSend: IRatingRecepcionistas | null
+  hook: ReturnType<typeof useCustomMessageModalRecepcionistas>
+  onSend: () => Promise<void>; isLoading: boolean
+}) {
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-gray-700 dark:text-gray-300"><b>Cliente:</b> {dataSend?.name}</p>
+      <div>
+        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Classificação</label>
+        <select
+          value={hook.classification}
+          onChange={(e) => { hook.setClassification(e.target.value); hook.setSubClassification('') }}
+          className="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white"
+        >
+          <option value="">Selecione</option>
+          {hook.classificationsQuery.data?.map((c, idx) => (
+            <option key={`${c.dominio_Id}-${idx}`} value={c.vl_Dominio}>{c.ds_Valor_Dominio}</option>
+          ))}
+        </select>
+      </div>
+      {hook.classification && (
+        <div>
+          <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Subclassificação</label>
+          {hook.subclassificationsQuery.isLoading ? (
+            <Loader2 className="animate-spin text-gray-400" size={20} />
+          ) : (
+            <select
+              value={hook.subClassification}
+              onChange={(e) => hook.setSubClassification(e.target.value)}
+              className="w-full rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white"
+            >
+              <option value="">Selecione</option>
+              {hook.subclassificationsQuery.data?.map((s, idx) => (
+                <option key={`${s.dominio_Id}-${idx}`} value={s.vl_Dominio}>{s.ds_Valor_Dominio}</option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
+      <div>
+        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Histórico</label>
+        <div className="max-h-[200px] space-y-2 overflow-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600">
+          {hook.historicQuery.isLoading && (
+            <div className="flex justify-center py-4">
+              <Loader2 className="animate-spin text-gray-400" size={32} />
+            </div>
+          )}
+          {hook.historicQuery.data && hook.historicQuery.data.length > 0
+            ? hook.historicQuery.data.map((h) => (
+                <div key={h.id} className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#252d45] px-3 py-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600 dark:text-[#73808D]">
+                    <span><b>Classificação:</b> {renderClassificationName(h.classification)}</span>
+                    <span><b>Motivo:</b> {renderSubclassificationName(h.subclassification)}</span>
+                    <span><b>Data:</b> {moment(h.dt_Register).format('DD/MM/YYYY HH:mm')}</span>
+                  </div>
+                </div>
+              ))
+            : !hook.historicQuery.isLoading && (
+                <p className="py-4 text-center text-sm text-gray-500">Não há dados a serem exibidos</p>
+              )}
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <ActionButton
+          label="Salvar Classificação"
+          disabled={!hook.classification}
+          onClick={onSend}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   )

@@ -54,6 +54,12 @@ export function useRecepcionistasList() {
     onError: () => showError('Erro ao enviar mensagem'),
   })
 
+  const sendCustom72hMut = useMutation({
+    mutationFn: recepcionistasService.postCustomMessage72h,
+    onSuccess: () => { listQuery.refetch(); showSuccess('Mensagem 72h enviada'); handleCloseModal() },
+    onError: () => showError('Erro ao enviar mensagem 72h'),
+  })
+
   const classificationMut = useMutation({
     mutationFn: recepcionistasService.postClassification,
     onSuccess: () => { listQuery.refetch(); showSuccess('Classificação salva') },
@@ -100,11 +106,12 @@ export function useRecepcionistasList() {
 
   const handleOpenModal = useCallback((type: DialogType, data?: IRatingRecepcionistas) => {
     if (!data || type === 'default') return
-    const titles: Record<Exclude<DialogType, 'default' | 'answer72h'>, string> = {
-      answer: 'Mensagem personalizada',
+    const titles: Record<Exclude<DialogType, 'default'>, string> = {
+      answer: 'Mensagem personalizada - 24h',
+      answer72h: 'Mensagem personalizada - 72h',
       classification: 'Classificação da avaliação',
     }
-    setModalControl({ open: true, type, title: titles[type as keyof typeof titles] ?? '' })
+    setModalControl({ open: true, type, title: titles[type] })
     setCustomMessageData(data)
   }, [])
 
@@ -174,12 +181,13 @@ export function useRecepcionistasList() {
     isFetching: listQuery.isFetching, isSuccess: listQuery.isSuccess,
     recepcionistas, locais,
     isLoadingSend: sendMessagesMut.isPending,
-    isLoadingModal: sendCustomMut.isPending || classificationMut.isPending,
+    isLoadingModal: sendCustomMut.isPending || sendCustom72hMut.isPending || classificationMut.isPending,
     handleSearch, handleRequestSort, isSelected, isCheckedAll,
     handleSelected, handleSelectedAll, handleOpenModal, handleCloseModal,
     handleSendMessages: () => sendMessagesMut.mutateAsync(),
     sendCustomMessage: async (message: string, item: IRatingRecepcionistas) =>
       sendCustomMut.mutateAsync({ npsId: item.id, customMessage: message, fone: item.fone! }),
+    sendCustomMessage72h: sendCustom72hMut.mutateAsync,
     sendClassification: async (classification: string, subclassification: string | null, item: IRatingRecepcionistas) =>
       classificationMut.mutateAsync({ classification, subclassification, npsId: item.id }),
     handleChangeFilter, handleSetAll, calcPercent,
