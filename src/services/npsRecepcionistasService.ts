@@ -3,6 +3,7 @@ import type {
   IResponseRecepcionistas,
   IRatingRecepcionistas,
   ICustomMessageRecepcionistas,
+  ICustomMessage72hRecepcionistas,
   IClassificationParamsRecepcionistas,
   IClassificationResultRecepcionistas,
   IDominio,
@@ -33,6 +34,12 @@ export async function postCustomMessage({ npsId, customMessage, fone }: ICustomM
     recipientPhoneNumber: fone,
     message: customMessage,
   })
+}
+
+export async function postCustomMessage72h({ npsId, situacao, message, fone }: ICustomMessage72hRecepcionistas) {
+  return ApiNotify.post('Nps/SendTemplateNpsResponseAgendaConsultaMessageWhatsapp', [
+    { npsConsultaId: npsId, situacao, message, fone },
+  ])
 }
 
 export async function postClassification({ classification, subclassification, npsId }: IClassificationParamsRecepcionistas) {

@@ -98,6 +98,7 @@ const RecepcionistasList = () => {
           onClose={hook.handleCloseModal}
           dataSend={hook.customMessageData}
           sendCustomMessage={hook.sendCustomMessage}
+          sendCustomMessage72h={hook.sendCustomMessage72h}
           sendClassification={hook.sendClassification}
           isLoading={hook.isLoadingModal}
         />
