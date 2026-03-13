@@ -1,19 +1,13 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { useTheme } from '@/contexts/ThemeContext'
 import { AutocompletePessoa } from '@/components/pdf/AutocompletePessoa'
 import { RichTextEditor } from '@/components/ui/RichTextEditor'
-import { 
-    listarEspecialidades, 
-    listarTiposEvolucao, 
-    criarEvolucaoPaciente,
-    listarTextosPadroesReduzidos,
-    obterTextoPadraoCompleto
-} from '@/app/actions/tasy'
-import type { Especialidade, TipoEvolucao, PessoaFisica, TextoPadrao } from '@/types/tasy'
+import { cn } from '@/lib/utils'
 import { Save, AlertCircle, Loader2 } from 'lucide-react'
+import { useNovaEvolucaoModal } from './useNovaEvolucaoModal'
 
 interface NovaEvolucaoModalProps {
     isOpen: boolean
@@ -23,328 +17,129 @@ interface NovaEvolucaoModalProps {
     pacienteNome: string
 }
 
+const inputBase = 'w-full p-2.5 rounded-xl border outline-none transition-all duration-200'
+const inputDark = 'bg-slate-900/80 border-slate-700 text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20'
+const inputLight = 'bg-white border-slate-200 text-slate-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20'
+const inputDisabledDark = 'disabled:bg-slate-800/60 disabled:text-slate-500'
+const inputDisabledLight = 'disabled:bg-slate-100 disabled:text-slate-400'
+
 export const NovaEvolucaoModal: React.FC<NovaEvolucaoModalProps> = ({
-    isOpen,
-    onClose,
-    onSuccess,
-    pacienteId,
-    pacienteNome
+    isOpen, onClose, onSuccess, pacienteId, pacienteNome,
 }) => {
     const { isDark } = useTheme()
-    
-    // Estados do formulário
-    const [dataEvolucao, setDataEvolucao] = useState('')
-    const [medico, setMedico] = useState<PessoaFisica | null>(null)
-    const [especialidadeId, setEspecialidadeId] = useState<number | string | ''>('')
-    const [tipoEvolucaoId, setTipoEvolucaoId] = useState<number | string | ''>('')
-    const [descricao, setDescricao] = useState('')
-    
-    // Estados de dados auxiliares
-    const [especialidades, setEspecialidades] = useState<Especialidade[]>([])
-    const [tiposEvolucao, setTiposEvolucao] = useState<TipoEvolucao[]>([])
-    const [textosPadroes, setTextosPadroes] = useState<TextoPadrao[]>([])
-    const [textoPadraoSelecionado, setTextoPadraoSelecionado] = useState<number | ''>('')
-    
-    // Estados de controle
-    const [isLoading, setIsLoading] = useState(false)
-    const [isLoadingTextos, setIsLoadingTextos] = useState(false)
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [error, setError] = useState<string | null>(null)
-
-    // Carregar dados auxiliares ao abrir
-    useEffect(() => {
-        if (isOpen) {
-            loadAuxiliaryData()
-            // Reset form
-            setDataEvolucao(new Date().toISOString().slice(0, 16)) // Current datetime-local format
-            setMedico(null)
-            setEspecialidadeId('')
-            setTipoEvolucaoId('')
-            setTextoPadraoSelecionado('')
-            setTextosPadroes([])
-            setDescricao('')
-            setError(null)
-        }
-    }, [isOpen])
-
-    // Carregar textos padrões quando o tipo de evolução mudar
-    useEffect(() => {
-        if (tipoEvolucaoId) {
-            // Agora aceitamos string ou number, pois a API suporta ambos
-            loadTextosPadroes(tipoEvolucaoId)
-        } else {
-            setTextosPadroes([])
-            setTextoPadraoSelecionado('')
-        }
-    }, [tipoEvolucaoId])
-
-    const loadAuxiliaryData = async () => {
-        setIsLoading(true)
-        try {
-            const [espResponse, tipoResponse] = await Promise.all([
-                listarEspecialidades(),
-                listarTiposEvolucao()
-            ])
-
-            if (espResponse.sucesso) setEspecialidades(espResponse.especialidades)
-            if (tipoResponse.sucesso) setTiposEvolucao(tipoResponse.tipos)
-        } catch (err) {
-            console.error('Erro ao carregar dados auxiliares:', err)
-            setError('Erro ao carregar listas de seleção.')
-        } finally {
-            setIsLoading(false)
-        }
-    }
-
-    const loadTextosPadroes = async (tipoId: number | string) => {
-        setIsLoadingTextos(true)
-        try {
-            const response = await listarTextosPadroesReduzidos(tipoId)
-            if (response.sucesso) {
-                setTextosPadroes(response.textos)
-            }
-        } catch (err) {
-            console.error('Erro ao carregar textos padrões:', err)
-        } finally {
-            setIsLoadingTextos(false)
-        }
-    }
-
-    const handleTextoPadraoChange = async (sequencia: number) => {
-        setTextoPadraoSelecionado(sequencia || '')
-        if (!sequencia) return
-
-        setIsLoadingTextos(true)
-        try {
-            const response = await obterTextoPadraoCompleto(sequencia)
-            if (response.sucesso && response.texto?.texto) {
-                setDescricao(response.texto.texto)
-            }
-        } catch (err) {
-            console.error('Erro ao carregar conteúdo do texto padrão:', err)
-            setError('Erro ao carregar o texto padrão selecionado.')
-        } finally {
-            setIsLoadingTextos(false)
-        }
-    }
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!medico || !especialidadeId || !tipoEvolucaoId || !descricao || !dataEvolucao) {
-            setError('Por favor, preencha todos os campos obrigatórios.')
-            return
-        }
-
-        setIsSubmitting(true)
-        setError(null)
-
-        try {
-            const response = await criarEvolucaoPaciente({
-                dataEvolucao: new Date(dataEvolucao).toISOString(),
-                medicoId: Number(medico.id),
-                especialidadeId: especialidadeId,
-                tipoEvolucaoId: tipoEvolucaoId,
-                descricao,
-                pacienteId
-            })
-
-            if (response.sucesso) {
-                onSuccess()
-                onClose()
-            } else {
-                setError(response.erro || 'Erro ao salvar evolução.')
-            }
-        } catch (err) {
-            console.error('Erro ao salvar:', err)
-            setError('Ocorreu um erro inesperado ao salvar.')
-        } finally {
-            setIsSubmitting(false)
-        }
-    }
+    const h = useNovaEvolucaoModal(isOpen, pacienteId, onSuccess, onClose)
+    const ic = cn(inputBase, isDark ? inputDark : inputLight, isDark ? inputDisabledDark : inputDisabledLight)
+    const labelCls = cn('text-sm font-medium', isDark ? 'text-slate-300' : 'text-slate-600')
 
     return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            title="Nova Evolução"
-            size="xl"
-        >
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {error && (
-                    <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 flex items-center gap-2">
-                        <AlertCircle className="w-5 h-5" />
-                        <span className="text-sm">{error}</span>
+        <Modal isOpen={isOpen} onClose={onClose} title="Nova Evolução" size="xl">
+            <form onSubmit={h.handleSubmit} className="space-y-6">
+                {h.error && (
+                    <div className={cn(
+                        'flex items-center gap-2.5 p-3.5 rounded-xl border text-sm',
+                        isDark ? 'bg-red-500/10 border-red-500/30 text-red-300' : 'bg-red-50 border-red-200 text-red-700',
+                    )}>
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>{h.error}</span>
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Paciente (Read-only) */}
-                    <div className="space-y-2">
-                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Paciente
-                        </label>
-                        <div className={`h-[42px] px-2.5 flex items-center rounded-lg border ${isDark ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'}`}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div className="space-y-1.5">
+                        <span className={labelCls}>Paciente</span>
+                        <div className={cn(
+                            'h-[42px] px-3 flex items-center rounded-xl border text-sm',
+                            isDark ? 'bg-slate-800/60 border-slate-700 text-slate-400' : 'bg-slate-100 border-slate-200 text-slate-500',
+                        )}>
                             {pacienteNome}
                         </div>
                     </div>
 
-                    {/* Profissional */}
-                    <div className="space-y-2">
-                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Profissional <span className="text-red-500">*</span>
-                        </label>
+                    <div className="space-y-1.5">
+                        <span className={labelCls}>Profissional <span className="text-red-400">*</span></span>
                         <AutocompletePessoa
-                            value={medico?.nome || ''}
-                            onChange={(_, pessoa) => setMedico(pessoa || null)}
+                            value={h.medico?.nome || ''}
+                            onChange={(_, pessoa) => h.setMedico(pessoa || null)}
                             placeholder="Busque pelo nome..."
                             className="w-full"
                         />
                     </div>
 
-                    {/* Data da Evolução */}
-                    <div className="space-y-2">
-                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                            Data da Nota Clínica <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="datetime-local"
-                            value={dataEvolucao}
-                            onChange={(e) => setDataEvolucao(e.target.value)}
-                            className={`w-full p-2.5 rounded-lg border outline-none transition-colors ${
-                                isDark 
-                                    ? 'bg-gray-900 border-gray-700 text-white focus:border-blue-500' 
-                                    : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500'
-                            }`}
-                            required
-                        />
+                    <div className="space-y-1.5">
+                        <span className={labelCls}>Data da Nota Clínica <span className="text-red-400">*</span></span>
+                        <input type="datetime-local" value={h.dataEvolucao} onChange={(e) => h.setDataEvolucao(e.target.value)} className={ic} required />
                     </div>
 
-                    {/* Especialidade */}
-                    <div className="space-y-2">
-                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} flex items-center gap-2`}>
-                            Especialidade <span className="text-red-500">*</span>
-                            {isLoading && <Loader2 className="w-3 h-3 animate-spin text-blue-500" />}
-                        </label>
-                        <select
-                            value={especialidadeId}
-                            onChange={(e) => setEspecialidadeId(e.target.value === '' ? '' : e.target.value)}
-                            className={`w-full p-2.5 rounded-lg border outline-none transition-colors ${
-                                isDark 
-                                    ? 'bg-gray-900 border-gray-700 text-white focus:border-blue-500' 
-                                    : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500'
-                            }`}
-                            required
-                            disabled={isLoading}
-                        >
-                            <option value="">
-                                {isLoading ? 'Carregando...' : 'Selecione...'}
-                            </option>
-                            {especialidades.map(esp => (
-                                <option key={esp.id} value={esp.id}>{esp.descricao}</option>
-                            ))}
+                    <div className="space-y-1.5">
+                        <span className={cn(labelCls, 'flex items-center gap-2')}>
+                            Especialidade <span className="text-red-400">*</span>
+                            {h.isLoading && <Loader2 className="w-3 h-3 animate-spin text-cyan-500" />}
+                        </span>
+                        <select value={h.especialidadeId} onChange={(e) => h.setEspecialidadeId(e.target.value || '')} className={cn(ic, 'cursor-pointer')} required disabled={h.isLoading}>
+                            <option value="">{h.isLoading ? 'Carregando...' : 'Selecione...'}</option>
+                            {h.especialidades.map(esp => <option key={esp.id} value={esp.id}>{esp.descricao}</option>)}
                         </select>
                     </div>
 
-                    {/* Tipo de Evolução */}
-                    <div className="space-y-2">
-                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} flex items-center gap-2`}>
-                            Nota Clínica <span className="text-red-500">*</span>
-                            {isLoading && <Loader2 className="w-3 h-3 animate-spin text-blue-500" />}
-                        </label>
-                        <select
-                            value={tipoEvolucaoId}
-                            onChange={(e) => setTipoEvolucaoId(e.target.value === '' ? '' : e.target.value)}
-                            className={`w-full p-2.5 rounded-lg border outline-none transition-colors ${
-                                isDark 
-                                    ? 'bg-gray-900 border-gray-700 text-white focus:border-blue-500' 
-                                    : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500'
-                            }`}
-                            required
-                            disabled={isLoading}
-                        >
-                            <option value="">
-                                {isLoading ? 'Carregando...' : 'Selecione...'}
-                            </option>
-                            {tiposEvolucao.map(tipo => (
-                                <option key={tipo.id} value={tipo.id}>{tipo.descricao}</option>
-                            ))}
+                    <div className="space-y-1.5">
+                        <span className={cn(labelCls, 'flex items-center gap-2')}>
+                            Nota Clínica <span className="text-red-400">*</span>
+                            {h.isLoading && <Loader2 className="w-3 h-3 animate-spin text-cyan-500" />}
+                        </span>
+                        <select value={h.tipoEvolucaoId} onChange={(e) => h.setTipoEvolucaoId(e.target.value || '')} className={cn(ic, 'cursor-pointer')} required disabled={h.isLoading}>
+                            <option value="">{h.isLoading ? 'Carregando...' : 'Selecione...'}</option>
+                            {h.tiposEvolucao.map(t => <option key={t.id} value={t.id}>{t.descricao}</option>)}
                         </select>
                     </div>
 
-                    {/* Texto Padrão da Instituição */}
-                    <div className="space-y-2">
-                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} flex items-center gap-2`}>
+                    <div className="space-y-1.5">
+                        <span className={cn(labelCls, 'flex items-center gap-2')}>
                             Texto Padrão da Instituição
-                            {isLoadingTextos && <Loader2 className="w-3 h-3 animate-spin text-blue-500" />}
-                        </label>
+                            {h.isLoadingTextos && <Loader2 className="w-3 h-3 animate-spin text-cyan-500" />}
+                        </span>
                         <select
-                            value={textoPadraoSelecionado}
-                            onChange={(e) => handleTextoPadraoChange(e.target.value === '' ? 0 : Number(e.target.value))}
-                            className={`w-full p-2.5 rounded-lg border outline-none transition-colors ${
-                                isDark 
-                                    ? 'bg-gray-900 border-gray-700 text-white focus:border-blue-500 disabled:bg-gray-800 disabled:text-gray-500' 
-                                    : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-400'
-                            }`}
-                            disabled={isLoadingTextos || !tipoEvolucaoId || textosPadroes.length === 0}
+                            value={h.textoPadraoSelecionado}
+                            onChange={(e) => h.handleTextoPadraoChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                            className={cn(ic, 'cursor-pointer')}
+                            disabled={h.isLoadingTextos || !h.tipoEvolucaoId || h.textosPadroes.length === 0}
                         >
                             <option value="">
-                                {isLoadingTextos 
-                                    ? 'Carregando...' 
-                                    : !tipoEvolucaoId 
-                                        ? 'Selecione Nota...'
-                                        : textosPadroes.length === 0 
-                                            ? 'Nenhum modelo' 
-                                            : 'Selecione...'}
+                                {h.isLoadingTextos ? 'Carregando...' : !h.tipoEvolucaoId ? 'Selecione Nota...' : h.textosPadroes.length === 0 ? 'Nenhum modelo' : 'Selecione...'}
                             </option>
-                            {textosPadroes.map(texto => (
-                                <option key={texto.sequencia} value={texto.sequencia}>{texto.titulo}</option>
-                            ))}
+                            {h.textosPadroes.map(t => <option key={t.sequencia} value={t.sequencia}>{t.titulo}</option>)}
                         </select>
                     </div>
 
-                    {/* Descrição */}
-                    <div className="space-y-2 md:col-span-3">
-                        <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} flex items-center gap-2`}>
-                            Conteúdo da Evolução <span className="text-red-500">*</span>
-                            {isLoadingTextos && <Loader2 className="w-3 h-3 animate-spin text-blue-500" />}
-                        </label>
-                        <RichTextEditor
-                            value={descricao}
-                            onChange={setDescricao}
-                            placeholder="Digite o conteúdo da evolução..."
-                            disabled={isLoadingTextos}
-                        />
+                    <div className="space-y-1.5 md:col-span-3">
+                        <span className={cn(labelCls, 'flex items-center gap-2')}>
+                            Conteúdo da Evolução <span className="text-red-400">*</span>
+                            {h.isLoadingTextos && <Loader2 className="w-3 h-3 animate-spin text-cyan-500" />}
+                        </span>
+                        <RichTextEditor value={h.descricao} onChange={h.setDescricao} placeholder="Digite o conteúdo da evolução..." disabled={h.isLoadingTextos} />
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className={cn('flex justify-end gap-3 pt-4 border-t', isDark ? 'border-slate-700/50' : 'border-slate-200')}>
                     <button
                         type="button"
                         onClick={onClose}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            isDark 
-                                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                        disabled={isSubmitting}
+                        disabled={h.isSubmitting}
+                        className={cn(
+                            'px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer',
+                            isDark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+                        )}
                     >
                         Cancelar
                     </button>
                     <button
                         type="submit"
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={isSubmitting || isLoading}
+                        disabled={h.isSubmitting || h.isLoading}
+                        className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 flex items-center gap-2 cursor-pointer bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {isSubmitting ? (
-                            <>
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                Salvando...
-                            </>
+                        {h.isSubmitting ? (
+                            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Salvando...</>
                         ) : (
-                            <>
-                                <Save className="w-4 h-4" />
-                                Registrar Evolução
-                            </>
+                            <><Save className="w-4 h-4" /> Registrar Evolução</>
                         )}
                     </button>
                 </div>
