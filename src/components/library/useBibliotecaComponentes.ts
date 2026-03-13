@@ -5,10 +5,30 @@ import {
     LucideIcon,
     Users, Activity, TrendingUp, Clock,
     Monitor, Database, CheckCircle, AlertTriangle,
+    Settings, BarChart3, GripVertical, FileText, Layers2, ChevronDown,
+    Sparkles, Table2, LayoutGrid, GitBranch,
+    Command, Bell, CreditCard,
 } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useLayout } from '@/contexts/LayoutContext'
 import type { PDFItem } from '@/types/pdf'
+
+export const SECTION_CONFIG = {
+    contexts: { icon: Settings, color: 'text-violet-400' },
+    stats: { icon: BarChart3, color: 'text-blue-400' },
+    progress: { icon: Activity, color: 'text-emerald-400' },
+    sortable: { icon: GripVertical, color: 'text-amber-400' },
+    pdf: { icon: FileText, color: 'text-rose-400' },
+    modals: { icon: Layers2, color: 'text-cyan-400' },
+    dropdown: { icon: ChevronDown, color: 'text-indigo-400' },
+    premiumMetrics: { icon: Sparkles, color: 'text-fuchsia-400' },
+    modernTable: { icon: Table2, color: 'text-sky-400' },
+    bentoGrid: { icon: LayoutGrid, color: 'text-lime-400' },
+    activityTimeline: { icon: GitBranch, color: 'text-orange-400' },
+    commandPalette: { icon: Command, color: 'text-teal-400' },
+    notificationCenter: { icon: Bell, color: 'text-rose-400' },
+    pricingCards: { icon: CreditCard, color: 'text-yellow-400' },
+} as const
 
 export interface SortableItem {
     id: string

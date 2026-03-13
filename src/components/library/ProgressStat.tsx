@@ -1,7 +1,9 @@
 'use client'
 
 import React from 'react'
+import { motion } from 'framer-motion'
 import { LucideIcon } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface ProgressStatProps {
     title: string
@@ -17,230 +19,120 @@ interface ProgressStatProps {
     style?: React.CSSProperties
 }
 
+const COLOR_MAP = {
+    success: {
+        iconBg: { dark: 'bg-emerald-500/20', light: 'bg-emerald-100' },
+        iconText: { dark: 'text-emerald-400', light: 'text-emerald-600' },
+        bar: { dark: 'bg-emerald-500', light: 'bg-emerald-500' },
+        barTrack: { dark: 'bg-emerald-500/10', light: 'bg-emerald-100' },
+        pct: { dark: 'text-emerald-400', light: 'text-emerald-600' },
+    },
+    warning: {
+        iconBg: { dark: 'bg-orange-500/20', light: 'bg-orange-100' },
+        iconText: { dark: 'text-orange-400', light: 'text-orange-600' },
+        bar: { dark: 'bg-orange-400', light: 'bg-orange-500' },
+        barTrack: { dark: 'bg-orange-400/10', light: 'bg-orange-100' },
+        pct: { dark: 'text-orange-400', light: 'text-orange-600' },
+    },
+    error: {
+        iconBg: { dark: 'bg-red-500/20', light: 'bg-red-100' },
+        iconText: { dark: 'text-red-400', light: 'text-red-600' },
+        bar: { dark: 'bg-red-500', light: 'bg-red-500' },
+        barTrack: { dark: 'bg-red-500/10', light: 'bg-red-100' },
+        pct: { dark: 'text-red-400', light: 'text-red-600' },
+    },
+    info: {
+        iconBg: { dark: 'bg-sky-500/20', light: 'bg-sky-100' },
+        iconText: { dark: 'text-sky-400', light: 'text-sky-600' },
+        bar: { dark: 'bg-sky-500', light: 'bg-sky-500' },
+        barTrack: { dark: 'bg-sky-500/10', light: 'bg-sky-100' },
+        pct: { dark: 'text-sky-400', light: 'text-sky-600' },
+    },
+    primary: {
+        iconBg: { dark: 'bg-blue-500/20', light: 'bg-blue-100' },
+        iconText: { dark: 'text-blue-400', light: 'text-blue-600' },
+        bar: { dark: 'bg-blue-500', light: 'bg-blue-500' },
+        barTrack: { dark: 'bg-blue-500/10', light: 'bg-blue-100' },
+        pct: { dark: 'text-blue-400', light: 'text-blue-600' },
+    },
+} as const
+
+const SIZE_MAP = {
+    sm: { pad: 'p-4', icon: 'w-10 h-10', iconPx: 18, title: 'text-sm', sub: 'text-xs', gap: 'gap-3' },
+    md: { pad: 'p-5', icon: 'w-12 h-12', iconPx: 22, title: 'text-base', sub: 'text-sm', gap: 'gap-4' },
+    lg: { pad: 'p-6', icon: 'w-14 h-14', iconPx: 26, title: 'text-lg', sub: 'text-base', gap: 'gap-4' },
+} as const
+
 const ProgressStat: React.FC<ProgressStatProps> = ({
-    title,
-    value,
-    total,
-    progress,
-    icon: Icon,
-    color = 'primary',
-    variant = 'default',
-    size = 'md',
-    className = '',
-    isDark = false,
-    style
+    title, value, total, progress, icon: Icon,
+    color = 'primary', variant = 'default', size = 'md',
+    className = '', isDark = false, style,
 }) => {
-    // Função para obter cores baseadas no tema (apenas para progresso e backgrounds)
-    const getColors = () => {
-        const colors = {
-            success: {
-                iconBg: isDark ? 'rgba(34, 197, 94, 0.2)' : 'rgba(34, 197, 94, 0.1)',
-                progress: isDark ? 'rgb(34, 197, 94)' : 'rgb(22, 163, 74)',
-                progressBg: isDark ? 'rgba(34, 197, 94, 0.1)' : 'rgba(34, 197, 94, 0.05)'
-            },
-            warning: {
-                iconBg: isDark ? 'rgba(251, 146, 60, 0.2)' : 'rgba(251, 146, 60, 0.1)',
-                progress: isDark ? 'rgb(251, 146, 60)' : 'rgb(234, 88, 12)',
-                progressBg: isDark ? 'rgba(251, 146, 60, 0.1)' : 'rgba(251, 146, 60, 0.05)'
-            },
-            error: {
-                iconBg: isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)',
-                progress: isDark ? 'rgb(239, 68, 68)' : 'rgb(220, 38, 38)',
-                progressBg: isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)'
-            },
-            info: {
-                iconBg: isDark ? 'rgba(14, 165, 233, 0.2)' : 'rgba(14, 165, 233, 0.1)',
-                progress: isDark ? 'rgb(14, 165, 233)' : 'rgb(2, 132, 199)',
-                progressBg: isDark ? 'rgba(14, 165, 233, 0.1)' : 'rgba(14, 165, 233, 0.05)'
-            },
-            primary: {
-                iconBg: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)',
-                progress: isDark ? 'rgb(59, 130, 246)' : 'rgb(37, 99, 235)',
-                progressBg: isDark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.05)'
-            }
-        }
-
-        return colors[ color ]
-    }
-
-    // Função para obter estilos baseados na variante
-    const getVariantStyles = () => {
-        getColors()
-
-        if (variant === 'telescope') {
-            return {
-                container: {
-                    backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                    border: isDark ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(59, 130, 246, 0.2)',
-                    borderRadius: '1rem',
-                    padding: size === 'sm' ? '1rem' : size === 'lg' ? '1.5rem' : '1.25rem',
-                    boxShadow: isDark
-                        ? '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1)'
-                        : '0 10px 15px -3px rgba(59, 130, 246, 0.1), 0 4px 6px -2px rgba(59, 130, 246, 0.05)',
-                    backdropFilter: 'blur(10px)',
-                    transition: 'all 0.3s ease-in-out'
-                },
-                title: {
-                    fontSize: size === 'sm' ? '1rem' : size === 'lg' ? '1.25rem' : '1.125rem',
-                    fontWeight: '600',
-                    color: isDark ? 'rgb(248, 250, 252)' : 'rgb(15, 23, 42)',
-                    marginBottom: '0.25rem'
-                },
-                subtitle: {
-                    fontSize: size === 'sm' ? '0.875rem' : '1rem',
-                    color: isDark ? 'rgb(148, 163, 184)' : 'rgb(71, 85, 105)',
-                    marginBottom: '0.75rem'
-                }
-            }
-        } else if (variant === 'modern') {
-            return {
-                container: {
-                    backgroundColor: isDark ? 'rgba(17, 24, 39, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-                    border: isDark ? '1px solid rgba(75, 85, 99, 0.3)' : '1px solid rgba(229, 231, 235, 0.8)',
-                    borderRadius: '0.75rem',
-                    padding: size === 'sm' ? '1rem' : size === 'lg' ? '1.5rem' : '1.25rem',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                    transition: 'all 0.3s ease-in-out'
-                },
-                title: {
-                    fontSize: size === 'sm' ? '1rem' : size === 'lg' ? '1.25rem' : '1.125rem',
-                    fontWeight: '600',
-                    color: isDark ? 'rgb(243, 244, 246)' : 'rgb(17, 24, 39)',
-                    marginBottom: '0.25rem'
-                },
-                subtitle: {
-                    fontSize: size === 'sm' ? '0.875rem' : '1rem',
-                    color: isDark ? 'rgb(156, 163, 175)' : 'rgb(107, 114, 128)',
-                    marginBottom: '0.75rem'
-                }
-            }
-        } else {
-            return {
-                container: {
-                    backgroundColor: isDark ? 'rgba(31, 41, 55, 0.9)' : 'rgba(248, 250, 252, 0.9)',
-                    border: isDark ? '1px solid rgba(75, 85, 99, 0.5)' : '1px solid rgba(203, 213, 225, 0.8)',
-                    borderRadius: '0.5rem',
-                    padding: size === 'sm' ? '1rem' : size === 'lg' ? '1.5rem' : '1.25rem',
-                    boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06)',
-                    transition: 'all 0.3s ease-in-out'
-                },
-                title: {
-                    fontSize: size === 'sm' ? '1rem' : size === 'lg' ? '1.25rem' : '1.125rem',
-                    fontWeight: '600',
-                    color: isDark ? 'rgb(229, 231, 235)' : 'rgb(31, 41, 55)',
-                    marginBottom: '0.25rem'
-                },
-                subtitle: {
-                    fontSize: size === 'sm' ? '0.875rem' : '1rem',
-                    color: isDark ? 'rgb(156, 163, 175)' : 'rgb(107, 114, 128)',
-                    marginBottom: '0.75rem'
-                }
-            }
-        }
-    }
-
-    const variantStyles = getVariantStyles()
-    const currentColors = getColors()
-    const iconSize = size === 'sm' ? 20 : size === 'lg' ? 28 : 24
-
-    const progressBarStyles: React.CSSProperties = {
-        width: '100%',
-        height: '0.5rem',
-        backgroundColor: currentColors.progressBg,
-        borderRadius: '0.25rem',
-        overflow: 'hidden',
-        position: 'relative'
-    }
-
-    const progressFillStyles: React.CSSProperties = {
-        width: `${Math.min(Math.max(progress, 0), 100)}%`,
-        height: '100%',
-        backgroundColor: currentColors.progress,
-        borderRadius: '0.25rem',
-        transition: 'width 0.5s ease-in-out'
-    }
-
-    const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-        const element = e.currentTarget
-        element.style.transform = 'translateY(-2px)'
-        if (variant === 'telescope') {
-            element.style.boxShadow = isDark
-                ? '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2)'
-                : '0 20px 25px -5px rgba(59, 130, 246, 0.2), 0 10px 10px -5px rgba(59, 130, 246, 0.1)'
-        }
-    }
-
-    const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-        const element = e.currentTarget
-        element.style.transform = 'translateY(0)'
-        element.style.boxShadow = variantStyles.container.boxShadow || ''
-    }
+    const t = isDark ? 'dark' : 'light'
+    const c = COLOR_MAP[color]
+    const s = SIZE_MAP[size]
+    const pct = Math.min(Math.max(progress, 0), 100)
 
     return (
         <div
-            className={className}
-            style={{
-                ...variantStyles.container,
-                ...style
-            }}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
+            className={cn(
+                'rounded-2xl border transition-all duration-300',
+                'hover:-translate-y-0.5',
+                s.pad,
+                variant === 'telescope' && isDark && 'bg-slate-950/90 border-blue-500/25 shadow-lg shadow-black/20 backdrop-blur-sm',
+                variant === 'telescope' && !isDark && 'bg-slate-100/80 border-blue-300/40 shadow-md shadow-blue-500/5',
+                variant === 'modern' && isDark && 'bg-slate-900/80 border-slate-700/40 shadow-md',
+                variant === 'modern' && !isDark && 'bg-slate-100/70 border-slate-300/70 shadow-sm',
+                variant === 'default' && isDark && 'bg-slate-800/70 border-slate-700/50 shadow-sm',
+                variant === 'default' && !isDark && 'bg-slate-50/90 border-slate-300/80 shadow-sm',
+                className,
+            )}
+            style={style}
         >
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                {/* Ícone */}
-                <div
-                    style={{
-                        width: size === 'sm' ? '2.5rem' : size === 'lg' ? '3.5rem' : '3rem',
-                        height: size === 'sm' ? '2.5rem' : size === 'lg' ? '3.5rem' : '3rem',
-                        backgroundColor: currentColors.iconBg,
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
-                    }}
-                >
-                    <Icon
-                        size={iconSize}
-                        className={`progressstat-icon progressstat-${color}-icon`}
-                    />
+            <div className={cn('flex items-start', s.gap)}>
+                {/* Icon */}
+                <div className={cn(
+                    'rounded-full flex items-center justify-center shrink-0',
+                    s.icon, c.iconBg[t],
+                )}>
+                    <Icon size={s.iconPx} className={c.iconText[t]} />
                 </div>
 
-                {/* Conteúdo */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    {/* Título */}
-                    <div style={variantStyles.title}>
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                    <div className={cn(
+                        'font-semibold truncate',
+                        s.title,
+                        isDark ? 'text-slate-100' : 'text-slate-800',
+                    )}>
                         {title}
                     </div>
-
-                    {/* Subtítulo */}
-                    <div style={variantStyles.subtitle}>
+                    <div className={cn(
+                        s.sub, 'mb-3',
+                        isDark ? 'text-slate-400' : 'text-slate-500',
+                    )}>
                         {value} of {total}
                     </div>
 
-                    {/* Barra de Progresso */}
+                    {/* Progress bar */}
                     <div
-                        style={progressBarStyles}
+                        className={cn('w-full h-2 rounded-full overflow-hidden', c.barTrack[t])}
                         role="progressbar"
                         aria-label={`${title} Progress`}
-                        aria-valuenow={progress}
+                        aria-valuenow={pct}
                         aria-valuemin={0}
                         aria-valuemax={100}
                     >
-                        <div style={progressFillStyles} />
+                        <motion.div
+                            className={cn('h-full rounded-full', c.bar[t])}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        />
                     </div>
 
-                    {/* Porcentagem */}
-                    <div
-                        style={{
-                            fontSize: '0.75rem',
-                            color: currentColors.progress,
-                            fontWeight: '500',
-                            marginTop: '0.5rem',
-                            textAlign: 'right'
-                        }}
-                    >
-                        {progress}%
+                    <div className={cn('text-xs font-medium mt-1.5 text-right', c.pct[t])}>
+                        {pct}%
                     </div>
                 </div>
             </div>

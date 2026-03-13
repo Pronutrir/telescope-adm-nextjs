@@ -1196,7 +1196,7 @@ const ComponentsExamples: React.FC = () => {
 
                 <div className="mb-8">
                     <div className="flex flex-wrap gap-4">
-                        <DropdownTest />
+                        <DropdownTest isDark={isDark} />
                     </div>
                 </div>
             </div>
