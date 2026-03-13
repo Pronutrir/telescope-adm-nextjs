@@ -195,22 +195,23 @@ export const AutocompletePessoa: React.FC<AutocompletePessoaProps> = ({
       {/* Dropdown de resultados */}
       {showDropdown && pessoas.length > 0 && (
         <div className={twMerge(
-          'absolute z-[100] w-full mt-2 rounded-lg border shadow-lg max-h-60 overflow-auto scrollbar-hidden',
+          'absolute z-[100] w-full mt-2 rounded-lg border shadow-lg max-h-72 overflow-auto scrollbar-hidden p-1.5',
           isDark
             ? 'bg-gray-800 border-gray-700'
             : 'bg-white border-gray-200'
         )}>
+          <div className="flex flex-col gap-1">
           {pessoas.map((pessoa) => (
             <button
               key={pessoa.id}
               type="button"
               onClick={() => handleSelectPessoa(pessoa)}
               className={twMerge(
-                'w-full px-4 py-3 text-left transition-all duration-200 flex items-center gap-4 group',
+                'w-full px-4 py-3.5 text-left transition-all duration-200 flex items-center gap-4 group rounded-lg',
                 'hover:pl-5',
                 isDark
-                  ? 'hover:bg-gray-700/80 border-b border-gray-700/50 last:border-0'
-                  : 'hover:bg-blue-50/80 border-b border-gray-100 last:border-0'
+                  ? 'hover:bg-gray-700/80'
+                  : 'hover:bg-blue-50/80'
               )}
             >
               <div className={twMerge(
@@ -260,6 +261,7 @@ export const AutocompletePessoa: React.FC<AutocompletePessoaProps> = ({
               )}
             </button>
           ))}
+          </div>
         </div>
       )}
 
